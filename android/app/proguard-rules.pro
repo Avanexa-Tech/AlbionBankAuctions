@@ -8,3 +8,16 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+-ignorewarnings
+-dontwarn android.os.ServiceManager*
+-dontwarn com.bun.miitmdid.core.MdidSdkHelper*
+-dontwarn com.bun.miitmdid.interfaces.IIdentifierListener*
+-dontwarn com.bun.miitmdid.interfaces.IdSupplier*
+-dontwarn com.google.firebase.iid.FirebaseInstanceId*
+-dontwarn com.google.firebase.iid.InstanceIdResult*
+-dontwarn com.huawei.hms.ads.identifier.AdvertisingIdClient$Info*
+-dontwarn com.huawei.hms.ads.identifier.AdvertisingIdClient*
+-dontwarn com.tencent.android.tpush.otherpush.OtherPushClient*
+-keep class io.invertase.firebase.** { *; }
+-dontwarn io.invertase.firebase.**
+

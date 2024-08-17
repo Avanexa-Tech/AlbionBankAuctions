@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "757275780956",
+    "project_id": "bank-auctions",
+    "storage_bucket": "bank-auctions.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:757275780956:android:494b1e463aeb5733484399",
+        "android_client_info": {
+          "package_name": "com.albionbankauctions"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPfNGtARj95rGuJDBg9MU0N6ERTbawNEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
