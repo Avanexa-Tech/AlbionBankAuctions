@@ -41,7 +41,7 @@ const OnboardingScreen2 = ({ navigation }) => {
       }}>
 
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Image source={{ uri: Media.OnboardingGif }} style={{ width: "100%", height: "100%", resizeMode: "contain" }} />
+        <Image source={require('../../assets/Gif/onboard.gif')} style={{ width: "100%", height: "100%", resizeMode: "contain" }} />
       </View>
 
       <View

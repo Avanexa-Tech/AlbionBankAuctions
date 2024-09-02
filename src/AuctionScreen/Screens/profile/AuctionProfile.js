@@ -27,6 +27,7 @@ import MIcon from 'react-native-vector-icons/MaterialIcons';
 import { Divider } from 'react-native-elements';
 import fetchData from '../../../Config/fetchData';
 import AuctionBottomLogin from '../../Auctioncomponents/AuctionBottomLogin';
+import { Linking } from 'react-native';
 
 const AuctionProfile = ({ navigation }) => {
   const routeName = useRoute();
@@ -192,7 +193,7 @@ const AuctionProfile = ({ navigation }) => {
             icon_color={'#666'}
           />
         </TouchableOpacity>
-        <Divider style={{ height: 1, marginVertical: 10 }} />      
+        <Divider style={{ height: 1, marginVertical: 10 }} />
 
         {id == undefined ||
           (Auction_userData?.length > 0 && Auction_userData == undefined) ? (
@@ -214,16 +215,21 @@ const AuctionProfile = ({ navigation }) => {
                   {
                     text: 'Yes',
                     onPress: async () => {
-                      const usersData = await fetchData.Auction_deleteData(
-                        data,
-                      );
-                      // console.log("deleted user ------------- :", usersData);
-                      if (usersData?.message == 'Success') {
-                        AsyncStorage.clear();
-                        navigation.replace('ActionLogin');
-                        dispatch(setActionUserData({}));
-                        dispatch(setLoginType(''));
-                      }
+                      Linking.openURL(`https://albionbankauctions.com/web/user/delete/${id}`,);
+                      AsyncStorage.clear();
+                      navigation.replace('ActionLogin');
+                      dispatch(setActionUserData({}));
+                      dispatch(setLoginType(''));
+                      // const usersData = await fetchData.Auction_deleteData(
+                      //   data,
+                      // );
+                      // if (usersData?.message == 'Success') {
+                      //   AsyncStorage.clear();
+                      //   navigation.replace('ActionLogin');
+                      //   dispatch(setActionUserData({}));
+                      //   dispatch(setLoginType(''));
+                      // }
+
                     },
                   },
                 ],

@@ -226,4 +226,8 @@ export default {
     let url = aution_api_name + 'login/delete_user'
     return api.AuctionpostMethod(url, data);
   },
+  Auction_eventBankData: data => {
+    let url = aution_api_name + 'auction/show'
+    return api.AuctionpostMethod(url, data);
+  },
 };

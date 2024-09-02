@@ -63,10 +63,25 @@ const ListScreen = ({ navigation, route }) => {
   const [district, setDistrict] = useState([]);
   const [AutionData, setAutionData] = useState([]);
 
+  useEffect(() => {
+    setLoading(true);
+    getApiData().finally(() => {
+      setLoading(false);
+    });
+  }, [
+    endDate,
+    selectProperty,
+    property_sub_category,
+    selectState,
+    currentDistrict,
+    event_bank,
+    sortdata
+  ]);
+
   const dataPayload = () => {
     const params = new URLSearchParams();
     const payload = {
-      property_sub_category: selectProperty?.value || property_sub_category,
+      property_sub_category: property_sub_category,
       event_bank: event_bank,
       state: selectState?.name,
       district: currentDistrict?.name,
@@ -92,6 +107,8 @@ const ListScreen = ({ navigation, route }) => {
     try {
       var data = dataPayload();
       const getAuction = await fetchData.get_Auction(data);
+      console.log("getAuction ========= : ",getAuction);
+      
       setAutionData(getAuction);
       //get State
       const getState = await fetchData.Auction_getState({});
@@ -104,21 +121,6 @@ const ListScreen = ({ navigation, route }) => {
       console.log('error', error);
     }
   };
-
-  useEffect(() => {
-    setLoading(true);
-    getApiData().finally(() => {
-      setLoading(false);
-    });
-  }, [
-    endDate,
-    selectProperty,
-    property_sub_category,
-    selectState,
-    currentDistrict,
-    event_bank,
-    sortdata
-  ]);
 
   const onDayPress = day => {
     if (isStartDatePicked == false) {
@@ -464,26 +466,26 @@ const ListScreen = ({ navigation, route }) => {
             loadMoreData();
           }}
           onEndReachedThreshold={0.1}
-          ListFooterComponent={() => {
-            return (
-              <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                {loadMore && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: Color.black,
-                        marginHorizontal: 10,
-                        fontFamily: Poppins.Medium,
-                      }}>
-                      Loading...
-                    </Text>
-                    <ActivityIndicator />
-                  </View>
-                )}
-              </View>
-            );
-          }}
+          // ListFooterComponent={() => {
+          //   return (
+          //     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+          //       {loadMore && (
+          //         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          //           <Text
+          //             style={{
+          //               fontSize: 12,
+          //               color: Color.black,
+          //               marginHorizontal: 10,
+          //               fontFamily: Poppins.Medium,
+          //             }}>
+          //             Loading...
+          //           </Text>
+          //           <ActivityIndicator />
+          //         </View>
+          //       )}
+          //     </View>
+          //   );
+          // }}
           ListEmptyComponent={() => {
             return (
               <View

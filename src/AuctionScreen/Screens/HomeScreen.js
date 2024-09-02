@@ -54,6 +54,7 @@ const AutionHomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [AuctionData, setAuctionData] = useState([]);
   const [TopBanks, setTopBanks] = useState([]);
+  const [eventBank, seteventBank] = useState([]);
   const routeName = useRoute();
 
   useEffect(() => {
@@ -90,14 +91,47 @@ const AutionHomeScreen = ({ navigation }) => {
       //Blogs
       const LatestNews = await fetchData.Blogs({});
       setLatestNews(LatestNews);
+
+      //Event Bank 
+      // var data = 'event_bank=' + "Albion India";
+      // const eventBankData = await fetchData.Auction_eventBankData({ data });
+
+      // seteventBank(eventBankData)
+
+
     } catch (error) {
       console.log('error', error);
     }
   };
+
+  const getEventBank = () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+
+      fetch("https://api.albionbankauctions.com/api/auction/show?event_bank=Albion India", requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          // console.log("SUCCESS ============== : ",result);
+          seteventBank(result)
+        })
+        .catch((error) => console.error(error));
+    } catch (error) {
+      console.log("catch in getEvent_Bank : ", error);
+    }
+  }
+
+
+
+
   const Auction_userData = useSelector(
     state => state.UserReducer.auctionUserData,
   );
   var { id, name, email, phone_number, state, district } = Auction_userData;
+  console.log("id ================== : ",id);
+  
   const animated = useRef(new Animated.Value(0)).current;
   // const tabBarHeight = useBottomTabBarHeight()
 
@@ -131,6 +165,7 @@ const AutionHomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     getAction_UserData();
+    getEventBank();
     setLoading(true);
     getApiData().finally(() => {
       setLoading(false);
@@ -292,6 +327,8 @@ const AutionHomeScreen = ({ navigation }) => {
                               <TouchableOpacity
                                 key={index}
                                 onPress={() => {
+                                  // console.log("Item ============== : ", item.value);
+
                                   navigation.navigate('ListScreen', {
                                     property_sub_category: item?.value,
                                     event_bank: '',
@@ -501,7 +538,7 @@ const AutionHomeScreen = ({ navigation }) => {
                         </View>
                       </View>
                       <FlatList
-                        data={AuctionData?.slice(0, 3)}
+                        data={AuctionData?.slice(0, 10)}
                         keyExtractor={(item, index) => item + index}
                         renderItem={({ item, index }) => {
                           return (
@@ -702,142 +739,75 @@ const AutionHomeScreen = ({ navigation }) => {
                       </View>
                     </View>
                   );
-                // case 'Latest News':
-                //   return (
-                //     <View style={{ marginVertical: 10,}}>
-                //       <View
-                //         style={{
-                //           flexDirection: 'row',
-                //           alignItems: 'flex-start',
-                //           marginVertical: 10,
-                //           marginHorizontal: 10,
-                //         }}>
-                //         <View style={{ flex: 1 }}>
-                //           <Text
-                //             style={{
-                //               fontSize: 16,
-                //               color: Color.black,
-                //               fontFamily: Poppins.SemiBold,
-                //             }}>
-                //             Latest News
-                //           </Text>
-                //         </View>
-                //       </View>
-                //       {LatestNews?.map((item, index) => {
-                //         return (
-                //           <TouchableOpacity
-                //             onPress={() => {
-                //               if (item?.blog_url != undefined) {
-                //                 Linking.openURL(item?.blog_url);
-                //               }
-                //             }}
-                //             key={index}
-                //             style={{
-                //               flexDirection: 'row',
-                //               padding: 5,
-                //               borderRadius: 5,
-                //               borderWidth: 1,
-                //               borderColor: Color.lightgrey,
-                //               backgroundColor: '#F5F5F5',
-                //               marginVertical: 5,
-                //               marginHorizontal: 10,
-                //             }}>
-                //             {item?.blog_image?.length != '' ? (
-                //               <Image
-                //                 source={
-                //                   item?.blog_image == undefined
-                //                     ? Media.noImage
-                //                     : {
-                //                       uri:
-                //                         // base_blogs_properties +
-                //                         item?.blog_image,
-                //                     }
-                //                 }
-                //                 style={{
-                //                   width: 120,
-                //                   height: 120,
-                //                   resizeMode: 'cover',
-                //                   borderRadius: 5,
-                //                 }}
-                //               />
-                //             ) : (
-                //               <Image
-                //                 source={Media.noImage}
-                //                 style={{
-                //                   width: 120,
-                //                   height: 120,
-                //                   resizeMode: 'cover',
-                //                   borderRadius: 5,
-                //                 }}
-                //               />
-                //             )}
-                //             <View style={{ flex: 1, marginHorizontal: 5 }}>
-                //               <Text
-                //                 style={{
-                //                   fontSize: 14,
-                //                   fontFamily: Poppins.Medium,
-                //                   color: Color.black,
-                //                   textAlign: 'justify',
-                //                   lineHeight: 16,
-                //                   textTransform: 'capitalize',
-                //                   paddingVertical: 10,
-                //                 }}
-                //                 numberOfLines={2}>
-                //                 {item.blog_title?.length != ''
-                //                   ? item.blog_title
-                //                   : '-----'}
-                //               </Text>
-                //               <Text
-                //                 style={{
-                //                   fontSize: 12,
-                //                   fontFamily: Poppins.Medium,
-                //                   color: Color.cloudyGrey,
-                //                   textAlign: 'justify',
-                //                   lineHeight: 16,
-                //                   textTransform: 'capitalize',
-                //                 }}
-                //                 numberOfLines={3}>
-                //                 {item.blog_content}
-                //               </Text>
-                //               <View
-                //                 style={{
-                //                   flex: 1,
-                //                   // marginVertical: 10,
-                //                   flexDirection: 'row',
-                //                   alignItems: 'center',
-                //                   justifyContent: 'flex-end',
-                //                 }}>
-                //                 {/* <View
-                //                   style={{
-                //                     flex: 1,
-                //                     flexDirection: 'row',
-                //                     alignItems: 'center',
-                //                     justifyContent: 'center',
-                //                   }}> */}
-                //                 <FIcon
-                //                   name="calendar"
-                //                   size={16}
-                //                   color={Color.primary}
-                //                 />
-                //                 <Text
-                //                   style={{
-                //                     marginHorizontal: 5,
-                //                     textAlign: 'center',
-                //                     fontSize: 13,
-                //                     fontFamily: Poppins.Medium,
-                //                     color: Color.black,
-                //                   }}>
-                //                   {moment(item?.created_at).format('MMM D, YY')}
-                //                   {/* {item.created_at} */}
-                //                 </Text>
-                //                 {/* </View> */}
-                //               </View>
-                //             </View>
-                //           </TouchableOpacity>
-                //         );
-                //       })}
-                //     </View>
-                //   );
+                case 'Latest News':
+                  return (
+                    <View style={{ marginVertical: 10 }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'flex-start',
+                          marginVertical: 10,
+                          marginHorizontal: 10,
+                        }}>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              color: 'black',
+                              fontFamily: Poppins.SemiBold,
+                            }}>
+                            Urgent Sale
+                          </Text>
+                        </View>
+                      </View>
+                      <FlatList
+                        data={eventBank}
+                        keyExtractor={(item, index) => item + index}
+                        renderItem={({ item, index }) => {
+                          return (
+                            <AuctionItemCard
+                              navigation={navigation}
+                              item={item}
+                              index={index}
+                            />
+                          );
+                        }}
+                        ListEmptyComponent={() => {
+                          return (
+                            <View
+                              style={{
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginVertical: 10,
+                                width: '100%',
+                              }}>
+                              <Image
+                                source={{ uri: Media.noProperty }}
+                                style={{
+                                  width: 100,
+                                  height: 80,
+                                  resizeMode: 'contain',
+                                }}
+                              />
+                              <Text
+                                style={{
+                                  fontSize: 12,
+                                  padding: 5,
+                                  paddingHorizontal: 20,
+                                  marginStart: 5,
+                                  borderRadius: 5,
+                                  marginVertical: 10,
+                                  color: Color.primary,
+                                  fontFamily: Poppins.SemiBold,
+                                }}>
+                                No Auction Found
+                              </Text>
+                            </View>
+                          );
+                        }}
+                      />
+                    </View>
+                  );
               }
             }}
           />

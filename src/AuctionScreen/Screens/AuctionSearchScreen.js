@@ -6,7 +6,7 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
-  Animated,
+  Animated, BackHandler
 } from 'react-native';
 import OIcon from 'react-native-vector-icons/Octicons';
 import F6Icon from 'react-native-vector-icons/FontAwesome6';
@@ -30,6 +30,20 @@ const AuctionSearchScreen = ({ navigation }) => {
   const [loadMore, setLoadMore] = useState(false);
   const [endReached, setEndReached] = useState(false);
   const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    const backAction = () => {
+      navigation.goBack();  // Navigates to the previous screen
+      return true;           // Prevent default behavior (exit app)
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();  // Clean up the listener on unmount
+  }, [navigation]);
 
   const propertySearch = async search => {
     setSearch(search);

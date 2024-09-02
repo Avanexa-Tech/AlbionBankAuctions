@@ -8,7 +8,7 @@ import {
   Platform,
   ScrollView,
   TouchableWithoutFeedback,
-  Keyboard,
+  Keyboard, BackHandler,
   PermissionsAndroid,
 } from 'react-native';
 import Color from '../../Config/Color';
@@ -355,6 +355,20 @@ const AuctionOTPScreen = ({ route }) => {
     };
   }, [seconds]);
 
+  useEffect(() => {
+    const backAction = () => {
+      navigation.goBack();  // Navigates to the previous screen
+      return true;           // Prevent default behavior (exit app)
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();  // Clean up the listener on unmount
+  }, [navigation]);
+
   const ResendOTP = async number => {
     setSeconds(30);
     const ResendOtpVerify = await fetchData.login({ mobile_number: number });
@@ -391,6 +405,8 @@ const AuctionOTPScreen = ({ route }) => {
         phone_number: number,
         otp: otpCode,
       });
+      // console.log("STATUS ============== :",VerifyOTP);
+
       if (VerifyOTP?.isLoggedin == true) {
         dispatch(setActionUserData(VerifyOTP?.user));
         dispatch(setLoginType('Auction'));

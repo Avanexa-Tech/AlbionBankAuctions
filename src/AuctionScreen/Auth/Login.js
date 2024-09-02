@@ -479,8 +479,8 @@ const LoginScreen = ({ navigation }) => {
                 textAlign: 'left',
                 color: Color.cloudyGrey,
                 marginRight: 10,
-              }}>
-              Please give your mobile number to Get Started
+              }} numberOfLines={2}>
+              Please give your whatsapp mobile number to Get Started
             </Text>
             <View style={{ marginVertical: 30 }}>
               <View style={styles.NumberBoxConatiner}>
