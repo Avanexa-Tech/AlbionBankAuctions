@@ -10,7 +10,7 @@ const CategoriesList = ({ navigation }) => {
       <FlatList
         data={Categories}
         keyExtractor={(item, index) => item + index}
-        numColumns={4}
+        // numColumns={4}
         renderItem={({ item, index }) => {
           return (
             <View
@@ -29,25 +29,15 @@ const CategoriesList = ({ navigation }) => {
                   });
                 }}
                 style={{
-                  flex: 1,
-                  alignItems: 'center',
+                  width: '100%',
+                  flexDirection: 'row',
+                  alignItems: 'center', backgroundColor: '#FCE1EB50', paddingVertical: 10, borderRadius: 5
                 }}>
                 <View
                   style={{
                     flex: 1,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    borderRadius: 5,
-                    backgroundColor: '#FCE1EB50',
-                    // shadowColor: '#000',
-                    // shadowOffset: {
-                    //   width: 0,
-                    //   height: 1,
-                    // },
-                    // shadowOpacity: 0.2,
-                    // shadowRadius: 1.41,
-                    // elevation: 2,
-                    padding: 10,
                   }}>
                   <Image
                     source={{ uri: item.image }}
@@ -56,23 +46,22 @@ const CategoriesList = ({ navigation }) => {
                       // height: 30,
                       // resizeMode: 'contain',
                       borderRadius: 10,
-                      height: 40,
-                      width: 40,
+                      height: 70,
+                      width: 70,
                       resizeMode: 'contain',
                     }}
                   />
                 </View>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: Color.lightBlack,
-                    fontFamily: Poppins.Medium,
-                    marginTop: 5,
-                  }}>
-                  {item.label?.length > 10
-                    ? item.label?.substring(0, 8).concat('...')
-                    : item?.label}
-                </Text>
+                <View style={{ flex: 3, justifyContent: 'center', alignItems: 'flex-start' }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: Color.lightBlack,
+                      fontFamily: Poppins.SemiBold,
+                    }}>
+                    {item?.label}
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
           );

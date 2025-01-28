@@ -41,6 +41,64 @@ const Register = ({ navigation }) => {
   const [district, setDistrict] = useState([]);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
+  // Fetch states when the component mounts
+  useEffect(() => {
+    fetchStates();
+  }, []);
+
+  useEffect(() => {
+    if (currentState?.id) {
+      fetchDistricts();
+    }
+  }, [currentState]);
+
+
+  const fetchStates = async () => {
+    try {
+      const getState = await fetchData.Auction_getState({});
+      console.log("STATE ----------------- :", getState);
+      setState(getState);
+    } catch (error) {
+      console.log('Error fetching states: ', error);
+    }
+  };
+
+  const fetchDistricts = async () => {
+    try {
+      const districtData = `state=${currentState?.id}`;
+      console.log("districtData ----------------- :", districtData);
+      const get_district = await fetchData.Auction_getDistrict(districtData);
+      console.log("DISTRICT ----------------- :", get_district);
+      setDistrict(get_district);
+    } catch (error) {
+      console.log('Error fetching districts: ', error);
+    }
+  };
+
+  // useEffect(() => {
+  //     getApiData();
+  // }, []);
+
+
+  // const getApiData = async () => {
+  //   try {
+  //     //State
+  //     const getState = await fetchData.Auction_getState({});
+  //     console.log("STATE ----------------- :", getState);
+  //     setState(getState);
+  //     // District
+  //     var districtData = `state=${currentState?.id}`;
+  //     console.log("districtData ----------------- :", districtData);
+  //     const get_district = await fetchData.Auction_getDistrict(districtData);
+  //     console.log("DISTRICT ----------------- :", get_district);
+  //     setDistrict(get_district);
+  //   } catch (error) {
+  //     console.log('catch in getApiData_Register: ', error);
+  //   }
+  // };
+
+
+
   const checkTextInput = () => {
     if (!username.trim()) {
       var msg = 'Please Enter Name';
@@ -143,23 +201,12 @@ const Register = ({ navigation }) => {
     }
   };
 
-  const getApiData = async () => {
-    try {
-      //State
-      const getState = await fetchData.Auction_getState({});
-      setState(getState);
-      // District
-      var districtData = `state=${currentState?.id}`;
-      const get_district = await fetchData.Auction_getDistrict(districtData);
-      setDistrict(get_district);
-    } catch (error) {
-      console.log('error', error);
-    }
-  };
 
-  useEffect(() => {
-    getApiData();
-  }, [currentDistrict, currentState]);
+  const handleTextChange = (value) => {
+    // Allow only alphabets and spaces
+    const filteredValue = value.replace(/[^a-zA-Z\s]/g, '');
+    setUsername(filteredValue);
+  };
 
 
   function handleBackButtonClick() {
@@ -177,7 +224,8 @@ const Register = ({ navigation }) => {
 
   return (
     <View style={styles.DemoContainer}>
-      <ScrollView>
+      <ScrollView
+        showsVerticalScrollIndicator={false}>
         <View style={styles.Container}>
           <Text style={styles.demoTitle}>Register to your Account</Text>
           <Text
@@ -190,11 +238,11 @@ const Register = ({ navigation }) => {
             }}>
             Find your dream property
           </Text>
-          <View style={{ marginVertical: 5 }}>
+          <View style={{ marginVertical: 0 }}>
             <Text
               style={{
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
                 color: Color.lightBlack,
                 marginVertical: 5,
               }}>
@@ -204,7 +252,8 @@ const Register = ({ navigation }) => {
               placeholder="Name"
               value={username}
               placeholderTextColor={Color.cloudyGrey}
-              onChangeText={value => setUsername(value)}
+              // onChangeText={value => setUsername(value)}
+              onChangeText={handleTextChange}
               style={styles.demoNameTextInput}
             />
             {NameError && <Text style={styles.errorMsg}>{NameError}</Text>}
@@ -214,7 +263,7 @@ const Register = ({ navigation }) => {
             <Text
               style={{
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
                 color: Color.lightBlack,
                 marginVertical: 5,
               }}>
@@ -242,7 +291,7 @@ const Register = ({ navigation }) => {
             <Text
               style={{
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
                 color: Color.lightBlack,
                 marginVertical: 5,
               }}>
@@ -263,7 +312,7 @@ const Register = ({ navigation }) => {
             <Text
               style={{
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
                 color: Color.lightBlack,
                 marginVertical: 5,
               }}>
@@ -276,21 +325,21 @@ const Register = ({ navigation }) => {
                 borderWidth: 1,
                 padding: 10,
                 borderRadius: 5,
-                height: 50,
+                height: 45,
               }}
               placeholderStyle={{
-                fontSize: 16,
+                fontSize: 14,
                 color: Color.black,
                 marginHorizontal: 10,
               }}
               selectedTextStyle={{
-                fontSize: 16,
+                fontSize: 14,
                 color: Color.black,
               }}
               iconStyle={{ width: 20, height: 20 }}
-              itemTextStyle={{ fontSize: 16, color: Color.cloudyGrey }}
+              itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
               data={state}
-              maxHeight={300}
+              maxHeight={250}
               labelField="name"
               valueField="name"
               placeholder="Select State"
@@ -315,7 +364,7 @@ const Register = ({ navigation }) => {
             <Text
               style={{
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
                 color: !currentState?.name ? Color.lightgrey : Color.lightBlack,
                 marginVertical: 5,
               }}>
@@ -330,22 +379,22 @@ const Register = ({ navigation }) => {
                 borderWidth: 1,
                 padding: 10,
                 borderRadius: 5,
-                height: 50,
+                height: 45,
               }}
               placeholderStyle={{
-                fontSize: 16,
+                fontSize: 14,
                 color: !currentState?.name ? Color.lightgrey : Color.black,
                 marginHorizontal: 10,
               }}
               disable={!currentState?.name}
               selectedTextStyle={{
-                fontSize: 16,
+                fontSize: 14,
                 color: Color.black,
               }}
               iconStyle={{ width: 20, height: 20 }}
-              itemTextStyle={{ fontSize: 16, color: Color.cloudyGrey }}
+              itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
               data={district}
-              maxHeight={300}
+              maxHeight={200}
               labelField="name"
               valueField="name"
               placeholder="Select District"
@@ -372,7 +421,7 @@ const Register = ({ navigation }) => {
             <Text
               style={{
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
                 color: Color.lightBlack,
                 marginVertical: 5,
               }}>
@@ -394,7 +443,7 @@ const Register = ({ navigation }) => {
                 <FIcon
                   name={passwordVisible ? 'eye' : 'eye-slash'}
                   color={password?.length > 0 ? Color.black : Color.white}
-                  size={20}
+                  size={18}
                 />
               </TouchableOpacity>
             </View>
@@ -406,7 +455,7 @@ const Register = ({ navigation }) => {
             title={'Sign Up'}
             titleStyle={{
               fontFamily: Poppins.SemiBold,
-              fontSize: 16,
+              fontSize: 14,
               color: Color.white,
             }}
             onPress={() => {
@@ -449,14 +498,14 @@ const styles = StyleSheet.create({
   NumberBoxConatiner: {
     borderColor: Color.cloudyGrey,
     borderWidth: 1,
-    height: 50,
+    height: 45,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 5,
   },
   numberTextBox: {
     flex: 1,
-    height: 50,
+    height: 45,
     padding: 10,
     color: Color.black,
     marginVertical: 10,
@@ -472,7 +521,8 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   demoNameTextInput: {
-    height: 50,
+    height: 45,
+    fontSize: 14,
     borderColor: Color.cloudyGrey,
     borderWidth: 1,
     borderRadius: 5,
@@ -482,7 +532,7 @@ const styles = StyleSheet.create({
   phoneView: {
     borderColor: Color.cloudyGrey,
     borderWidth: 1,
-    height: 50,
+    height: 45,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 5,
@@ -492,15 +542,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   phoneTextInput: {
-    height: 50,
+    height: 45,
     padding: 10,
+    fontSize: 14,
     borderLeftColor: Color.cloudyGrey,
     color: Color.black,
     borderLeftWidth: 1,
     marginVertical: 10,
   },
   EmailTextInput: {
-    height: 50,
+    height: 45,
+    fontSize: 14,
     borderColor: Color.cloudyGrey,
     borderWidth: 1,
     borderRadius: 5,
@@ -519,11 +571,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: Color.primary,
     // marginHorizontal: 40,
-    height: 50,
+    height: 45,
   },
-  containerStyle: { marginVertical: 30 },
+  containerStyle: { marginVertical: 15 },
   LoginbtnText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: Poppins.Medium,
     textAlign: 'center',
     color: Color.black,
@@ -533,16 +585,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 20,
+    marginVertical: 0,
   },
   requestTextTitle: {
     color: Color.cloudyGrey,
-    fontSize: 16,
+    fontSize: 12,
     fontFamily: Poppins.SemiBold,
   },
   DemoText: {
     color: Color.primary,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: Poppins.SemiBold,
     textDecorationLine: 'underline',
     marginStart: 5,

@@ -113,6 +113,27 @@ export const api = {
     });
   },
 
+  AuctionspostMethod: (url, data, token, header) => {
+    var headers = api.header(token);
+    if (header != undefined) {
+      headers['x-razorpay-signature'] = header;
+    }
+    const formData = new FormData();
+    Object.keys(data).map(obj => {
+      formData.append(obj, data[obj]);
+    });
+    return new Promise((resolve, reject) => {
+      axios
+        .post(baseUrl + url, data, { headers: headers })
+        .then(res => {
+          if (res.status == 200 || res.status == 201) {
+            resolve(res.data);
+          }
+        })
+        .catch(err => resolve(err.response.data));
+    });
+  },
+
   AuctionputMethod: (url, data) => {
     var headers = api.header();
     return new Promise((resolve, reject) => {

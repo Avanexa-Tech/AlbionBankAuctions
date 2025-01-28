@@ -9,6 +9,8 @@ import {
   FlatList,
   Dimensions,
   BackHandler,
+  Modal,
+  Alert,
 } from 'react-native';
 import Color from '../../Config/Color';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -27,7 +29,7 @@ import {
 } from '../../Config/base_url';
 import moment from 'moment';
 import { Categories } from './Content';
-import { setActionUserData } from '../../Redux';
+import { setActionUserData, setPaySuccessVisible } from '../../Redux';
 import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuctionItemCard from '../Auctioncomponents/AuctionItemCard';
@@ -35,6 +37,11 @@ import { scr_height } from '../../Utils/Dimensions';
 import AuctionEnableLogin from '../Auctioncomponents/AuctionEnableLogin';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRoute } from '@react-navigation/native';
+import { Iconviewcomponent } from '../../Components/Icontag';
+import { ImageBackground } from 'react-native';
+import { color } from 'react-native-elements/dist/helpers';
+import common_fn from '../../Config/common_fn';
+import PostCompletedModal from './OrderCompletionModal';
 
 const { height, width } = Dimensions.get('screen');
 
@@ -56,6 +63,27 @@ const AutionHomeScreen = ({ navigation }) => {
   const [TopBanks, setTopBanks] = useState([]);
   const [eventBank, seteventBank] = useState([]);
   const routeName = useRoute();
+  const [imageVisible, setImageVisible] = useState(false);
+  const data = useSelector(
+    state => state.UserReducer.auctionUserData,
+  );
+
+  useEffect(() => {
+    getAction_UserData();
+    getEventBank();
+    setLoading(true);
+    getApiData().finally(() => {
+      setLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (data.id) {
+      // console.log("------------checking");
+      plan_CheckData()
+    }
+  }, [data.id])
+
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButtonClick);
@@ -65,13 +93,105 @@ const AutionHomeScreen = ({ navigation }) => {
 
   function handleBackButtonClick() {
     if (routeName.name === 'ActionHome') {
-      BackHandler.exitApp();
+      Alert.alert(
+        "Hold on!",
+        "Are you sure you want to exit the app?",
+        [
+          {
+            text: "Cancel",
+            onPress: () => null,
+            style: "cancel"
+          },
+          { text: "YES", onPress: () => BackHandler.exitApp() }
+        ]
+      );
       return true;
     } else {
       navigation.goBack();
       return true;
     }
   }
+
+  const animated = useRef(new Animated.Value(0)).current;
+  // const tabBarHeight = useBottomTabBarHeight()
+
+  // useEffect(() => {
+  //   if (id == undefined ||
+  //     (Auction_userData?.length > 0 && Auction_userData == undefined)) {
+  //     Animated.timing(animated, {
+  //       toValue: 1,
+  //       duration: 1000,
+  //       useNativeDriver: true,
+  //     }).start();
+  //   } else {
+  //     Animated.timing(animated, {
+  //       toValue: 0,
+  //       duration: 1000,
+  //       useNativeDriver: true,
+  //     }).start();
+  //   }
+  // }, []);
+
+  const getAction_UserData = async () => {
+    try {
+      const action_value = await AsyncStorage.getItem('action_user_data');
+      if (action_value !== null) {
+        dispatch(setActionUserData(JSON.parse(action_value)));
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+
+  const plan_CheckData = async () => {
+    try {
+      const myHeaders = new Headers();
+      myHeaders.append("accept", "*/*");
+
+      const requestOptions = {
+        method: "GET",
+        headers: myHeaders,
+        redirect: "follow"
+      };
+      fetch(`https://api.albionbankauctions.com/api/plan/check/${data?.id}`, requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          console.log("Plan Status =============== :", result);
+
+          if (result?.status == false) {
+            setImageVisible(true);
+          } else {
+            setImageVisible(false);
+          }
+        })
+        .catch((error) => console.error("catch in plan_CheckData_API:", error))
+        .finally(() => {
+          setLoading(false); // Mark loading as complete
+        });
+    } catch (error) {
+      console.log("catch in plan_CheckData_Home : ", error);
+      setLoading(false); // Ensure loading is stopped even on error
+    }
+  }
+
+
+  const dataArray = Object.entries(Banner)
+    .filter(
+      ([key, value]) =>
+        key.startsWith('banner_') && !key.endsWith('_info_toggle'),
+    )
+    .map(([key, value]) => ({
+      id: key,
+      image: value,
+    }));
+
+  // useEffect(() => {
+  //   setLoginVisible(
+  //     id == undefined ||
+  //     (Auction_userData?.length > 0 && Auction_userData == undefined),
+  //   );
+  // }, [Auction_userData]);
 
 
   const getApiData = async () => {
@@ -82,6 +202,8 @@ const AutionHomeScreen = ({ navigation }) => {
 
       //Top Banks
       const getBanks = await fetchData.get_banks({});
+      // console.log("Banks ------------ :", getBanks);
+
       setTopBanks(getBanks);
 
       //Top Banner
@@ -100,7 +222,7 @@ const AutionHomeScreen = ({ navigation }) => {
 
 
     } catch (error) {
-      console.log('error', error);
+      console.log('catch in getApiData_HomeScreen:', error);
     }
   };
 
@@ -125,69 +247,49 @@ const AutionHomeScreen = ({ navigation }) => {
 
 
 
-
-  const Auction_userData = useSelector(
-    state => state.UserReducer.auctionUserData,
-  );
-  var { id, name, email, phone_number, state, district } = Auction_userData;
-  console.log("id ================== : ",id);
-  
-  const animated = useRef(new Animated.Value(0)).current;
-  // const tabBarHeight = useBottomTabBarHeight()
-
-  useEffect(() => {
-    if (id == undefined ||
-      (Auction_userData?.length > 0 && Auction_userData == undefined)) {
-      Animated.timing(animated, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(animated, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, []);
-
-  const getAction_UserData = async () => {
+  const claimFreePlanClick = () => {
     try {
-      const action_value = await AsyncStorage.getItem('action_user_data');
-      if (action_value !== null) {
-        dispatch(setActionUserData(JSON.parse(action_value)));
-      }
-    } catch (e) {
-      console.log(e);
+
+      const myHeaders = new Headers();
+      myHeaders.append("accept", "*/*");
+      myHeaders.append("Content-Type", "application/json");
+
+      const raw = JSON.stringify({
+        "plan_id": 1,
+        "user_id": data?.id
+      });
+
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow"
+      };
+
+      fetch("https://api.albionbankauctions.com/api/plan", requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          console.log("SUCCESS FREE PLAN================ :", result)
+          if (result?.status == true) {
+            common_fn.showToast(result?.message);
+            setImageVisible(false);
+          } else {
+            common_fn.showToast(result?.message);
+            setImageVisible(false);
+          }
+          // dispatch(setPaySuccessVisible(true))
+        })
+        .catch((error) => {
+          console.error("catch in claimFreePlanClick_API:", error);
+          common_fn.showToast(error);
+        });
+
+    } catch (error) {
+      console.log("catch in claimFree_Plan_Click_HomeScreen : ", error);
     }
-  };
+  }
 
-  useEffect(() => {
-    getAction_UserData();
-    getEventBank();
-    setLoading(true);
-    getApiData().finally(() => {
-      setLoading(false);
-    });
-  }, []);
 
-  const dataArray = Object.entries(Banner)
-    .filter(
-      ([key, value]) =>
-        key.startsWith('banner_') && !key.endsWith('_info_toggle'),
-    )
-    .map(([key, value]) => ({
-      id: key,
-      image: value,
-    }));
-
-  useEffect(() => {
-    setLoginVisible(
-      id == undefined ||
-      (Auction_userData?.length > 0 && Auction_userData == undefined),
-    );
-  }, [Auction_userData]);
 
   return (
     <View style={{ flex: 1, backgroundColor: Color.white }}>
@@ -229,7 +331,7 @@ const AutionHomeScreen = ({ navigation }) => {
                 width: '90%',
                 height: 50,
                 padding: 5,
-                justifyContent: 'center',
+                justifyContent: 'center', alignItems: 'center',
                 zIndex: 1,
               }}
               onPress={() => {
@@ -244,7 +346,7 @@ const AutionHomeScreen = ({ navigation }) => {
               <Text
                 style={{
                   flex: 1,
-                  fontSize: 14,
+                  fontSize: 12,
                   marginHorizontal: 10,
                   color: Color.cloudyGrey,
                   fontFamily: Poppins.Medium,
@@ -266,9 +368,149 @@ const AutionHomeScreen = ({ navigation }) => {
               switch (item) {
                 case 'Categories':
                   return (
-                    <View style={{ marginVertical: 10 }}>
-                      <FlatList
-                        data={Categories?.slice(0, 9)}
+                    <View style={{ marginTop: 10 }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'flex-start',
+                          margin: 10,
+                          justifyContent: 'center',
+                        }}>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              color: Color.black,
+                              fontFamily: Poppins.Bold,
+                              fontWeight: '700'
+                            }}>
+                            Categories
+                          </Text>
+                        </View>
+                        {/* <TouchableOpacity
+                          style={{
+                            justifyContent: 'center',
+                            alignItems: 'flex-end',
+                          }}
+                          onPress={() => {
+                            navigation.navigate('ListScreen', {
+                              property_sub_category: '',
+                              event_bank: '',
+                            });
+                          }}>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              color: Color.primary,
+                              fontFamily: Poppins.Bold,
+                            }}>
+                            View all
+                          </Text>
+                        </TouchableOpacity> */}
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          margin: 10,
+                          paddingHorizontal: 5,
+                        }}>
+                        {Categories?.slice(0, 7)?.map((item, index) => {
+                          return (
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() => {
+                                console.log("item?.value =============== :", item?.value);
+
+                                navigation.navigate('ListScreen', {
+                                  property_sub_category: item?.value,
+                                  event_bank: '',
+                                });
+                              }}
+                              style={{
+                                justifyContent: 'flex-start',
+                                alignItems: 'center', marginHorizontal: 0, marginVertical: 10,
+                                width: '21%',
+                              }}>
+                              <View
+                                style={{
+                                  backgroundColor: '#FCE1EB50',
+                                  borderRadius: 100,
+                                  width: 60,
+                                  height: 60,
+                                  justifyContent: 'center', alignItems: 'center'
+                                }}>
+                                <Image
+                                  source={{ uri: item.image }}
+                                  style={{
+                                    width: 45,
+                                    height: 45,
+                                    resizeMode: 'contain',
+                                    borderRadius: 100,
+                                  }}
+                                />
+                              </View>
+                              <Text
+                                style={{
+                                  textAlign: 'center',
+                                  fontSize: 11,
+                                  color: Color.lightBlack,
+                                  fontFamily: Poppins.Medium,
+                                  marginTop: 5,
+                                }} numberOfLines={2}>
+                                {item?.label}
+                                {/* {item.label?.length > 15
+                                  ? item.label?.substring(0, 10).concat('...')
+                                  : item?.label} */}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                        <TouchableOpacity
+                          key={index}
+                          onPress={() => {
+                            navigation.navigate('CategoriesList');
+                          }}
+                          style={{
+                            justifyContent: 'flex-start',
+                            alignItems: 'center',
+                            width: '21%',
+                          }}>
+                          <View
+                            style={{
+                              backgroundColor: '#FCE1EB50',
+                              borderRadius: 100,
+                              width: 60,
+                              height: 60,
+                              justifyContent: 'center', alignItems: 'center'
+                            }}>
+                            <Image
+                              source={{ uri: 'https://albion-backend.s3.ap-south-1.amazonaws.com/Mobile+Apk+Banners/assets/assets/Icon_others.png' }}
+                              // source={require('../../assets/image/viewall.png')}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                resizeMode: 'contain',
+                                borderRadius: 100,
+                              }}
+                            />
+                          </View>
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              color: Color.lightBlack,
+                              fontFamily: Poppins.Medium,
+                              marginTop: 5,
+                            }}>
+                            View All
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* <FlatList
+                        data={Categories?.slice(0, 7)}
                         keyExtractor={(item, index) => item + index}
                         numColumns={4}
                         ListHeaderComponent={() => {
@@ -277,15 +519,16 @@ const AutionHomeScreen = ({ navigation }) => {
                               style={{
                                 flexDirection: 'row',
                                 alignItems: 'flex-start',
-                                marginHorizontal: 10,
+                                margin: 10,
                                 justifyContent: 'center',
                               }}>
                               <View style={{ flex: 1 }}>
                                 <Text
                                   style={{
-                                    fontSize: 16,
-                                    color: 'black',
-                                    fontFamily: Poppins.SemiBold,
+                                    fontSize: 18,
+                                    color: Color.black,
+                                    fontFamily: Poppins.Bold,
+                                    fontWeight: '700'
                                   }}>
                                   Categories
                                 </Text>
@@ -306,8 +549,7 @@ const AutionHomeScreen = ({ navigation }) => {
                                   style={{
                                     fontSize: 14,
                                     color: Color.primary,
-                                    fontStyle: 'normal',
-                                    fontFamily: Poppins.SemiBold,
+                                    fontFamily: Poppins.Bold,
                                   }}>
                                   View all
                                 </Text>
@@ -327,8 +569,6 @@ const AutionHomeScreen = ({ navigation }) => {
                               <TouchableOpacity
                                 key={index}
                                 onPress={() => {
-                                  // console.log("Item ============== : ", item.value);
-
                                   navigation.navigate('ListScreen', {
                                     property_sub_category: item?.value,
                                     event_bank: '',
@@ -345,29 +585,21 @@ const AutionHomeScreen = ({ navigation }) => {
                                     justifyContent: 'center',
                                     borderRadius: 5,
                                     backgroundColor: '#FCE1EB50',
-                                    // shadowColor: '#000',
-                                    // shadowOffset: {
-                                    //   width: 0,
-                                    //   height: 1,
-                                    // },
-                                    // shadowOpacity: 0.2,
-                                    // shadowRadius: 1.41,
-                                    // elevation: 2,
                                     padding: 10,
                                   }}>
                                   <Image
                                     source={{ uri: item.image }}
                                     style={{
                                       borderRadius: 10,
-                                      height: 30,
-                                      width: 30,
+                                      height: 50,
+                                      width: 50,
                                       resizeMode: 'contain',
                                     }}
                                   />
                                 </View>
                                 <Text
                                   style={{
-                                    fontSize: 11,
+                                    fontSize: 14,
                                     color: Color.lightBlack,
                                     fontFamily: Poppins.Medium,
                                     marginTop: 5,
@@ -380,12 +612,50 @@ const AutionHomeScreen = ({ navigation }) => {
                             </View>
                           );
                         }}
-                      />
+                      /> */}
+                      {/* <TouchableOpacity
+                        onPress={() => {
+                          navigation.navigate('category');
+                        }}
+                        style={{
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          marginVertical: 10,
+                          width: '20%',
+                        }}>
+                        <View style={{ alignItems: 'center' }}>
+                          <View
+                            style={{
+                              backgroundColor: '#FCE1EB50',
+                              borderRadius: 100,
+                              width: 50,
+                              height: 50,
+                            }}>
+                            <Image
+                              source={Media.Icon_others}
+                              style={{
+                                width: 50,
+                                height: 50,
+                                resizeMode: 'contain',
+                              }}
+                            />
+                          </View>
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              color: Color.black,
+                              font: Poppins.SemiBold,
+                              paddingVertical: 5,
+                            }}>
+                            View All
+                          </Text>
+                        </View>
+                      </TouchableOpacity> */}
                     </View>
                   );
                 case 'Banners':
                   return (
-                    <View style={{ marginVertical: 10 }}>
+                    <View style={{ marginVertical: 0 }}>
                       <FlatList
                         data={dataArray}
                         horizontal
@@ -438,14 +708,15 @@ const AutionHomeScreen = ({ navigation }) => {
                             <Text
                               style={{
                                 fontSize: 16,
-                                color: 'black',
-                                fontFamily: Poppins.SemiBold,
+                                color: Color.black,
+                                fontFamily: Poppins.Bold,
+                                fontWeight: '700'
                               }}>
                               Top Banks
                             </Text>
                             <Text
                               style={{
-                                fontSize: 10,
+                                fontSize: 11,
                                 paddingHorizontal: 10,
                                 padding: 5,
                                 marginStart: 10,
@@ -503,7 +774,7 @@ const AutionHomeScreen = ({ navigation }) => {
                               <Text
                                 style={{
                                   color: Color.black,
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   fontFamily: Poppins.Medium,
                                   marginVertical: 10,
                                 }}
@@ -518,7 +789,7 @@ const AutionHomeScreen = ({ navigation }) => {
                   );
                 case 'Popular Auctions':
                   return (
-                    <View style={{ marginVertical: 10 }}>
+                    <View style={{ marginVertical: 0 }}>
                       <View
                         style={{
                           flexDirection: 'row',
@@ -530,8 +801,9 @@ const AutionHomeScreen = ({ navigation }) => {
                           <Text
                             style={{
                               fontSize: 16,
-                              color: 'black',
-                              fontFamily: Poppins.SemiBold,
+                              color: Color.black,
+                              fontFamily: Poppins.Bold,
+                              fontWeight: '700'
                             }}>
                             Recent Auctions
                           </Text>
@@ -587,8 +859,8 @@ const AutionHomeScreen = ({ navigation }) => {
                   );
                 case 'Albion Auctions':
                   return (
-                    <View style={{ marginVertical: 10 }}>
-                      <View style={{}}>
+                    <View style={{ width: '100%', alignItems: 'center', marginVertical: 10 }}>
+                      <View style={{ width: '100%', }}>
                         <Image
                           source={{ uri: Media.ActionVehicleBanner }}
                           style={{
@@ -606,7 +878,7 @@ const AutionHomeScreen = ({ navigation }) => {
                             borderWidth: 1,
                             borderColor: Color.lightgrey,
                             marginHorizontal: 10,
-                            marginVertical: 10,
+                            marginVertical: 20,
                           }}>
                           <View
                             style={{
@@ -632,7 +904,7 @@ const AutionHomeScreen = ({ navigation }) => {
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 10,
+                                    fontSize: 11,
                                     paddingHorizontal: 10,
                                     padding: 5,
                                     marginStart: 10,
@@ -647,7 +919,8 @@ const AutionHomeScreen = ({ navigation }) => {
                               </View>
                               <Text
                                 style={{
-                                  fontSize: 10,
+                                  textAlign: 'justify',
+                                  fontSize: 12,
                                   color: Color.cloudyGrey,
                                   fontFamily: Poppins.Medium,
                                   flex: 1,
@@ -674,15 +947,15 @@ const AutionHomeScreen = ({ navigation }) => {
                                   padding: 10,
                                   position: 'absolute',
                                   right: 50,
-                                  top: 0,
+                                  top: 50,
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                 }}>
                                 <Image
                                   source={{ uri: Media.sbisub }}
                                   style={{
-                                    width: 30,
-                                    height: 30,
+                                    width: 35,
+                                    height: 35,
                                     resizeMode: 'contain',
                                   }}
                                 />
@@ -696,7 +969,7 @@ const AutionHomeScreen = ({ navigation }) => {
                                   padding: 10,
                                   position: 'absolute',
                                   right: 25,
-                                  top: 0,
+                                  top: 50,
                                   // zIndex: 1,
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -704,8 +977,8 @@ const AutionHomeScreen = ({ navigation }) => {
                                 <Image
                                   source={{ uri: Media.icicisub }}
                                   style={{
-                                    width: 30,
-                                    height: 30,
+                                    width: 35,
+                                    height: 35,
                                     resizeMode: 'contain',
                                   }}
                                 />
@@ -719,7 +992,7 @@ const AutionHomeScreen = ({ navigation }) => {
                                   padding: 10,
                                   position: 'absolute',
                                   right: 0,
-                                  top: 0,
+                                  top: 50,
                                   zIndex: 1,
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -727,8 +1000,8 @@ const AutionHomeScreen = ({ navigation }) => {
                                 <Image
                                   source={{ uri: Media.unionsub }}
                                   style={{
-                                    width: 30,
-                                    height: 30,
+                                    width: 35,
+                                    height: 35,
                                     resizeMode: 'contain',
                                   }}
                                 />
@@ -741,7 +1014,7 @@ const AutionHomeScreen = ({ navigation }) => {
                   );
                 case 'Latest News':
                   return (
-                    <View style={{ marginVertical: 10 }}>
+                    <View style={{ marginVertical: 0 }}>
                       <View
                         style={{
                           flexDirection: 'row',
@@ -753,8 +1026,9 @@ const AutionHomeScreen = ({ navigation }) => {
                           <Text
                             style={{
                               fontSize: 16,
-                              color: 'black',
-                              fontFamily: Poppins.SemiBold,
+                              color: Color.black,
+                              fontFamily: Poppins.Bold,
+                              fontWeight: '700'
                             }}>
                             Urgent Sale
                           </Text>
@@ -811,16 +1085,47 @@ const AutionHomeScreen = ({ navigation }) => {
               }
             }}
           />
+          <AuctionEnableLogin
+            visible={loginVisible}
+            setVisible={setLoginVisible}
+            tabBarHeight={0}
+            animated={animated}
+            width={width}
+          />
+          {imageVisible && (
+            <Modal transparent={true} animationType="fade" visible={imageVisible}>
+              <View style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', flex: 1 }}>
+                <View
+                  style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                  <ImageBackground
+                    source={require('../../assets/image/claim.png')}
+                    style={{
+                      width: 300,
+                      height: 400,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      resizeMode: 'contain',
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => {
+                        claimFreePlanClick();
+                      }}
+                      style={{
+                        position: 'absolute', bottom: 20,
+                        width: '90%', height: 50, backgroundColor: Color.primary, borderRadius: 30, justifyContent: 'center', alignItems: 'center'
+                      }}>
+                      <Text style={{ fontSize: 18, fontFamily: Poppins.Bold, color: Color.white }}>Claim Now</Text>
+                    </TouchableOpacity>
+                  </ImageBackground>
+                </View>
+              </View>
+            </Modal>
+          )}
         </>
       )}
-      <AuctionEnableLogin
-        visible={loginVisible}
-        setVisible={setLoginVisible}
-        tabBarHeight={0}
-        animated={animated}
-        width={width}
-      />
-    </View>
+      <PostCompletedModal navigation={navigation} />
+    </View >
   );
 };
 

@@ -11,6 +11,8 @@ import fetchData from '../../Config/fetchData';
 import AuctionItemCard from '../Auctioncomponents/AuctionItemCard';
 
 const SimilarAuction = props => {
+  // console.log("------------------- :", props.AuctionProperty.id);
+  const { id } = props.AuctionProperty;
   var { navigation, AuctionProperty } = props;
   const [AutionData, setAutionData] = useState([]);
   const getApiData = async () => {
@@ -30,76 +32,72 @@ const SimilarAuction = props => {
       style={{
         flex: 1,
         backgroundColor: Color.white,
-        // marginVertical: 10,
-        // alignItems: 'center',
-        padding: 10,
       }}>
       <View
         style={{
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          marginVertical: 10,
-          // marginHorizontal: 10,
+          width: '100%', paddingHorizontal: 15, marginTop: -10
         }}>
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              color: Color.black,
-              fontFamily: Poppins.SemiBold,
-            }}>
-            Similar Auctions
-          </Text>
-        </View>
+        <Text
+          style={{
+            fontSize: 16,
+            color: Color.black,
+            fontFamily: Poppins.SemiBold,
+          }}>
+          Similar Auctions
+        </Text>
       </View>
-      <FlatList
-        data={AutionData}
-        horizontal
-        keyExtractor={(item, index) => item + index}
-        renderItem={({ item, index }) => {
-          return (
-            <AuctionItemCard
-              navigation={navigation}
-              item={item}
-              index={index}
-            />
-          );
-        }}
-        ListEmptyComponent={() => {
-          return (
-            <View
-              style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginVertical: 10,
-                width: '100%',
-                flex: 1,
-              }}>
-              <Image
-                source={{ uri: Media.noProperty }}
-                style={{
-                  width: 100,
-                  height: 80,
-                  resizeMode: 'contain',
-                }}
+      <View style={{ width: '100%', alignItems: 'center', marginVertical: 10 }}>
+        <FlatList
+          data={AutionData.filter(item => item.id !== id)}
+          // horizontal
+          keyExtractor={(item, index) => item + index}
+          renderItem={({ item, index }) => {
+            // console.log("item ------------------- :", item);
+            return (
+              <AuctionItemCard
+                navigation={navigation}
+                item={item}
+                index={index}
               />
-              <Text
+            );
+          }}
+          ListEmptyComponent={() => {
+            return (
+              <View
                 style={{
-                  fontSize: 12,
-                  padding: 5,
-                  paddingHorizontal: 20,
-                  marginStart: 5,
-                  borderRadius: 5,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   marginVertical: 10,
-                  color: Color.primary,
-                  fontFamily: Poppins.SemiBold,
+                  width: '100%',
+                  flex: 1,
                 }}>
-                No Properties Found
-              </Text>
-            </View>
-          );
-        }}
-      />
+                <Image
+                  source={{ uri: Media.noProperty }}
+                  style={{
+                    width: 100,
+                    height: 80,
+                    resizeMode: 'contain',
+                  }}
+                />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    padding: 5,
+                    paddingHorizontal: 20,
+                    marginStart: 5,
+                    borderRadius: 5,
+                    marginVertical: 10,
+                    color: Color.primary,
+                    fontFamily: Poppins.SemiBold,
+                  }}>
+                  No Properties Found
+                </Text>
+              </View>
+            );
+          }}
+          style={{ width: '95%' }}
+        />
+      </View>
     </View>
   );
 };

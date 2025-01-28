@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard, BackHandler,
   PermissionsAndroid,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Color from '../../Config/Color';
 import { Media } from '../../Global/Media';
@@ -18,7 +19,7 @@ import { Button } from 'react-native-elements';
 import common_fn from '../../Config/common_fn';
 import fetchData from '../../Config/fetchData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import messaging from '@react-native-firebase/messaging';
+import messaging, { firebase } from '@react-native-firebase/messaging';
 import RNOtpVerify from 'react-native-otp-verify';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { profileCompletion } from '../../Utils/utils';
@@ -334,55 +335,107 @@ const AuctionOTPScreen = ({ route }) => {
   const [token, setToken] = useState('');
   const dispatch = useDispatch();
 
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     if (seconds > 0) {
+  //       setSeconds(seconds - 1);
+  //     }
+
+  //     if (seconds === 0) {
+  //       if (minutes === 0) {
+  //         clearInterval(interval);
+  //       } else {
+  //         setSeconds(30);
+  //         setMinutes(minutes - 1);
+  //       }
+  //     }
+  //   }, 1000);
+
+  //   return () => {
+  //     clearInterval(interval);
+  //   };
+  // }, [seconds]);
+
   useEffect(() => {
+    if (minutes === 0 && seconds === 0) {
+      return; // Timer has expired
+    }
+
     const interval = setInterval(() => {
       if (seconds > 0) {
-        setSeconds(seconds - 1);
-      }
-
-      if (seconds === 0) {
-        if (minutes === 0) {
-          clearInterval(interval);
-        } else {
-          setSeconds(30);
-          setMinutes(minutes - 1);
-        }
+        setSeconds(prev => prev - 1);
+      } else if (minutes > 0) {
+        setMinutes(prev => prev - 1);
+        setSeconds(59);
       }
     }, 1000);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [seconds]);
+    return () => clearInterval(interval);
+  }, [minutes, seconds]);
+
+  // useEffect(() => {
+  //   const backAction = () => {
+  //     console.log("number =========== :",number);
+
+  //     if (number == true) {
+  //       navigation.navigate("ActionLogin");
+  //     } else {
+  //       navigation.goBack();
+  //     }
+  //   };
+
+  //   const backHandler = BackHandler.addEventListener(
+  //     'hardwareBackPress',
+  //     backAction
+  //   );
+
+  //   return () => backHandler.remove();  // Clean up the listener on unmount
+  // }, [navigation]);
 
   useEffect(() => {
-    const backAction = () => {
-      navigation.goBack();  // Navigates to the previous screen
-      return true;           // Prevent default behavior (exit app)
-    };
-
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
-      backAction
+      handleBackButtonClick,
     );
-
-    return () => backHandler.remove();  // Clean up the listener on unmount
+    return () => backHandler.remove();
   }, [navigation]);
 
+  function handleBackButtonClick() {
+    if (!number) {
+      navigation.navigate("ActionLogin");
+      return true;
+    } else {
+      navigation.goBack();
+      return true;
+    }
+  }
+
   const ResendOTP = async number => {
+    setMinutes(0); // Reset timer to 30 seconds
     setSeconds(30);
-    const ResendOtpVerify = await fetchData.login({ mobile_number: number });
-    var { message, user_id } = ResendOtpVerify;
-    if (user_id) {
+    const ResendOtpVerify = await fetchData.Auction_OTPlogin({ phone_number: number });
+    const { message, user_id, status } = ResendOtpVerify || {};
+    console.log("RESENT OTP ================= : ", ResendOtpVerify, "user_id", user_id);
+
+    if (status) {
       if (Platform.OS === 'android') {
         common_fn.showToast('OTP Sent Successfully');
       } else {
-        alert('OTP Sent Successfully')
+        alert('OTP Sent Successfully');
       }
     } else {
-      var msg = 'message';
-      setError(msg);
+      common_fn.showToast(message || 'Failed to resend OTP');
     }
+
+    // if (ResendOtpVerify?.status == true) {
+    //   if (Platform.OS === 'android') {
+    //     common_fn.showToast('OTP Sent Successfully');
+    //   } else {
+    //     alert('OTP Sent Successfully')
+    //   }
+    // } else {
+    //   common_fn.showToast(ResendOtpVerify?.message);
+    // }
   };
 
   const chkOTPError = OTP => {
@@ -398,49 +451,142 @@ const AuctionOTPScreen = ({ route }) => {
     }
   };
 
-  const VerifyOTP = async () => {
-    setLoading(true);
-    if (otpCode.length == 4) {
-      const VerifyOTP = await fetchData.Auction_VerifyOTP({
-        phone_number: number,
-        otp: otpCode,
-      });
-      // console.log("STATUS ============== :",VerifyOTP);
 
-      if (VerifyOTP?.isLoggedin == true) {
-        dispatch(setActionUserData(VerifyOTP?.user));
-        dispatch(setLoginType('Auction'));
-        await AsyncStorage.setItem(
-          'action_user_data',
-          JSON.stringify(VerifyOTP?.user),
-        );
-        await AsyncStorage.setItem(
-          'action_login_type',
-          JSON.stringify({ login_type: 'Auction' }),
-        );
-        navigation.replace('ActionHome', VerifyOTP?.user);
-        if (Platform.OS === 'android') {
-          common_fn.showToast(`Welcome to Albion ${VerifyOTP?.user?.name}`);
-        } else {
-          alert(`Welcome to Albion ${VerifyOTP?.user?.name}`)
+
+  const requestUserPermission = async () => {
+    const authStatus = await messaging().requestPermission({
+      alert: true,
+      sound: true,
+      badge: true,
+      provisional: true,
+    });
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    if (enabled) {
+      getFCMToken();
+    }
+  };
+
+  useEffect(() => {
+    requestUserPermission();
+  }, [token]);
+
+  const getFCMToken = async () => {
+    try {
+      let fcmToken = await AsyncStorage.getItem('fcmToken');
+      if (!fcmToken) {
+        try {
+          const refreshToken = await messaging().getToken();
+          console.log("TOKEN ====================== :", refreshToken);
+
+          if (refreshToken) {
+            setToken(refreshToken);
+            await AsyncStorage.setItem('fcmToken', refreshToken);
+          } else {
+          }
+        } catch (error) {
+          console.log('Error fetching token :', error);
         }
+      } else {
+        await AsyncStorage.setItem('fcmToken', fcmToken);
+        setToken(fcmToken);
+      }
+    } catch (error) {
+      console.log('Catch in getFcmToken  : ', error);
+    }
+  };
 
-        common_fn.locationPermission();
-        setLoading(false);
+  const VerifyOTP = async () => {
+    try {
+
+      // const myHeaders = new Headers();
+      // myHeaders.append("accept", "*/*");
+      // myHeaders.append("Content-Type", "application/json");
+
+      // const raw = JSON.stringify({
+      //   "phone_number": 8825659803,
+      //   "otp": 2721
+      // });
+
+      // const requestOptions = {
+      //   method: "POST",
+      //   headers: myHeaders,
+      //   body: raw,
+      //   redirect: "follow"
+      // };
+
+      // fetch("https://testapi.albionbankauctions.com/api/login/verify_otp", requestOptions)
+      //   .then((response) => response.text())
+      //   .then(async(VerifyOTP) => {
+      //     if (VerifyOTP?.isLoggedin == true) {
+      //       dispatch(setActionUserData(VerifyOTP?.user));
+      //       dispatch(setLoginType('Auction'));
+      //       await AsyncStorage.setItem('action_user_data', JSON.stringify(VerifyOTP?.user),);
+      //       await AsyncStorage.setItem('action_login_type', JSON.stringify({ login_type: 'Auction' }),);
+      //       navigation.replace('ActionHome', VerifyOTP?.user);
+      //       if (Platform.OS === 'android') {
+      //         common_fn.showToast(`Welcome to Albion ${VerifyOTP?.user?.name}`);
+      //       } else {
+      //         alert(`Welcome to Albion ${VerifyOTP?.user?.name}`)
+      //       }
+
+      //       common_fn.locationPermission();
+      //       setLoading(false);
+      //     } else {
+      //       setOTPCode('');
+      //       inputRef.current.focus();
+      //       var msg = VerifyOTP?.message;
+      //       setError(msg);
+      //       setLoading(false);
+      //     }
+      //   })
+      //   .catch((error) => console.error(error));
+
+
+      if (otpCode.length == 4) {
+
+        // console.log("CODE ============== :", otpCode);
+        const VerifyOTP = await fetchData.Auction_VerifyOTP({
+          phone_number: number,
+          otp: Number(otpCode),
+          fcm_token: token,
+        });
+        // console.log("STATUS ============== :", VerifyOTP);
+
+        if (VerifyOTP?.isLoggedin == true) {
+          dispatch(setActionUserData(VerifyOTP?.user));
+          dispatch(setLoginType('Auction'));
+          await AsyncStorage.setItem('action_user_data', JSON.stringify(VerifyOTP?.user),);
+          await AsyncStorage.setItem('action_login_type', JSON.stringify({ login_type: 'Auction' }),);
+          navigation.replace('ActionHome', VerifyOTP?.user);
+          if (Platform.OS === 'android') {
+            common_fn.showToast(`Welcome to Albion ${VerifyOTP?.user?.name}`);
+          } else {
+            alert(`Welcome to Albion ${VerifyOTP?.user?.name}`)
+          }
+
+          common_fn.locationPermission();
+          setLoading(false);
+        } else {
+          setOTPCode('');
+          inputRef.current.focus();
+          // var msg = VerifyOTP?.message;
+          // setError(msg);
+          common_fn.showToast(VerifyOTP?.message);
+          setLoading(false);
+        }
       } else {
-        setOTPCode('');
-        inputRef.current.focus();
-        var msg = VerifyOTP?.message;
-        setError(msg);
+        if (Platform.OS === 'android') {
+          common_fn.showToast('Invalid OTP Code Please Enter Your 4 Digit OTP Code');
+        } else {
+          alert('Invalid OTP Code Please Enter Your 4 Digit OTP Code')
+        }
         setLoading(false);
       }
-    } else {
-      if (Platform.OS === 'android') {
-        common_fn.showToast('Invalid OTP Code Please Enter Your 4 Digit OTP Code');
-      } else {
-        alert('Invalid OTP Code Please Enter Your 4 Digit OTP Code')
-      }
-      setLoading(false);
+    } catch (error) {
+      console.log("catch in VerifyOTP_error:", error);
+
     }
   };
 
@@ -521,92 +667,101 @@ const AuctionOTPScreen = ({ route }) => {
 
   };
   return (
-    <ScrollView
-      contentContainerStyle={{ justifyContent: 'center', flex: 1 }}
-      keyboardShouldPersistTaps="handled">
-      <DismissKeyboard>
-        <View
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.container}>
+      <ScrollView
+        contentContainerStyle={{ justifyContent: 'center', padding: 20, }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        {/* <DismissKeyboard> */}
+        {/* <View
           style={{
             flex: 1,
             backgroundColor: Color.white,
-            padding: 20,
+          }}> */}
+        <View
+          style={{
+            width: '100%',
+            alignItems: 'center',
+            paddingVertical: 20,
           }}>
-          <View
-            style={{
-              width: '100%',
-              alignItems: 'center',
-              paddingVertical: 20,
-            }}>
-            <Image
-              source={{ uri: Media.otp }}
-              style={{ width: 200, height: 200, resizeMode: 'contain' }}
-            />
-          </View>
-          <View
-            style={{
-              marginVertical: 20,
-              justifyContent: 'center',
-            }}>
-            <Text
-              style={{
-                fontFamily: 'Poppins-SemiBold',
-                fontSize: 20,
-                fontWeight: 'bold',
-                textAlign: 'center',
-                color: Color.black,
-                marginRight: 10,
-                marginVertical: 10,
-              }}>
-              Enter OTP
-            </Text>
-            <Text style={styles.invalidLogin}>{error}</Text>
-            <View style={styles.otpInputView}>
-              <OTPInput
-                inputRef={inputRef}
-                code={otpCode}
-                setCode={setOTPCode}
-                maximumLength={4}
-                setIsPinReady={setIsPinReady}
-                chkOTPError={chkOTPError}
-              />
-            </View>
-            {seconds > 0 || minutes > 0 ? (
-              <View style={styles.noReceivecodeView}>
-                <Text style={styles.noReceiveText}>
-                  Time Remaining: {minutes < 10 ? `0${minutes}` : minutes}:
-                  {seconds < 10 ? `0${seconds}` : seconds}
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.noReceivecodeView}>
-                <TouchableOpacity onPress={() => ResendOTP(number)}>
-                  <Text style={styles.resendOtp}>Resend OTP</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            <Button
-              title={'Submit'}
-              titleStyle={{}}
-              buttonStyle={{
-                height: 50,
-                backgroundColor: Color.primary,
-                borderRadius: 10,
-                marginVertical: 10,
-              }}
-              onPress={() => {
-                VerifyOTP(navigation);
-              }}
-              loading={loading}
-            />
-          </View>
+          <Image
+            source={{ uri: Media.otp }}
+            style={{ width: 180, height: 180, resizeMode: 'contain' }}
+          />
         </View>
-      </DismissKeyboard>
-    </ScrollView>
+        <View
+          style={{
+            marginVertical: 20,
+            justifyContent: 'center',
+          }}>
+          <Text
+            style={{
+              fontFamily: 'Poppins-SemiBold',
+              fontSize: 18,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              color: Color.black,
+              marginRight: 10,
+              marginVertical: 10,
+            }}>
+            Enter OTP
+          </Text>
+          {/* <Text style={styles.invalidLogin}>{error}</Text> */}
+          <View style={styles.otpInputView}>
+            <OTPInput
+              inputRef={inputRef}
+              code={otpCode}
+              setCode={setOTPCode}
+              maximumLength={4}
+              setIsPinReady={setIsPinReady}
+              chkOTPError={chkOTPError}
+            />
+          </View>
+          {seconds > 0 || minutes > 0 ? (
+            <View style={styles.noReceivecodeView}>
+              <Text style={styles.noReceiveText}>
+                Time Remaining: {minutes < 10 ? `0${minutes}` : minutes}:
+                {seconds < 10 ? `0${seconds}` : seconds}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.noReceivecodeView}>
+              <TouchableOpacity onPress={() => ResendOTP(number)}>
+                <Text style={styles.resendOtp}>Resend OTP</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          <Button
+            title={'Submit'}
+            titleStyle={{ fontSize: 14 }}
+            buttonStyle={{
+              height: 50,
+              backgroundColor: Color.primary,
+              borderRadius: 10,
+              marginVertical: 10,
+            }}
+            onPress={() => {
+              VerifyOTP(navigation);
+            }}
+            loading={loading}
+          />
+
+        </View>
+        {/* </View> */}
+        {/* </DismissKeyboard> */}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 export default AuctionOTPScreen;
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Color.white,
+  },
   otpInputView: {
     marginVertical: 10,
   },
@@ -624,7 +779,7 @@ const styles = StyleSheet.create({
   },
   resendOtp: {
     color: Color.primary,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Poppins-SemiBold',
     fontWeight: 'bold',
     textDecorationLine: 'underline',

@@ -9,6 +9,7 @@ import {
   BackHandler,
   Animated,
   TextInput,
+  Modal, ActivityIndicator
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import Color from '../../Config/Color';
@@ -24,9 +25,9 @@ import fetchData from '../../Config/fetchData';
 import { base_auction_image_url } from '../../Config/base_url';
 import { Categories } from './Content';
 import AuctionItemCard from '../Auctioncomponents/AuctionItemCard';
-import { ActivityIndicator } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import common_fn from '../../Config/common_fn';
 
 const { height } = Dimensions.get('screen');
 
@@ -62,6 +63,18 @@ const ListScreen = ({ navigation, route }) => {
   const [State, setState] = useState([]);
   const [district, setDistrict] = useState([]);
   const [AutionData, setAutionData] = useState([]);
+  const [requestModal, setRequestModal] = useState(false);
+  const [updateLoader, setUpdateLoader] = useState(false);
+
+  // const Auction_userData = useSelector(
+  //   state => state.UserReducer.auctionUserData,
+  // );
+  // var { id, name, phone_number, email } = Auction_userData;
+
+  const data = useSelector(
+    state => state.UserReducer.auctionUserData,
+  );
+
 
   useEffect(() => {
     setLoading(true);
@@ -78,11 +91,17 @@ const ListScreen = ({ navigation, route }) => {
     sortdata
   ]);
 
+
+  // console.log("selectProperty ============= :", JSON.stringify(selectProperty) + "\n" + "starttDate ====== :" + starttDate + "\n" +
+  //   "endDate =========== :" + endDate + "\n" + "property_sub_category ========= :" + property_sub_category);
+
+
   const dataPayload = () => {
     const params = new URLSearchParams();
     const payload = {
       property_sub_category: property_sub_category,
-      event_bank: event_bank,
+      // property_sub_category: selectProperty?.value,
+      event_bank,
       state: selectState?.name,
       district: currentDistrict?.name,
       from: starttDate,
@@ -92,6 +111,7 @@ const ListScreen = ({ navigation, route }) => {
       min: minAmount,
       max: maxAmount,
     };
+    console.log("payload ========================= :", payload);
     for (const key in payload) {
       if (payload[key] != null && payload[key]?.length > 0) {
         params.append(key, payload[key]);
@@ -100,16 +120,41 @@ const ListScreen = ({ navigation, route }) => {
 
     const queryString = params.toString();
     const query = queryString.replace('%20', ' ');
+    console.log("query ========================= :", query);
+
     return query;
   };
 
   const getApiData = async () => {
     try {
-      var data = dataPayload();
-      const getAuction = await fetchData.get_Auction(data);
-      console.log("getAuction ========= : ",getAuction);
-      
+      const payload = {
+        property_sub_category: property_sub_category,
+        event_bank,
+        state: selectState?.name,
+        district: currentDistrict?.name,
+        from: starttDate,
+        to: endDate,
+        sort: sortdata?.value,
+        order: sortdata?.order,
+        min: minAmount,
+        max: maxAmount,
+      };
+
+      // Initialize params as a new URLSearchParams instance
+      const params = new URLSearchParams();
+
+      for (const key in payload) {
+        if (payload[key] != null && payload[key]?.toString().trim().length > 0) {
+          params.append(key, payload[key]);
+        }
+      }
+
+      const queryString = params.toString();
+      const query = queryString.replace(/%20/g, ' '); // Replace all occurrences of '%20' with a space
+
+      const getAuction = await fetchData.get_Auction(query);
       setAutionData(getAuction);
+
       //get State
       const getState = await fetchData.Auction_getState({});
       setState(getState);
@@ -118,7 +163,7 @@ const ListScreen = ({ navigation, route }) => {
       const get_district = await fetchData.Auction_getDistrict(districtData);
       setDistrict(get_district);
     } catch (error) {
-      console.log('error', error);
+      console.log('catch in getApiData_Api :', error);
     }
   };
 
@@ -141,18 +186,21 @@ const ListScreen = ({ navigation, route }) => {
       let range = endDate.diff(startDate, 'days');
       if (range > 0) {
         for (let i = 1; i <= range; i++) {
-          let tempDate = startDate.add(1, 'day');
-          tempDate = moment(tempDate).format('YYYY-MM-DD');
+          let tempDate = startDate.clone().add(1, 'day');
+          // tempDate = moment(tempDate).format('YYYY-MM-DD');
           if (i < range) {
-            markedDates[tempDate] = { color: '#00B0BF', textColor: '#FFFFFF' };
+            markedDates[tempDate.toISOString()] = { color: '#00B0BF', textColor: '#FFFFFF' };
           } else {
-            markedDates[tempDate] = {
+            markedDates[tempDate.toISOString()] = {
               endingDay: true,
               color: '#00B0BF',
               textColor: '#FFFFFF',
             };
           }
         }
+
+        // console.log("starttDate ============ :", starttDate + "day.dateString ============= : " + day.dateString);
+
         setMarkedDates(markedDates);
         setIsStartDatePicked(false);
         setIsEndDatePicked(true);
@@ -188,7 +236,7 @@ const ListScreen = ({ navigation, route }) => {
       const nextPage = page + 1;
       var data = dataPayload() + '&page_number=' + nextPage;
       const response = await fetchData.get_Auction(data);
-      if (response.length > 0) {
+      if (response.length) {
         setPage(nextPage);
         const updatedData = [...AutionData, ...response];
         setAutionData(updatedData);
@@ -204,19 +252,92 @@ const ListScreen = ({ navigation, route }) => {
     }
   };
 
+
+  const requestSubmitClick = async () => {
+    try {
+
+      setUpdateLoader(true);
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      const raw = JSON.stringify({
+        "email": data?.email,
+        "state": selectState?.name !== "" && selectState?.name,
+        "district": currentDistrict?.name !== "" && currentDistrict?.name,
+        "propertySubCategory": selectProperty?.label !== "" && selectProperty?.label
+      });
+
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow"
+      };
+      console.log("Request Prop requestOptions ============== :", requestOptions);
+      fetch("https://api.albionbankauctions.com/api/auction/request-property", requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          console.log("Request Prop resp ============== :", result);
+          if (result?.status == true) {
+            common_fn.showToast(result?.message);
+            setRequestModal(false);
+            setUpdateLoader(false);
+          } else {
+            common_fn.showToast(result?.message);
+            setUpdateLoader(false);
+            setRequestModal(false);
+          }
+        })
+        .catch((error) => console.error("catch in requestSubmitClick_api:", error));
+    } catch (error) {
+      setRequestModal(false);
+      console.log("catch in  requestSubmitClick================= :", error);
+    }
+  }
+
+  const submitClick = async () => {
+    try {
+      const data = dataPayload();
+      console.log("payload data----------------- :", data);
+
+      const submitAuction = await fetchData.get_Auction(data);
+      // console.log("submitAuction res========= : ", submitAuction);
+      setAutionData(submitAuction);
+
+    } catch (error) {
+      console.log("catch in  submitClick_Api :", error);
+    }
+  }
+
+  const clearListClick = () => {
+    try {
+      setSelectProperty({});
+      setSelectState({});
+      setCurrentDistrict({});
+      setMarkedDates({});
+      setStartDate('');
+      setEndDate('');
+
+    } catch (error) {
+      console.log("catch in  clearList_Click :", error);
+    }
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: Color.white, alignItems: 'center', }}>
       <View
         style={{
           width: '100%',
           backgroundColor: '#FDF0F5',
-          padding: 10, alignItems: 'center',
+          // padding: 10, 
+          alignItems: 'center',
 
         }}>
         <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center', paddingVertical: 10
+            width: '95%',
+            flexDirection: 'row', justifyContent: 'space-around',
+            alignItems: 'center', marginVertical: 10, marginTop: 15
           }}>
           <Dropdown
             style={{
@@ -228,9 +349,8 @@ const ListScreen = ({ navigation, route }) => {
               // paddingHorizontal: 5,
               paddingHorizontal: 10,
               // height: 50,
-              width: '40%',
+              width: '42%',
               height: 45,
-              marginHorizontal: 10,
             }}
             placeholderStyle={{
               fontSize: 12,
@@ -270,9 +390,8 @@ const ListScreen = ({ navigation, route }) => {
               borderWidth: 1,
               paddingHorizontal: 10,
               borderRadius: 5,
-              width: '40%',
+              width: '42%',
               height: 45,
-              marginHorizontal: 10,
             }}
             placeholderStyle={{
               fontSize: 12,
@@ -324,10 +443,10 @@ const ListScreen = ({ navigation, route }) => {
               borderWidth: 1,
               paddingHorizontal: 10,
               borderRadius: 5,
-              width: '95%',
+              width: '92%',
               height: 45,
               // marginHorizontal: 10,
-              marginVertical: 10,
+              marginVertical: 5,
             }}
             placeholderStyle={{
               fontSize: 12,
@@ -361,6 +480,18 @@ const ListScreen = ({ navigation, route }) => {
             )}
           />
         )}
+
+        <View style={{ width: '95%', flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
+          {/* <TouchableOpacity onPress={() => submitClick()}
+            style={{ width: '50%', height: 50, borderRadius: 5, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.primary }}>
+            <Text style={{ fontSize: 14, color: Color.white, fontFamily: Poppins.SemiBold }}>Submit</Text>
+          </TouchableOpacity> */}
+          <View style={{ width: 5, height: '100%', backgroundColor: Color.white }}></View>
+          <TouchableOpacity onPress={() => clearListClick()}
+            style={{ width: '95%', height: 50, borderRadius: 5, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.primary }}>
+            <Text style={{ fontSize: 14, color: Color.white, fontFamily: Poppins.SemiBold }}>Clear</Text>
+          </TouchableOpacity>
+        </View>
         {/* <View style={{ width: '100%', marginVertical: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <TextInput
             placeholder="Minimum Price"
@@ -444,8 +575,6 @@ const ListScreen = ({ navigation, route }) => {
           />
         </View>
       ) : (
-
-
         <FlatList
           data={AutionData}
           keyExtractor={(item, index) => item + index}
@@ -466,26 +595,26 @@ const ListScreen = ({ navigation, route }) => {
             loadMoreData();
           }}
           onEndReachedThreshold={0.1}
-          // ListFooterComponent={() => {
-          //   return (
-          //     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-          //       {loadMore && (
-          //         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          //           <Text
-          //             style={{
-          //               fontSize: 12,
-          //               color: Color.black,
-          //               marginHorizontal: 10,
-          //               fontFamily: Poppins.Medium,
-          //             }}>
-          //             Loading...
-          //           </Text>
-          //           <ActivityIndicator />
-          //         </View>
-          //       )}
-          //     </View>
-          //   );
-          // }}
+          ListFooterComponent={() => {
+            return (
+              <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                {loadMore && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: Color.black,
+                        marginHorizontal: 10,
+                        fontFamily: Poppins.Medium,
+                      }}>
+                      Loading...
+                    </Text>
+                    <ActivityIndicator />
+                  </View>
+                )}
+              </View>
+            );
+          }}
           ListEmptyComponent={() => {
             return (
               <View
@@ -504,27 +633,74 @@ const ListScreen = ({ navigation, route }) => {
                     resizeMode: 'contain',
                   }}
                 />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    padding: 5,
-                    paddingHorizontal: 20,
-                    marginStart: 5,
-                    borderRadius: 5,
-                    marginVertical: 10,
-                    color: Color.primary,
-                    fontFamily: Poppins.SemiBold,
-                  }}>
-                  No Auction Found
-                </Text>
+                <TouchableOpacity onPress={() => setRequestModal(true)}
+                  style={{ padding: 10, paddingVertical: 15, paddingHorizontal: 20, backgroundColor: Color.primary, borderRadius: 5, marginVertical: 20 }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      marginStart: 5,
+                      borderRadius: 5,
+                      color: Color.white,
+                      fontFamily: Poppins.SemiBold,
+                    }}>
+                    Request a property
+                  </Text>
+                </TouchableOpacity>
               </View>
             );
           }}
           showsVerticalScrollIndicator={false}
           style={{ width: '95%', }}
         />
-
       )}
+
+      <Modal visible={requestModal} transparent animationType="slide">
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: Color.transparantBlack,
+            justifyContent: 'center',
+            padding: 20, backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          }}>
+          <View
+            style={{
+              backgroundColor: 'white',
+              padding: 1,
+              borderRadius: 10,
+            }}>
+
+            <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
+              <Text style={{ width: '100%', fontSize: 20, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20, paddingVertical: 10 }}>Request This Property</Text>
+
+              <View style={{ width: '95%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 10, }}>
+                <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium, letterSpacing: 0.5, lineHeight: 22 }}>Thank you for your request! We will notify you shortly with the details of
+                  <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}> {selectProperty?.label}</Text> properties in
+                  <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{' '}{selectState?.name} {' '}</Text>
+                  <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{currentDistrict?.name}</Text>.
+                  We greatly appreciate your patience</Text>
+              </View>
+
+              <TouchableOpacity onPress={() => requestSubmitClick()}
+                style={{ width: '95%', height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
+                {updateLoader ? (
+                  <ActivityIndicator color={Color.white} />
+                ) : (
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      fontSize: 14,
+                      color: Color.white,
+                      fontFamily: Poppins.Medium,
+                    }}>
+                    Submit
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 };

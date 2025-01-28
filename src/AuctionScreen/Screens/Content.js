@@ -6,7 +6,7 @@ export const Categories = [
     image: Media.Icon_villa,
     // label: 'House, Villa, Bunglow, Appartment, and Flat',
     label: 'Residential',
-    value: 'house_villa_bunglow_appartment_flat',
+    value: 'house_villa_bunglow_apartment_flat',
   },
   {
     id: 2,
@@ -48,12 +48,12 @@ export const Categories = [
     label: 'Vehicle',
     value: 'Vehicle',
   },
-  {
-    id: 8,
-    image: Media.Icon_others,
-    label: 'Others',
-    value: 'Others',
-  },
+  // {
+  //   id: 8,
+  //   image: Media.Icon_others,
+  //   label: 'View all',
+  //   value: 'Others',
+  // },
   // {
   //   id: 9,
   //   image: Media.Icon_land,

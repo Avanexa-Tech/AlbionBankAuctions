@@ -17,6 +17,7 @@ import {
   LayoutAnimation,
   LogBox,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
@@ -294,13 +295,59 @@ const AuctionNotifyProperties = () => {
   const [selectProperty, setSelectProperty] = useState({});
   const [currentDistrict, setCurrentDistrict] = useState({});
   const [AutionData, setAutionData] = useState([]);
-  const [loginEnable, setLoginEnable] = useState(false)
+  const [loginEnable, setLoginEnable] = useState(false);
+
   const Auction_userData = useSelector(
     state => state.UserReducer.auctionUserData,
   );
   var { id, name, phone_number, email } = Auction_userData;
   const [ReservedPriceFrom, setReservedPriceFrom] = useState('');
   const [ReservedPriceTo, setReservedPriceTo] = useState('');
+
+  const starImageCorner = Media.starOutline;
+  const [defaultRating, setDefaultRating] = useState(null);
+  const starImageFilled = Media.star;
+
+  const [updateLoader, setUpdateLoader] = useState(false);
+  const [comments, setComments] = useState('');
+  const [maxRating, setMaxRating] = useState([
+    {
+      id: 1,
+      rating: 1,
+      experience: 'Poor',
+    },
+    {
+      id: 2,
+      rating: 2,
+      experience: 'Bad',
+    },
+    {
+      id: 3,
+      rating: 3,
+      experience: 'Okay',
+    },
+    {
+      id: 4,
+      rating: 4,
+      experience: 'Average',
+    },
+    {
+      id: 5,
+      rating: 5,
+      experience: 'Good',
+    },
+  ]);
+
+
+  const handleRatingPress = item => {
+    console.log("Item ------------- : ", item);
+
+    if (defaultRating === item) {
+      setDefaultRating(null);
+    } else {
+      setDefaultRating(item);
+    }
+  };
 
   useEffect(() => {
     try {
@@ -371,10 +418,47 @@ const AuctionNotifyProperties = () => {
     });
   }, [selectProperty, selectState, currentDistrict]);
 
+  // Validation function for individual fields
+  const validateFields = () => {
+    if (!selectState?.name || selectState.name.trim() === '') {
+      common_fn.showToast("Please select a state");
+      return false;
+    }
+    if (!currentDistrict?.name || currentDistrict.name.trim() === '') {
+      common_fn.showToast("Please select a district");
+      return false;
+    }
+    if (!selectProperty?.label || selectProperty.label.trim() === '') {
+      common_fn.showToast("Please select a property type");
+      return false;
+    }
+    if (!ReservedPriceFrom || isNaN(parseFloat(ReservedPriceFrom))) {
+      common_fn.showToast("Please enter a valid 'Reserved Price From'");
+      return false;
+    }
+    if (!ReservedPriceTo || isNaN(parseFloat(ReservedPriceTo))) {
+      common_fn.showToast("Please enter a valid 'Reserved Price To'");
+      return false;
+    }
+    if (parseFloat(ReservedPriceFrom) <= 0 || parseFloat(ReservedPriceTo) <= 0) {
+      if (Platform.OS === 'android') {
+        common_fn.showToast("Reserve Price cannot be zero or negative");
+      } else {
+        alert("Reserve Price cannot be zero or negative");
+      }
+      return;
+    }
+
+    if (parseFloat(ReservedPriceFrom) >= parseFloat(ReservedPriceTo)) {
+      common_fn.showToast("Reserved Price From must be less than Reserved Price To");
+      return false;
+    }
+    return true;
+  };
+
   async function submitClick() {
     try {
-      console.log("sdkgjklsdklgksldgklh");
-      var data = {
+      const data = {
         user_id: id,
         from_reserve_price: ReservedPriceFrom,
         to_reserve_price: ReservedPriceTo,
@@ -382,37 +466,65 @@ const AuctionNotifyProperties = () => {
         district: currentDistrict?.name,
         type_of_property: selectProperty?.label,
       };
-      if (
-        selectState?.name != '' &&
-        currentDistrict?.name != '' &&
-        selectProperty?.label != '' &&
-        ReservedPriceFrom != '' &&
-        ReservedPriceTo != ''
-      ) {
-        // console.log("data ----------- : ", data);
-        const notifyProperties = await fetchData.Auction_notify_properties(
-          data,
-        );
-        // console.log("data ----------- : ", JSON.stringify(notifyProperties));
-        if (notifyProperties) {
-          setHomeLoanVisible(true);
-          if (Platform.OS === 'android') {
-            common_fn.showToast(notifyProperties?.message)
-          } else {
-            alert(notifyProperties?.message)
-          }
-        }
-      } else {
+
+      // Validate fields
+      if (!validateFields()) {
+        return; // Exit if validation fails
+      }
+
+      console.log("data ----------- : ", data);
+      const notifyProperties = await fetchData.Auction_notify_properties(data);
+      console.log("Getting Response ----------- : ", JSON.stringify(notifyProperties));
+
+      if (notifyProperties) {
         if (Platform.OS === 'android') {
-          common_fn.showToast("Please select the fields")
+          common_fn.showToast(notifyProperties?.message);
         } else {
-          alert("Please select the fields")
+          alert(notifyProperties?.message);
         }
+
+        setHomeLoanVisible(true);
       }
     } catch (error) {
       console.log("catch in renderHeader_Item's submitClick : ", error);
     }
   }
+
+
+  const feedbackSubmitClick = async () => {
+    try {
+      if (defaultRating != null && comments != '') {
+        setUpdateLoader(true);
+        var data = {
+          user_id: id,
+          rating: defaultRating,
+          feedback: comments
+        };
+
+        const feedbackresponse = await fetchData.Auction_feedbackData(data);
+        console.log("SUCCESS ------------- :", feedbackresponse);
+
+        if (feedbackresponse?.status == true) {
+          common_fn.showToast(feedbackresponse?.message);
+          navigation.navigate("ActionHome");
+          setUpdateLoader(false);
+        } else {
+          common_fn.showToast(feedbackresponse?.message);
+          navigation.navigate("ActionHome");
+          setUpdateLoader(false);
+        }
+
+      } else {
+        common_fn.showToast("Please select your rating and enter your comments");
+        setUpdateLoader(false);
+        console.log("********Please fill the details *************");
+      }
+
+    } catch (error) {
+      console.log("catch in feedbackSubmit_Click : ", error);
+    }
+  }
+
 
   function sale_toggleBottomView(type) {
     try {
@@ -718,14 +830,14 @@ const AuctionNotifyProperties = () => {
               backgroundColor: 'white',
             }}>
             <Text style={{ fontSize: 14, color: 'black' }}>
-              {item.notify_property_type}
+              {item.notify_property_type} 11111111111
             </Text>
           </TouchableOpacity>
           <View
             style={{
               width: '95%',
               height: 1,
-              backgroundColor: '#666',
+              backgroundColor: 'red',
               marginVertical: 1,
             }}></View>
         </View>
@@ -745,287 +857,301 @@ const AuctionNotifyProperties = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={{ marginVertical: 10 }}>
-        <Text
-          style={{
-            fontFamily: Poppins.SemiBold,
-            fontSize: 25,
-            color: Color.lightBlack,
-            marginVertical: 5,
-          }}>
-          Interested Price
-        </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            color: '#333',
-            fontFamily: 'Poppins-SemiBold',
-            textAlign: 'justify',
-          }}>
-          We will send you notifications of new property based on your interests
-          & below inputs
-        </Text>
-        <View style={{ marginVertical: 5 }}>
+    <ScrollView
+      showsVerticalScrollIndicator={false}>
+      <View style={styles.container}>
+        <View style={{ marginVertical: 0, overflow: 'visible' }}>
           <Text
             style={{
-              color: Color.cloudyGrey,
-              fontFamily: Poppins.Medium,
-              fontSize: 14,
+              fontFamily: Poppins.SemiBold,
+              fontSize: 20,
+              color: Color.lightBlack, paddingVertical: 5
             }}>
-            Reserve Price From :
+            Interested Price
           </Text>
-          <TextInput
-            placeholder="₹ 00,00,000"
-            placeholderTextColor={Color.cloudyGrey}
-            value={ReservedPriceFrom}
-            onChangeText={value => {
-              setReservedPriceFrom(value);
-            }}
-            keyboardType="number-pad"
-            style={{
-              borderColor: Color.lightgrey,
-              borderWidth: 1,
-              borderRadius: 5,
-              paddingHorizontal: 10,
-              fontSize: 14,
-              color: Color.cloudyGrey,
-              fontFamily: Poppins.Medium,
-              marginRight: 10,
-            }}
-          />
-        </View>
-        <View style={{ marginVertical: 5 }}>
           <Text
             style={{
-              color: Color.cloudyGrey,
-              fontFamily: Poppins.Medium,
               fontSize: 14,
+              color: '#333',
+              fontFamily: 'Poppins-SemiBold',
+              textAlign: 'justify', paddingVertical: 2
             }}>
-            Reserve Price To :
+            We will send you notifications of new property based on your interests
+            & below inputs
           </Text>
-          <TextInput
-            placeholder="₹ 00,00,000"
-            placeholderTextColor={Color.cloudyGrey}
-            value={ReservedPriceTo}
-            onChangeText={value => {
-              setReservedPriceTo(value);
+          <View style={{ marginVertical: 5 }}>
+            <Text
+              style={{
+                color: Color.cloudyGrey,
+                fontFamily: Poppins.Medium,
+                fontSize: 14,
+              }}>
+              Reserve Price From :
+            </Text>
+            <TextInput
+              placeholder="₹ 00,00,000"
+              placeholderTextColor={Color.cloudyGrey}
+              value={ReservedPriceFrom}
+              onChangeText={value => {
+                setReservedPriceFrom(value);
+              }}
+              keyboardType="number-pad"
+              style={{
+                width: '100%', height: 50,
+                borderColor: Color.lightgrey,
+                borderWidth: 1,
+                borderRadius: 5,
+                paddingHorizontal: 10,
+                fontSize: 14,
+                color: Color.cloudyGrey,
+                fontFamily: Poppins.Medium,
+                marginRight: 10, marginVertical: 5
+              }}
+            />
+          </View>
+          <View style={{ marginVertical: 5 }}>
+            <Text
+              style={{
+                color: Color.cloudyGrey,
+                fontFamily: Poppins.Medium,
+                fontSize: 14,
+              }}>
+              Reserve Price To :
+            </Text>
+            <TextInput
+              placeholder="₹ 00,00,000"
+              placeholderTextColor={Color.cloudyGrey}
+              value={ReservedPriceTo}
+              onChangeText={value => {
+                setReservedPriceTo(value);
+              }}
+              keyboardType="number-pad"
+              style={{
+                width: '100%', height: 50,
+                borderColor: Color.lightgrey,
+                borderWidth: 1,
+                borderRadius: 5,
+                paddingHorizontal: 10,
+                fontSize: 14,
+                color: Color.cloudyGrey,
+                fontFamily: Poppins.Medium,
+                marginRight: 10, marginVertical: 5
+              }}
+            />
+          </View>
+          <View style={{ marginVertical: 5 }}>
+            <Text
+              style={{
+                fontFamily: Poppins.Medium,
+                fontSize: 14,
+                color: Color.cloudyGrey,
+              }}>
+              Select State *
+            </Text>
+            <Dropdown
+              style={{
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                padding: 15, height: 50,
+                paddingHorizontal: 20,
+                backgroundColor: Color.white,
+                borderRadius: 5,
+                borderColor: '#666',
+                borderWidth: 0.5, marginVertical: 5
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: Color.cloudyGrey,
+                marginHorizontal: 10,
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: Color.black,
+                marginHorizontal: 10,
+              }}
+              iconStyle={{ width: 20, height: 20 }}
+              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey }}
+              data={State}
+              maxHeight={300}
+              labelField="name"
+              valueField="name"
+              placeholder={selectState?.name ? 'Select City' : 'Select State'}
+              searchPlaceholder="Search..."
+              value={selectState}
+              onChange={item => {
+                setSelectState(item);
+              }}
+              renderRightIcon={() => (
+                <Icon
+                  style={{ width: 20, height: 20 }}
+                  color={Color.cloudyGrey}
+                  name="chevron-down"
+                  size={20}
+                />
+              )}
+            />
+          </View>
+          <View style={{ marginVertical: 5 }}>
+            <Text
+              style={{
+                fontFamily: Poppins.Medium,
+                fontSize: 14,
+                color: Color.cloudyGrey,
+              }}>
+              Select District *
+            </Text>
+            <Dropdown
+              style={{
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginVertical: 5,
+                padding: 15, height: 50,
+                paddingHorizontal: 20,
+                backgroundColor: Color.white,
+                borderRadius: 5,
+                borderColor: !selectState?.name
+                  ? Color.lightgrey
+                  : Color.cloudyGrey,
+                borderWidth: 0.5,
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: !selectState?.name ? Color.lightgrey : Color.cloudyGrey,
+                marginHorizontal: 10,
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: Color.black,
+                marginHorizontal: 10,
+              }}
+              disable={!selectState?.name}
+              iconStyle={{ width: 20, height: 20 }}
+              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey }}
+              data={district}
+              maxHeight={300}
+              labelField="name"
+              valueField="name"
+              placeholder={'Select District'}
+              searchPlaceholder="Search..."
+              value={currentDistrict}
+              onChange={item => {
+                setCurrentDistrict(item);
+              }}
+              renderRightIcon={() => (
+                <Icon
+                  style={{ width: 20, height: 20 }}
+                  color={!selectState?.name ? Color.lightgrey : Color.cloudyGrey}
+                  name="chevron-down"
+                  size={20}
+                />
+              )}
+            />
+          </View>
+          <View style={{ marginVertical: 5, flex: 1, overflow: 'visible', position: 'relative' }}>
+            <Text
+              style={{
+                fontFamily: Poppins.Medium,
+                fontSize: 14,
+                color: Color.cloudyGrey,
+              }}>
+              Select Property Type *
+            </Text>
+            <Dropdown
+              style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginVertical: 5,
+                padding: 15,
+                height: 50,
+                paddingHorizontal: 20,
+                backgroundColor: Color.white,
+                borderRadius: 5,
+                borderColor: '#666',
+                borderWidth: 0.5,
+                zIndex: 1000,
+              }}
+              containerStyle={{
+                // position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1000,
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: Color.cloudyGrey,
+                marginHorizontal: 10,
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: Color.black,
+                marginHorizontal: 10,
+              }}
+              iconStyle={{ width: 20, height: 20 }}
+              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey }}
+              data={Categories}
+              maxHeight={200}
+              labelField="label"
+              valueField="value"
+              placeholder="Select property"
+              searchPlaceholder="Search..."
+              value={selectProperty}
+              dropdownPosition="auto"
+              onChange={item => {
+                setSelectProperty(item);
+              }}
+              renderRightIcon={() => (
+                <Icon
+                  style={{ width: 20, height: 20 }}
+                  color={Color.cloudyGrey}
+                  name="chevron-down"
+                  size={20}
+                />
+              )}
+            />
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={() => {
+              id == undefined ||
+                (Auction_userData?.length > 0 && Auction_userData == undefined) ?
+                setLoginEnable(true)
+                :
+                submitClick()
             }}
-            keyboardType="number-pad"
             style={{
-              borderColor: Color.lightgrey,
-              borderWidth: 1,
-              borderRadius: 5,
-              paddingHorizontal: 10,
-              fontSize: 14,
-              color: Color.cloudyGrey,
-              fontFamily: Poppins.Medium,
-              marginRight: 10,
-            }}
-          />
-        </View>
-        <View style={{ marginVertical: 5 }}>
-          <Text
-            style={{
-              fontFamily: Poppins.Medium,
-              fontSize: 14,
-              color: Color.cloudyGrey,
-            }}>
-            Select State *
-          </Text>
-          <Dropdown
-            style={{
-              justifyContent: 'space-between',
+              flexDirection: 'row',
+              justifyContent: 'center',
               alignItems: 'center',
               marginVertical: 10,
-              padding: 7,
+              height: 50,
               paddingHorizontal: 20,
-              backgroundColor: Color.white,
+              backgroundColor: Color.primary,
               borderRadius: 5,
               borderColor: '#666',
               borderWidth: 0.5,
-            }}
-            placeholderStyle={{
-              fontSize: 12,
-              color: Color.cloudyGrey,
-              marginHorizontal: 10,
-            }}
-            selectedTextStyle={{
-              fontSize: 12,
-              color: Color.black,
-              marginHorizontal: 10,
-            }}
-            iconStyle={{ width: 20, height: 20 }}
-            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
-            data={State}
-            maxHeight={300}
-            labelField="name"
-            valueField="name"
-            placeholder={selectState?.name ? 'Select City' : 'Select State'}
-            searchPlaceholder="Search..."
-            value={selectState}
-            onChange={item => {
-              setSelectState(item);
-            }}
-            renderRightIcon={() => (
-              <Icon
-                style={{ width: 20, height: 20 }}
-                color={Color.cloudyGrey}
-                name="chevron-down"
-                size={20}
-              />
-            )}
-          />
-        </View>
-        <View style={{ marginVertical: 5 }}>
-          <Text
-            style={{
-              fontFamily: Poppins.Medium,
-              fontSize: 14,
-              color: Color.cloudyGrey,
             }}>
-            Select District *
-          </Text>
-          <Dropdown
-            style={{
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginVertical: 10,
-              padding: 7,
-              paddingHorizontal: 20,
-              backgroundColor: Color.white,
-              borderRadius: 5,
-              borderColor: !selectState?.name
-                ? Color.lightgrey
-                : Color.cloudyGrey,
-              borderWidth: 0.5,
-            }}
-            placeholderStyle={{
-              fontSize: 12,
-              color: !selectState?.name ? Color.lightgrey : Color.cloudyGrey,
-              marginHorizontal: 10,
-            }}
-            selectedTextStyle={{
-              fontSize: 12,
-              color: Color.black,
-              marginHorizontal: 10,
-            }}
-            disable={!selectState?.name}
-            iconStyle={{ width: 20, height: 20 }}
-            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
-            data={district}
-            maxHeight={300}
-            labelField="name"
-            valueField="name"
-            placeholder={'Select District'}
-            searchPlaceholder="Search..."
-            value={currentDistrict}
-            onChange={item => {
-              setCurrentDistrict(item);
-            }}
-            renderRightIcon={() => (
-              <Icon
-                style={{ width: 20, height: 20 }}
-                color={!selectState?.name ? Color.lightgrey : Color.cloudyGrey}
-                name="chevron-down"
-                size={20}
-              />
-            )}
-          />
+            <Text style={{ fontSize: 14, color: Color.white }}>Notify Me</Text>
+          </TouchableOpacity>
         </View>
-        <View style={{ marginVertical: 5 }}>
-          <Text
-            style={{
-              fontFamily: Poppins.Medium,
-              fontSize: 14,
-              color: Color.cloudyGrey,
-            }}>
-            Select Property Type *
-          </Text>
-          <Dropdown
-            style={{
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginVertical: 10,
-              padding: 7,
-              paddingHorizontal: 20,
-              backgroundColor: Color.white,
-              borderRadius: 5,
-              borderColor: '#666',
-              borderWidth: 0.5,
-            }}
-            placeholderStyle={{
-              fontSize: 12,
-              color: Color.cloudyGrey,
-              marginHorizontal: 10,
-            }}
-            selectedTextStyle={{
-              fontSize: 12,
-              color: Color.black,
-              marginHorizontal: 10,
-            }}
-            iconStyle={{ width: 20, height: 20 }}
-            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
-            data={Categories}
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder="Select property"
-            searchPlaceholder="Search..."
-            value={selectProperty}
-            onChange={item => {
-              setSelectProperty(item);
-            }}
-            renderRightIcon={() => (
-              <Icon
-                style={{ width: 20, height: 20 }}
-                color={Color.cloudyGrey}
-                name="chevron-down"
-                size={20}
-              />
-            )}
-          />
-        </View>
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={() => {
-            id == undefined ||
-        (Auction_userData?.length > 0 && Auction_userData == undefined) ?
-              setLoginEnable(true)
-              :
-              submitClick()
-          }}
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginVertical: 10,
-            height: 45,
-            paddingHorizontal: 20,
-            backgroundColor: Color.primary,
-            borderRadius: 5,
-            borderColor: '#666',
-            borderWidth: 0.5,
-          }}>
-          <Text style={{ fontSize: 14, color: Color.white }}>Notify Me</Text>
-        </TouchableOpacity>
-      </View>
 
-      <Modal visible={HomeLoanVisible} transparent animationType="slide">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: Color.transparantBlack,
-            justifyContent: 'center',
-            padding: 15,
-          }}>
+        <Modal visible={HomeLoanVisible} transparent animationType="slide">
           <View
             style={{
-              backgroundColor: 'white',
-              padding: 20,
-              borderRadius: 10,
+              flex: 1,
+              backgroundColor: Color.transparantBlack,
+              justifyContent: 'center',
+              padding: 20, backgroundColor: 'rgba(0, 0, 0, 0.8)',
             }}>
-            <Text
+            <View
+              style={{
+                backgroundColor: 'white',
+                padding: 1,
+                borderRadius: 10,
+              }}>
+              {/* <Text
               style={{
                 color: 'black',
                 fontFamily: Poppins.Bold,
@@ -1070,8 +1196,112 @@ const AuctionNotifyProperties = () => {
                 marginVertical: 10,
               }}>
               You will get notification on WhatsApp regularly
-            </Text>
-            <TouchableOpacity
+            </Text> */}
+
+              {/* <Text
+              style={{
+                color: 'black',
+                fontFamily: Poppins.Bold,
+                fontSize: 20,
+                textAlign: 'center',
+              }}>
+              Rate and Reviews
+            </Text> */}
+
+              <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', borderRadius: 5 }}>
+                <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F3EAE4', paddingVertical: 20, borderTopRightRadius: 10, borderTopLeftRadius: 10 }}>
+                  <Image
+                    source={require('../../../assets/image/feedback.png')}
+                    style={{ width: '100%', height: 120, resizeMode: 'contain', padding: 2, }}
+                  />
+                  <View style={{ position: 'absolute', right: 10, top: 10 }}>
+                    <TouchableOpacity onPress={() => setHomeLoanVisible(false)}>
+                      <Iconviewcomponent
+                        Icontag={'AntDesign'}
+                        iconname={"closecircle"}
+                        icon_size={30}
+                        icon_color={Color.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={{ width: '100%', marginHorizontal: 10, marginTop: 20 }}>
+                  <Text style={{ width: '100%', fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20 }}>Rate Your Experience ?</Text>
+                  <View style={styles.customRatingBarStyle}>
+                    {maxRating.map((item, index) => {
+                      return (
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          key={index}
+                          onPress={() => handleRatingPress(item.rating)}
+                          style={{
+                            marginHorizontal: 10,
+                            alignItems: 'center',
+                          }}>
+                          <Image
+                            style={styles.starImageStyle}
+                            source={{
+                              uri:
+                                item.rating <= defaultRating
+                                  ? starImageFilled
+                                  : starImageCorner,
+                            }}
+                          />
+                          <Text
+                            style={{
+                              textAlign: 'center',
+                              fontSize: 14,
+                              color: Color.cloudyGrey,
+                              marginVertical: 10,
+                              fontFamily: Poppins.SemiBold,
+                            }}>
+                            {item.experience}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+                <View style={{ width: '95%', height: 1, backgroundColor: '#EAEAEF', borderRadius: 30, marginVertical: 10 }}></View>
+                <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 10 }}>
+                  <Text style={{ width: '100%', fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20 }}>Share your experience</Text>
+
+                  <View style={{ width: '95%', backgroundColor: Color.white, borderWidth: 1, borderColor: Color.lightgrey, borderRadius: 5, marginTop: 10 }}>
+                    <TextInput
+                      placeholder="Enter your comments here ..."
+                      placeholderTextColor={Color.cloudyGrey}
+                      value={comments}
+                      multiline={true}
+                      onChangeText={text => {
+                        setComments(text);
+                      }}
+                      keyboardType="name-phone-pad"
+                      returnKeyType='done'
+                      style={styles.phoneTextInput}
+                    />
+                  </View>
+                </View>
+                <TouchableOpacity onPress={() => feedbackSubmitClick()}
+                  style={{ width: '95%', height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
+                  {updateLoader ? (
+                    <ActivityIndicator color={Color.white} />
+                  ) : (
+                    <Text
+                      style={{
+                        textAlign: 'center',
+                        fontSize: 14,
+                        color: Color.white,
+                        fontFamily: Poppins.Medium,
+                      }}>
+                      Submit
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+
+              {/* <TouchableOpacity
               onPress={() => {
                 navigation.replace('ActionHome'), setHomeLoanVisible(false);
               }}
@@ -1084,17 +1314,18 @@ const AuctionNotifyProperties = () => {
                 borderRadius: 40,
               }}>
               <Text style={{ fontSize: 14, color: 'white' }}>GoTo Home Page</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {sale_BottomSheetmenu()}
-      {
-        loginEnable == true &&
-        <AuctionBottomLogin login={loginEnable} setLogin={setLoginEnable} />
-      }
-    </View>
+        {sale_BottomSheetmenu()}
+        {
+          loginEnable == true &&
+          <AuctionBottomLogin login={loginEnable} setLogin={setLoginEnable} />
+        }
+      </View>
+    </ScrollView>
   );
 };
 
@@ -1181,6 +1412,24 @@ const styles = StyleSheet.create({
     width: 15,
     alignSelf: 'center',
     height: 15,
+  },
+  customRatingBarStyle: {
+    justifyContent: 'center',
+    flexDirection: 'row',
+    marginVertical: 10,
+  },
+  starImageStyle: {
+    width: 35,
+    height: 35,
+    resizeMode: 'cover',
+  },
+  phoneTextInput: {
+    width: '100%',
+    minHeight: 100,
+    padding: 10,
+    color: Color.black,
+    textAlignVertical: 'top',
+    maxHeight: 200
   },
 });
 

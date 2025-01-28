@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LogBox,
   StatusBar,
@@ -8,31 +8,31 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
-import {createDrawerNavigator} from '@react-navigation/drawer';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import CustomDrawerContent from './Components/Nav/CustomDrawerContent';
 import Color from './Config/Color';
 import SplashScreen from './Splash';
-import {Provider, useDispatch, useSelector} from 'react-redux';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import Store from './Redux/Store';
 import Icon from 'react-native-vector-icons/Ionicons';
 import F5Icon from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {Provider as PaperProvider} from 'react-native-paper';
+import { Provider as PaperProvider } from 'react-native-paper';
 import OnboardingScreen2 from './Screens/Onboarding/OnboardingScreen2';
-import {Poppins} from './Global/FontFamily';
+import { Poppins } from './Global/FontFamily';
 import ActionSelect from './ActionSelect';
 import LoginScreen from './AuctionScreen/Auth/Login';
 import Register from './AuctionScreen/Auth/Register';
 import HomeScreen from './AuctionScreen/Screens/HomeScreen';
-import {NavigationDrawerStructure} from './Components/Nav/NavDrawer';
+import { NavigationDrawerStructure } from './Components/Nav/NavDrawer';
 import LogoTitle from './Components/LogoTitle';
 import ListScreen from './AuctionScreen/Screens/ListScreen';
 import ActionSingleProperty from './AuctionScreen/Screens/ActionSingleProperty';
 import CategoriesList from './AuctionScreen/Screens/CategoriesList';
 import AuctionSearchScreen from './AuctionScreen/Screens/AuctionSearchScreen';
-import {Linking} from 'react-native';
+import { Linking } from 'react-native';
 import AuctionOTPScreen from './AuctionScreen/Auth/OTPScreen';
 import ForgotPassword from './AuctionScreen/Auth/ForgotPassword';
 import NumberVerify from './AuctionScreen/Auth/NumberVerify';
@@ -49,11 +49,15 @@ import AuctionProfile from './AuctionScreen/Screens/profile/AuctionProfile';
 import ChangePassword from './AuctionScreen/Auth/ChangePassword';
 import AuctionPrivacyPolicy from './AuctionScreen/Screens/SideMenu/AuctionPrivacyPolicy';
 import AuctionTermsConditions from './AuctionScreen/Screens/SideMenu/AuctionTermsConditions';
-import {navigate, navigationRef} from '../RootNavigation';
-import {setAuctionSort} from './Redux';
-import {Divider} from 'react-native-elements';
-import {Modal} from 'react-native';
-import {Text} from 'react-native';
+import { navigate, navigationRef } from '../RootNavigation';
+import { setAuctionSort } from './Redux';
+import { Divider } from 'react-native-elements';
+import { Modal } from 'react-native';
+import { Text } from 'react-native';
+import AlbionPrime from './AuctionScreen/Screens/AuctionPrime';
+import SubscriptionDetails from './AuctionScreen/Screens/SubscriptionDetails';
+import AuctionPrime from './AuctionScreen/Screens/AuctionPrime';
+import FeedbackRatings from './AuctionScreen/Screens/SideMenu/FeedbackRatings';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -81,7 +85,7 @@ const MyDrawer = () => {
         const reviewMatch = initialUrl.match(/\/review\/(\d+)/);
         if (reviewMatch) {
           const p_id = reviewMatch[1];
-          navigationRef.current?.navigate('SingleProperty', {p_id});
+          navigationRef.current?.navigate('SingleProperty', { p_id });
         }
       }
     };
@@ -90,11 +94,11 @@ const MyDrawer = () => {
   }, []);
 
   useEffect(() => {
-    const handleDeepLink = ({url}) => {
+    const handleDeepLink = ({ url }) => {
       const reviewMatch = url.match(/\/review\/(\d+)/);
       if (reviewMatch) {
         const p_id = reviewMatch[1];
-        navigationRef.current?.navigate('SingleProperty', {p_id});
+        navigationRef.current?.navigate('SingleProperty', { p_id });
       }
     };
 
@@ -110,12 +114,12 @@ const MyDrawer = () => {
       <NavigationContainer linking={linking} ref={navigationRef}>
         <Drawer.Navigator
           initialRouteName="Home"
-          screenOptions={{swipeEnabled: false}}
+          screenOptions={{ swipeEnabled: false }}
           drawerContent={props => <CustomDrawerContent {...props} />}>
           <Drawer.Screen
             name="Home"
             component={MainApp}
-            options={{headerShown: false}}
+            options={{ headerShown: false }}
           />
         </Drawer.Navigator>
       </NavigationContainer>
@@ -136,8 +140,8 @@ const MainApp = () => {
   const [height, setHeight] = useState(undefined);
   const dispatch = useDispatch();
   const [sortData] = useState([
-    {id: 1, label: 'Newest', value: 'created_at', order: 'desc'},
-    {id: 2, label: 'Recent', value: 'created_at', order: 'asc'},
+    { id: 1, label: 'Newest', value: 'created_at', order: 'desc' },
+    { id: 2, label: 'Recent', value: 'created_at', order: 'asc' },
     {
       id: 3,
       label: 'Reserve Price (High to Low)',
@@ -160,39 +164,39 @@ const MainApp = () => {
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="OnboardingScreen2"
           component={OnboardingScreen2}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
-        
+
         <Stack.Screen
           name="ActionSelect"
           component={ActionSelect}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
 
         <Stack.Screen
           name="ActionLogin"
           component={LoginScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="ActionRegister"
           component={Register}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="ForgotPassword"
           component={ForgotPassword}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: '',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.white},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.white },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -206,12 +210,12 @@ const MainApp = () => {
         <Stack.Screen
           name="NumberVerify"
           component={NumberVerify}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: '',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.white},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.white },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -225,12 +229,12 @@ const MainApp = () => {
         <Stack.Screen
           name="updatepassword"
           component={UpdatePassword}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: '',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.white},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.white },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -244,35 +248,35 @@ const MainApp = () => {
         <Stack.Screen
           name="ActionHome"
           component={HomeScreen}
-          options={({navigation}) => ({
+          options={({ navigation }) => ({
             headerTitle: props => <LogoTitle {...props} />,
             headerTitleAlign: 'center',
             headerTintColor: 'white',
-            headerStyle: {backgroundColor: Color.primary, elevation: 0},
+            headerStyle: { backgroundColor: Color.primary, elevation: 0 },
             headerLeft: () => (
               <NavigationDrawerStructure navigation={navigation} />
             ),
             headerRight: () => (
               <TouchableOpacity
-                style={{marginEnd: 10}}
+                style={{ marginEnd: 10 }}
                 onPress={() => {
                   navigation.navigate('AuctionProfile');
                 }}>
                 <FontAwesome name="user" size={25} color={Color.white} />
               </TouchableOpacity>
             ),
-            headerRightContainerStyle: {right: 10},
+            headerRightContainerStyle: { right: 10 },
           })}
         />
         <Stack.Screen
           name="ListScreen"
           component={ListScreen}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Auction List',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -281,106 +285,108 @@ const MainApp = () => {
                 />
               </View>
             ),
-            headerRight: () => (
-              <View
-                style={{
-                  marginHorizontal: 10,
-                  marginRight: 20,
-                  alignItems: 'flex-end',
-                }}>
-                <F5Icon
-                  name="sort-amount-down-alt"
-                  style={{width: '100%'}}
-                  size={20}
-                  color={Color.white}
-                  onPress={() => {
-                    setSortVisible(true);
-                  }}
-                />
-                <Modal
-                  transparent={true}
-                  visible={sortVisible}
-                  animationType="fade">
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor: Color.transparantBlack,
-                    }}>
-                    <Pressable
-                      style={{flex: 1}}
-                      onPress={() => {
-                        setSortVisible(false);
-                      }}
-                    />
-                    <View
-                      style={{
-                        backgroundColor: Color.white,
-                        height: height,
-                        padding: 10,
-                        borderTopRightRadius: 30,
-                        borderTopLeftRadius: 30,
-                      }}>
-                      <Text
-                        style={{
-                          fontSize: 18,
-                          color: Color.cloudyGrey,
-                          fontWeight: 'bold',
-                          marginVertical: 10,
-                        }}>
-                        Select Your Sort Method
-                      </Text>
-                      <Divider style={{height: 1, marginVertical: 10}} />
-                      <View
-                        style={{
-                          marginHorizontal: 20,
-                        }}>
-                        {sortData?.map((item, index) => {
-                          return (
-                            <TouchableOpacity
-                              key={index}
-                              style={{}}
-                              onPress={() => {
-                                dispatch(setAuctionSort(item));
-                                setSortVisible(false);
-                              }}>
-                              <Text
-                                style={{
-                                  color: Color.black,
-                                  fontSize: 16,
-                                  fontFamily: Poppins.Medium,
-                                }}>
-                                {item?.label}
-                              </Text>
-                              {index < sortData?.length - 1 && (
-                                <Divider
-                                  style={{height: 1, marginVertical: 10}}
-                                />
-                              )}
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
-                    </View>
-                  </View>
-                </Modal>
-              </View>
-            ),
+            // headerRight: () => (
+            //   <View
+            //     style={{
+            //       marginHorizontal: 10,
+            //       marginRight: 20,
+            //       alignItems: 'flex-end',
+            //     }}>
+            //     <F5Icon
+            //       name="sort-amount-down-alt"
+            //       style={{ width: '100%' }}
+            //       size={20}
+            //       color={Color.white}
+            //       onPress={() => {
+            //         setSortVisible(true);
+            //       }}
+            //     />
+            //     <Modal
+            //       transparent={true}
+            //       visible={sortVisible}
+            //       animationType="fade">
+            //       <View
+            //         style={{
+            //           flex: 1,
+            //           backgroundColor: Color.transparantBlack,
+            //         }}>
+            //         <Pressable
+            //           style={{ flex: 1 }}
+            //           onPress={() => {
+            //             setSortVisible(false);
+            //           }}
+            //         />
+            //         <View
+            //           style={{
+            //             backgroundColor: Color.white,
+            //             height: height,
+            //             padding: 10,
+            //             borderTopRightRadius: 30,
+            //             borderTopLeftRadius: 30,
+            //           }}>
+            //           <Text
+            //             style={{
+            //               fontSize: 18,
+            //               color: Color.cloudyGrey,
+            //               fontWeight: 'bold',
+            //               marginVertical: 10,
+            //             }}>
+            //             Select Your Sort Method
+            //           </Text>
+            //           <Divider style={{ height: 1, marginVertical: 10 }} />
+            //           <View
+            //             style={{
+            //               marginHorizontal: 20,
+            //             }}>
+            //             {sortData?.map((item, index) => {
+            //               console.log("item ===============:", item);
+
+            //               return (
+            //                 <TouchableOpacity
+            //                   key={index}
+            //                   style={{}}
+            //                   onPress={() => {
+            //                     dispatch(setAuctionSort(item));
+            //                     setSortVisible(false);
+            //                   }}>
+            //                   <Text
+            //                     style={{
+            //                       color: Color.black,
+            //                       fontSize: 16,
+            //                       fontFamily: Poppins.Medium,
+            //                     }}>
+            //                     {item?.label}
+            //                   </Text>
+            //                   {index < sortData?.length - 1 && (
+            //                     <Divider
+            //                       style={{ height: 1, marginVertical: 10 }}
+            //                     />
+            //                   )}
+            //                 </TouchableOpacity>
+            //               );
+            //             })}
+            //           </View>
+            //         </View>
+            //       </View>
+            //     </Modal>
+            //   </View>
+            // ),
           })}
         />
         <Stack.Screen
           name="ActionSingleProperty"
           component={ActionSingleProperty}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="CategoriesList"
           component={CategoriesList}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Categories List',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -394,12 +400,12 @@ const MainApp = () => {
         <Stack.Screen
           name="AuctionSearchScreen"
           component={AuctionSearchScreen}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Search',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -413,31 +419,32 @@ const MainApp = () => {
         <Stack.Screen
           name="AuctionOTPScreen"
           component={AuctionOTPScreen}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Enter OTP',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
-            headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
-                <Icon
-                  name="arrow-back"
-                  size={30}
-                  color={Color.white}
-                  onPress={() => navigation.goBack()}
-                />
-              </View>
-            ),
+            headerTitleStyle: { color: Color.white, paddingHorizontal: 20 },
+            headerStyle: { backgroundColor: Color.primary },
+            headerLeft: null,
+            // headerLeft: () => (
+            //   <View style={{ marginHorizontal: 10 }}>
+            //     <Icon
+            //       name="arrow-back"
+            //       size={30}
+            //       color={Color.white}
+            //       onPress={() => navigation.goBack()}
+            //     />
+            //   </View>
+            // ),
           })}
         />
         <Stack.Screen
           name="AuctionAboutUs"
           component={AuctionAboutUs}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'About Us',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -451,12 +458,12 @@ const MainApp = () => {
         <Stack.Screen
           name="AuctionContactUs"
           component={AuctionContactUs}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Contact Us',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -471,12 +478,32 @@ const MainApp = () => {
         <Stack.Screen
           name="AuctionFAQs"
           component={AuctionFAQs}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'FAQs',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
+                <Icon
+                  name="arrow-back"
+                  size={30}
+                  color={Color.white}
+                  onPress={() => navigation.goBack()}
+                />
+              </View>
+            ),
+          })}
+        />
+
+        <Stack.Screen
+          name="FeedbackRatings"
+          component={FeedbackRatings}
+          options={({ navigation, route }) => ({
+            headerTitle: 'Feedback & Ratings',
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
+            headerLeft: () => (
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -491,12 +518,12 @@ const MainApp = () => {
         <Stack.Screen
           name="AuctionNotificationList"
           component={AuctionNotificationList}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Notification List',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -509,14 +536,53 @@ const MainApp = () => {
         />
 
         <Stack.Screen
+          name="AuctionPrime"
+          component={AuctionPrime}
+          options={({ navigation, route }) => ({
+            headerTitle: 'Auction Prime ',
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
+            headerLeft: () => (
+              <View style={{ marginHorizontal: 10 }}>
+                <Icon
+                  name="arrow-back"
+                  size={30}
+                  color={Color.white}
+                  onPress={() => navigation.goBack()}
+                />
+              </View>
+            ),
+          })}
+        />
+        <Stack.Screen
           name="AuctionNotifyProperties"
           component={AuctionNotifyProperties}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Notify Property ',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
+                <Icon
+                  name="arrow-back"
+                  size={30}
+                  color={Color.white}
+                  onPress={() => navigation.goBack()}
+                />
+              </View>
+            ),
+          })}
+        />
+
+        <Stack.Screen
+          name="SubscriptionDetails"
+          component={SubscriptionDetails}
+          options={({ navigation, route }) => ({
+            headerTitle: 'Subscription Details',
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
+            headerLeft: () => (
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -531,12 +597,12 @@ const MainApp = () => {
         <Stack.Screen
           name="InterestedProperties"
           component={InterestedProperties}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Interested Properties',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -551,12 +617,12 @@ const MainApp = () => {
         <Stack.Screen
           name="AdvanceSearch"
           component={AdvanceSearch}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Advanced Search',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -571,12 +637,12 @@ const MainApp = () => {
         <Stack.Screen
           name="AuctionProfile"
           component={AuctionProfile}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Your Auction Profile',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -591,12 +657,12 @@ const MainApp = () => {
         <Stack.Screen
           name="AuctionPrivacyPolicy"
           component={AuctionPrivacyPolicy}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Privacy Policy',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -611,12 +677,12 @@ const MainApp = () => {
         <Stack.Screen
           name="AuctionTermsConditions"
           component={AuctionTermsConditions}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Terms & Conditions',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}
@@ -631,12 +697,12 @@ const MainApp = () => {
         <Stack.Screen
           name="ChangePassword"
           component={ChangePassword}
-          options={({navigation, route}) => ({
+          options={({ navigation, route }) => ({
             headerTitle: 'Change Password',
-            headerTitleStyle: {color: Color.white},
-            headerStyle: {backgroundColor: Color.primary},
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
-              <View style={{marginHorizontal: 10}}>
+              <View style={{ marginHorizontal: 10 }}>
                 <Icon
                   name="arrow-back"
                   size={30}

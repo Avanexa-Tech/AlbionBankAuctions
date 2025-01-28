@@ -45,25 +45,32 @@ const AuctionSearchScreen = ({ navigation }) => {
     return () => backHandler.remove();  // Clean up the listener on unmount
   }, [navigation]);
 
-  const propertySearch = async search => {
-    setSearch(search);
+  const propertySearch = async () => {
+
     try {
-      var data = 'like=' + search;
+      var data = search !== '' && 'like=' + search;
       const getAuction = await fetchData.get_Auction(data);
+      setPage(1)
+      console.log("dfssdfsdfasdfs=======|||||||||||||||||||||||||", getAuction, data)
       setAuctionData(getAuction);
     } catch (error) {
       console.log('error', error);
     }
   };
+  useEffect(() => {
+    propertySearch()
+  }, [search])
 
   const loadMoreData = async () => {
-    if (loadMore || endReached) {
+    if (loadMore || endReached || AuctionData.length < 1) {
       return;
     }
     setLoadMore(true);
     try {
       const nextPage = page + 1;
-      var data = 'like=' + search + '&page_number=' + nextPage;
+      var data = search !== '' ? 'like=' + search + '&page_number=' + nextPage : "page_number=" + nextPage;
+      console.log("fdkgnkjfdhjjkfdhdkl", data);
+
       const response = await fetchData.get_Auction(data);
       if (response.length > 0) {
         setPage(nextPage);
@@ -73,12 +80,13 @@ const AuctionSearchScreen = ({ navigation }) => {
             .toLowerCase()
             .includes(search.toLowerCase()),
         );
+        console.log("dfssdfsdfasdfs=>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         setAuctionData([...AuctionData, ...updatedData]);
       } else {
         setEndReached(true);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching data:', error.response.data);
     } finally {
       setLoadMore(false);
     }
@@ -96,7 +104,7 @@ const AuctionSearchScreen = ({ navigation }) => {
       <Searchbar
         placeholder={`Search by Bank Name, City, ID & Price`}
         placeholderTextColor={Color.cloudyGrey}
-        onChangeText={query => propertySearch(query)}
+        onChangeText={query => setSearch(query)}
         value={search}
         style={{
           borderRadius: 10,

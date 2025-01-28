@@ -33,7 +33,7 @@ import BottomLogin from '../BottomLogin';
 import AuctionBottomLogin from '../../AuctionScreen/Auctioncomponents/AuctionBottomLogin';
 
 const CustomDrawerContent = props => {
-  const [itemSelected, setItemSelected] = useState('');
+  const [itemSelected, setItemSelected] = useState('Home');
   const [selectCitybottomSheetVisible, setSelectCitybottomSheetVisible] =
     useState(false);
   const dispatch = useDispatch();
@@ -403,12 +403,12 @@ const CustomDrawerContent = props => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ marginVertical: 10, marginBottom: 50 }}>
+        <View style={{ marginBottom: 50 }}>
           <View
             style={{
               backgroundColor:
                 itemSelected === 'Home' ? primarycolor : Color.white,
-              marginVertical: 5,
+              marginVertical: 2,
             }}>
             <TouchableOpacity
               style={{
@@ -419,15 +419,15 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('Home');
+                // setItemSelected('Home');
                 props.navigation.navigate('Home');
               }}>
               <Iconviewcomponent
                 Icontag={'Ionicons'}
                 iconname={itemSelected === 'Home' ? 'home' : 'home'}
-                icon_size={itemSelected === 'Home' ? 22 : 18}
+                icon_size={itemSelected === 'Home' ? 22 : 22}
                 icon_color={
-                  itemSelected === 'Home' ? Color.white : Color.grey
+                  itemSelected === 'Home' ? Color.white : Color.primary
                 }
               />
               <Text
@@ -442,13 +442,14 @@ const CustomDrawerContent = props => {
               </Text>
             </TouchableOpacity>
           </View>
+
           <View
             style={{
               backgroundColor:
-                itemSelected === 'NotifyProperty'
+                itemSelected === 'AuctionPrime'
                   ? primarycolor
                   : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -459,8 +460,57 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('NotifyProperty'),
-                  props.navigation.navigate('AuctionNotifyProperties');
+                // setItemSelected('AuctionPrime'),
+                props.navigation.navigate('AuctionPrime');
+              }}>
+              <Iconviewcomponent
+                Icontag={'FontAwesome5'}
+                iconname={
+                  itemSelected === 'AuctionPrime'
+                    ? 'crown'
+                    : 'crown'
+                }
+                icon_size={itemSelected === 'AuctionPrime' ? 22 : 18}
+                icon_color={
+                  itemSelected === 'AuctionPrime' ? Color.white : Color.primary
+                }
+              />
+              <Text
+                style={{
+                  fontSize: itemSelected === 'AuctionPrime' ? 16 : 14,
+                  width: 150,
+                  marginLeft: 10,
+                  color:
+                    itemSelected === 'AuctionPrime'
+                      ? Color.white
+                      : Color.black,
+                  fontFamily:
+                    itemSelected === 'AuctionPrime' ? 'bold' : 'normal',
+                }}>
+                Auction Prime
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View
+            style={{
+              backgroundColor:
+                itemSelected === 'NotifyProperty'
+                  ? primarycolor
+                  : Color.white,
+              marginVertical: 3,
+            }}>
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginHorizontal: 10,
+                paddingVertical: 10,
+                padding: 10,
+              }}
+              onPress={() => {
+                // setItemSelected('NotifyProperty'),
+                props.navigation.navigate('AuctionNotifyProperties');
               }}>
               <Iconviewcomponent
                 Icontag={'MaterialIcons'}
@@ -469,9 +519,9 @@ const CustomDrawerContent = props => {
                     ? 'notification-add'
                     : 'notification-add'
                 }
-                icon_size={itemSelected === 'NotifyProperty' ? 22 : 18}
+                icon_size={itemSelected === 'NotifyProperty' ? 22 : 22}
                 icon_color={
-                  itemSelected === 'NotifyProperty' ? Color.white : Color.grey
+                  itemSelected === 'NotifyProperty' ? Color.white : Color.primary
                 }
               />
               <Text
@@ -497,7 +547,7 @@ const CustomDrawerContent = props => {
                 itemSelected === 'InterestedProperties'
                   ? primarycolor
                   : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -508,8 +558,8 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('InterestedProperties'),
-                  props.navigation.navigate('InterestedProperties');
+                // setItemSelected('InterestedProperties'),
+                props.navigation.navigate('InterestedProperties');
               }}>
               <Iconviewcomponent
                 Icontag={'MaterialCommunityIcons'}
@@ -518,18 +568,18 @@ const CustomDrawerContent = props => {
                     ? 'home-heart'
                     : 'home-heart'
                 }
-                icon_size={itemSelected === 'InterestedProperties' ? 22 : 18}
+                icon_size={itemSelected === 'InterestedProperties' ? 22 : 22}
                 icon_color={
                   itemSelected === 'InterestedProperties'
                     ? Color.white
-                    : Color.grey
+                    : Color.primary
                 }
               />
               <Text
                 style={{
                   fontSize: itemSelected === 'InterestedProperties' ? 16 : 14,
                   width: 150,
-                  marginLeft: 10,
+                  marginLeft: 8,
                   color:
                     itemSelected === 'InterestedProperties'
                       ? Color.white
@@ -548,7 +598,7 @@ const CustomDrawerContent = props => {
             style={{
               backgroundColor:
                 itemSelected === 'AdvanceSearch' ? primarycolor : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -559,17 +609,17 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('AdvanceSearch');
+                // setItemSelected('AdvanceSearch');
                 props.navigation.navigate('AdvanceSearch');
               }}>
               <Iconviewcomponent
-                Icontag={'AntDesign'}
+                Icontag={'Ionicons'}
                 iconname={
-                  itemSelected === 'AdvanceSearch' ? 'search1' : 'search1'
+                  itemSelected === 'AdvanceSearch' ? 'search' : 'search'
                 }
                 icon_size={20}
                 icon_color={
-                  itemSelected === 'AdvanceSearch' ? Color.white : Color.grey
+                  itemSelected === 'AdvanceSearch' ? Color.white : Color.primary
                 }
               />
               <Text
@@ -595,7 +645,7 @@ const CustomDrawerContent = props => {
                 itemSelected === 'AuctionAboutUs'
                   ? primarycolor
                   : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -606,22 +656,21 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('AuctionAboutUs');
+                // setItemSelected('AuctionAboutUs');
                 props.navigation.navigate('AuctionAboutUs');
               }}>
               <Iconviewcomponent
-                Icontag={'Ionicons'}
+                Icontag={'MaterialCommunityIcons'}
                 iconname={
                   itemSelected === 'AuctionAboutUs'
-                    ? 'information-circle'
-                    : 'information-circle-outline'
+                    ? 'information-outline'
+                    : 'information'
                 }
-                icon_size={20}
+                icon_size={22}
                 icon_color={
-                  itemSelected === 'AuctionAboutUs' ? Color.white : Color.grey
+                  itemSelected === 'AuctionAboutUs' ? Color.white : Color.primary
                 }
               />
-
               <Text
                 style={{
                   fontSize: itemSelected === 'AuctionAboutUs' ? 16 : 14,
@@ -644,7 +693,7 @@ const CustomDrawerContent = props => {
                 itemSelected === 'AuctionContact'
                   ? primarycolor
                   : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -655,20 +704,19 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('AuctionContact');
+                // setItemSelected('AuctionContact');
                 props.navigation.navigate('AuctionContactUs');
               }}>
               <Iconviewcomponent
                 Icontag={'Ionicons'}
                 iconname={
-                  itemSelected === 'AuctionContact' ? 'call' : 'call-outline'
+                  itemSelected === 'AuctionContact' ? 'call-outline' : 'call'
                 }
                 icon_size={20}
                 icon_color={
-                  itemSelected === 'AuctionContact' ? Color.white : Color.grey
+                  itemSelected === 'AuctionContact' ? Color.white : Color.primary
                 }
               />
-
               <Text
                 style={{
                   fontSize: itemSelected === 'AuctionContact' ? 16 : 14,
@@ -689,7 +737,7 @@ const CustomDrawerContent = props => {
             style={{
               backgroundColor:
                 itemSelected === 'FAQs' ? primarycolor : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -700,22 +748,21 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('FAQs'),
-                  props.navigation.navigate('AuctionFAQs');
+                // setItemSelected('FAQs'),
+                props.navigation.navigate('AuctionFAQs');
               }}>
               <Iconviewcomponent
-                Icontag={'Ionicons'}
+                Icontag={'MaterialCommunityIcons'}
                 iconname={
                   itemSelected === 'FAQs'
-                    ? 'information-circle'
-                    : 'information-circle-outline'
+                    ? 'information-outline'
+                    : 'information'
                 }
-                icon_size={20}
+                icon_size={22}
                 icon_color={
-                  itemSelected === 'FAQs' ? Color.white : Color.grey
+                  itemSelected === 'FAQs' ? Color.white : Color.primary
                 }
               />
-
               <Text
                 style={{
                   fontSize: itemSelected === 'FAQs' ? 16 : 14,
@@ -732,7 +779,7 @@ const CustomDrawerContent = props => {
             style={{
               backgroundColor:
                 itemSelected === 'RateReviews' ? primarycolor : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -743,17 +790,18 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('RateReviews'), selectCity_toggleBottomView();
+                // setItemSelected('RateReviews'),
+                props.navigation.navigate('FeedbackRatings');
+                // selectCity_toggleBottomView();
               }}>
               <Iconviewcomponent
-                Icontag={'AntDesign'}
-                iconname={itemSelected === 'RateReviews' ? 'star' : 'staro'}
-                icon_size={itemSelected === 'RateReviews' ? 26 : 20}
+                Icontag={'FontAwesome'}
+                iconname={itemSelected === 'RateReviews' ? 'star-o' : 'star'}
+                icon_size={itemSelected === 'RateReviews' ? 26 : 22}
                 icon_color={
-                  itemSelected === 'RateReviews' ? Color.white : Color.grey
+                  itemSelected === 'RateReviews' ? Color.white : Color.primary
                 }
               />
-
               <Text
                 style={{
                   fontSize: itemSelected === 'RateReviews' ? 16 : 14,
@@ -766,7 +814,7 @@ const CustomDrawerContent = props => {
                   fontWeight:
                     itemSelected === 'RateReviews' ? 'bold' : 'normal',
                 }}>
-                Rate & Reviews
+                Feedback & Ratings
               </Text>
             </TouchableOpacity>
           </View>
@@ -777,7 +825,7 @@ const CustomDrawerContent = props => {
                 itemSelected === 'AuctionPrivacyPolicy'
                   ? primarycolor
                   : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -788,7 +836,7 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('AuctionPrivacyPolicy');
+                // setItemSelected('AuctionPrivacyPolicy');
                 props.navigation.navigate('AuctionPrivacyPolicy');
               }}>
               <Iconviewcomponent
@@ -798,14 +846,13 @@ const CustomDrawerContent = props => {
                     ? 'policy'
                     : 'policy'
                 }
-                icon_size={20}
+                icon_size={22}
                 icon_color={
                   itemSelected === 'AuctionPrivacyPolicy'
                     ? Color.white
-                    : Color.grey
+                    : Color.primary
                 }
               />
-
               <Text
                 style={{
                   fontSize: itemSelected === 'AuctionPrivacyPolicy' ? 16 : 14,
@@ -829,7 +876,7 @@ const CustomDrawerContent = props => {
             style={{
               backgroundColor:
                 itemSelected === 'AuctionTerms' ? primarycolor : Color.white,
-              marginVertical: 5,
+              marginVertical: 3,
             }}>
             <TouchableOpacity
               style={{
@@ -840,19 +887,19 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                setItemSelected('AuctionTerms');
+                // setItemSelected('AuctionTerms');
                 props.navigation.navigate('AuctionTermsConditions');
               }}>
               <Iconviewcomponent
                 Icontag={'MaterialCommunityIcons'}
                 iconname={
                   itemSelected === 'AuctionTerms'
-                    ? 'content-save-all'
-                    : 'content-copy'
+                    ? 'content-copy'
+                    : 'content-save-all'
                 }
                 icon_size={20}
                 icon_color={
-                  itemSelected === 'AuctionTerms' ? Color.white : Color.grey
+                  itemSelected === 'AuctionTerms' ? Color.white : Color.primary
                 }
               />
               <Text

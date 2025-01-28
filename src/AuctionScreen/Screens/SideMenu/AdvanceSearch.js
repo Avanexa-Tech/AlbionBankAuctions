@@ -27,10 +27,12 @@ import { Media } from '../../../Global/Media';
 import { Poppins } from '../../../Global/FontFamily';
 import { useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { scr_height, scr_width } from '../../../Utils/Dimensions';
 
 const { height } = Dimensions.get('screen');
 
 const AdvanceSearch = ({ navigation, route }) => {
+
     const routeName = useRoute();
     const [selectProperty, setSelectProperty] = useState({});
     const [markDates, setMarkedDates] = useState({});
@@ -53,6 +55,28 @@ const AdvanceSearch = ({ navigation, route }) => {
     const [district, setDistrict] = useState([]);
     const [bankDetails, setBankDetails] = useState([]);
     const [AutionData, setAutionData] = useState([]);
+
+    useEffect(() => {
+        setLoading(true);
+        getApiData().finally(() => {
+            setLoading(false);
+        });
+    }, [starttDate,
+        endDate,
+        selectProperty,
+        selectState,
+        currentDistrict,
+        BankSelected,
+        minAmount,
+        maxAmount
+    ]);
+
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButtonClick);
+        return () => backHandler.remove();
+    }, [routeName.name, navigation]);
+
+    // console.log("selectProperty ------------------- : ", selectProperty);
 
     const onDayPress = day => {
         if (isStartDatePicked == false) {
@@ -101,7 +125,7 @@ const AdvanceSearch = ({ navigation, route }) => {
     const dataPayload = () => {
         const params = new URLSearchParams();
         const payload = {
-            property_sub_category: "",
+            property_sub_category: selectProperty?.value,
             event_bank: BankSelected?.bank_name,
             state: selectState?.name,
             district: currentDistrict?.name,
@@ -110,6 +134,8 @@ const AdvanceSearch = ({ navigation, route }) => {
             min: minAmount,
             max: maxAmount,
         };
+
+        console.log("payload ================ :", payload);
 
         for (const key in payload) {
             if (payload[key] != null && payload[key]?.length > 0) {
@@ -146,25 +172,29 @@ const AdvanceSearch = ({ navigation, route }) => {
     const AuctionApiData = async () => {
         try {
             var data = dataPayload()
+            console.log("data =========== : ", data);
             const getAuction = await fetchData.get_Auction(data);
+            // console.log("auctions search =========== : ", getAuction);
             setAutionData(getAuction);
         } catch (error) {
-            console.log('error', error)
+            console.log('catch in AuctionApi_Data', error)
         }
     }
 
-    useEffect(() => {
-        setLoading(true);
-        getApiData().finally(() => {
-            setLoading(false);
-        });
-    }, [
-        endDate,
-        selectProperty,
-        selectState,
-        currentDistrict,
-        BankSelected,
-    ]);
+    const clearSearchClick = () => {
+        try {
+            setSelectProperty({});
+            setStartDate('');
+            setEndDate('');
+            setSelectState('');
+            setCurrentDistrict('');
+            setMinAmount('');
+            setMaxAmount('')
+        } catch (error) {
+            console.log('catch in clearSearch_Click :', error)
+        }
+    }
+
 
     function handleBackButtonClick() {
         if (routeName.name == "AdvanceSearch") {
@@ -174,13 +204,10 @@ const AdvanceSearch = ({ navigation, route }) => {
         return false;
     };
 
-    useEffect(() => {
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButtonClick);
-        return () => backHandler.remove();
-    }, [routeName.name, navigation]);
+
 
     const loadMoreData = async () => {
-        if (loadMore || endReached) {
+        if (loadMore || endReached || AutionData.length < 1) {
             return;
         }
         setLoadMore(true);
@@ -252,6 +279,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                         value={selectProperty}
                         onChange={item => {
                             setSelectProperty(item);
+                            // setSelectProperty(item.id);
                         }}
                         renderRightIcon={() => (
                             <Icon
@@ -459,6 +487,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                             AuctionApiData()
                         }}
                         style={{
+                            flex: 1,
                             width: '100%',
                             height: 45,
                             justifyContent: 'center',
@@ -467,6 +496,22 @@ const AdvanceSearch = ({ navigation, route }) => {
                             borderRadius: 5
                         }}>
                         <Text style={{ fontSize: 16, color: 'white' }}>Search Auction</Text>
+                    </TouchableOpacity>
+                    <View style={{ width: 10, height: '100%' }}></View>
+                    <TouchableOpacity
+                        onPress={() => {
+                            clearSearchClick()
+                        }}
+                        style={{
+                            flex: 1,
+                            width: '100%',
+                            height: 45,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            backgroundColor: Color.primary,
+                            borderRadius: 5
+                        }}>
+                        <Text style={{ fontSize: 16, color: 'white' }}>Clear</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -558,29 +603,31 @@ const AdvanceSearch = ({ navigation, route }) => {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     marginVertical: 10,
-                                    height: height / 1.5,
+                                    // height: height ,
                                 }}>
-                                <Image
-                                    source={{ uri: Media.noProperty }}
-                                    style={{
-                                        width: 100,
-                                        height: 80,
-                                        resizeMode: 'contain',
-                                    }}
-                                />
-                                <Text
-                                    style={{
-                                        fontSize: 12,
-                                        padding: 5,
-                                        paddingHorizontal: 20,
-                                        marginStart: 5,
-                                        borderRadius: 5,
-                                        marginVertical: 10,
-                                        color: Color.primary,
-                                        fontFamily: Poppins.SemiBold,
-                                    }}>
-                                    No Auction Found
-                                </Text>
+                                <View style={{ width: scr_width, height: scr_height / 2 - 10, justifyContent: 'center', alignItems: 'center' }}>
+                                    <Image
+                                        source={{ uri: Media.noProperty }}
+                                        style={{
+                                            width: 100,
+                                            height: 80,
+                                            resizeMode: 'contain',
+                                        }}
+                                    />
+                                    <Text
+                                        style={{
+                                            fontSize: 12,
+                                            padding: 5,
+                                            paddingHorizontal: 20,
+                                            marginStart: 5,
+                                            borderRadius: 5,
+                                            marginVertical: 10,
+                                            color: Color.primary,
+                                            fontFamily: Poppins.SemiBold,
+                                        }}>
+                                        No Auction Found
+                                    </Text>
+                                </View>
                             </View>
                         );
                     }}

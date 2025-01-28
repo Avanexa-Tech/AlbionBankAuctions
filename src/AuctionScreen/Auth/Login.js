@@ -334,28 +334,35 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const login = async () => {
-    if (number.length == 10) {
-      const login = await fetchData.Auction_OTPlogin({
-        phone_number: number
-      });
-      var { message, status } = login;
-      if (message == "Success") {
-        if (Platform.OS === 'android') {
-          common_fn.showToast('OTP Sent Successfully');
+    try {
+      if (number.length == 10) {
+        const login = await fetchData.Auction_OTPlogin({
+          phone_number: number
+        });
+        console.log("login ================= :", login);
+
+        var { message, status } = login;
+        if (message == "Success") {
+          if (Platform.OS === 'android') {
+            common_fn.showToast('OTP Sent Successfully');
+          } else {
+            alert("OTP Sent Successfully")
+          }
+          navigation.navigate('AuctionOTPScreen', { number });
         } else {
-          alert("OTP Sent Successfully")
+          var msg = message;
+          setError(msg);
+          common_fn.showToast(message);
         }
-        navigation.navigate('AuctionOTPScreen', { number });
       } else {
-        var msg = message;
-        setError(msg);
+        if (Platform.OS === 'android') {
+          common_fn.showToast('Invalid Phone Number, Please Enter Your 10 Digit Phone Number');
+        } else {
+          alert("Invalid Phone Number, Please Enter Your 10 Digit Phone Number")
+        }
       }
-    } else {
-      if (Platform.OS === 'android') {
-        common_fn.showToast('Invalid Phone Number, Please Enter Your 10 Digit Phone Number');
-      } else {
-        alert("Invalid Phone Number, Please Enter Your 10 Digit Phone Number")
-      }
+    } catch (error) {
+      console.log("catch in  login_catch ================= :", error);
     }
   };
 
@@ -453,7 +460,7 @@ const LoginScreen = ({ navigation }) => {
             }}>
             <Image
               source={{ uri: Media.logo }}
-              style={{ width: 100, height: 100, resizeMode: 'contain' }}
+              style={{ width: 120, height: 120, resizeMode: 'contain' }}
             />
           </View>
           <View
@@ -463,7 +470,7 @@ const LoginScreen = ({ navigation }) => {
             <Text
               style={{
                 fontFamily: 'Poppins-SemiBold',
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: 'bold',
                 textAlign: 'left',
                 color: Color.black,
@@ -475,14 +482,14 @@ const LoginScreen = ({ navigation }) => {
             <Text
               style={{
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
                 textAlign: 'left',
                 color: Color.cloudyGrey,
                 marginRight: 10,
               }} numberOfLines={2}>
               Please give your whatsapp mobile number to Get Started
             </Text>
-            <View style={{ marginVertical: 30 }}>
+            <View style={{ marginVertical: 20 }}>
               <View style={styles.NumberBoxConatiner}>
                 <Text style={styles.numberCountryCode}>+91</Text>
                 <TextInput
@@ -503,11 +510,11 @@ const LoginScreen = ({ navigation }) => {
             </View>
             <Button
               title={'Submit'}
-              titleStyle={{}}
+              titleStyle={{ fontSize: 14, }}
               buttonStyle={{
                 backgroundColor: Color.primary,
                 borderRadius: 5,
-                height: 50,
+                height: 50, marginVertical: 10
               }}
               onPress={() => {
                 login(navigation);
@@ -569,7 +576,7 @@ const LoginScreen = ({ navigation }) => {
               textAlign: "center",
               paddingHorizontal: 10
             }}>
-            Copyright @ 2024 Albion Investments and Holdings Pvt Ltd - All Rights Reserved
+            Copyright @ 2025 Albion Investments and Holdings Pvt Ltd - All Rights Reserved
           </Text>
         </View>
 
@@ -595,7 +602,7 @@ const styles = StyleSheet.create({
   numberCountryCode: {
     color: Color.black,
     marginHorizontal: 10,
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: Poppins.SemiBold,
     textAlign: "center",
     alignItems: "center",
@@ -616,7 +623,7 @@ const styles = StyleSheet.create({
     borderLeftColor: Color.Venus,
     borderLeftWidth: 1,
     color: Color.black,
-    fontSize: 14,
+    fontSize: 12,
     padding: 5,
     paddingTop: 7,
     fontFamily: Poppins.SemiBold,
@@ -636,12 +643,12 @@ const styles = StyleSheet.create({
   },
   requestTextTitle: {
     color: Color.black,
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: Poppins.SemiBold,
   },
   DemoText: {
     color: Color.primary,
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: Poppins.SemiBold,
     textDecorationLine: 'underline',
     marginStart: 5,

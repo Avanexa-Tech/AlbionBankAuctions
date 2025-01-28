@@ -23,12 +23,14 @@ import common_fn from '../../Config/common_fn';
 const { width, height } = Dimensions.get('window');
 const AuctionItemCard = props => {
   var { navigation, item, index } = props;
+  // console.log("Auction item  =================== : ", moment(item?.auction_start_date_and_time).format('DD-MM-YYYY'));
+
   return (
     <TouchableOpacity
       key={index}
       onPress={() => {
-        navigation.navigate('ActionSingleProperty', {
-          item,
+        navigation.push('ActionSingleProperty', {
+          item: item,
         });
       }}
       style={{
@@ -91,7 +93,7 @@ const AuctionItemCard = props => {
               }}>
               <Text
                 style={{
-                  fontSize: 10,
+                  fontSize: 11,
                   color: Color.lightBlack,
                   fontFamily: Poppins.Medium,
                 }}
@@ -100,7 +102,7 @@ const AuctionItemCard = props => {
               </Text>
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   color: Color.black,
                   fontFamily: Poppins.Bold,
                 }}
@@ -114,7 +116,7 @@ const AuctionItemCard = props => {
               }}>
               <Text
                 style={{
-                  fontSize: 10,
+                  fontSize: 11,
                   color: Color.lightBlack,
                   fontFamily: Poppins.Medium,
                 }}
@@ -123,17 +125,15 @@ const AuctionItemCard = props => {
               </Text>
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   color: Color.lightBlack,
                   fontFamily: Poppins.Bold,
                 }}
-                numberOfLines={1}>
-                {" "}{moment(item?.created_at).format('DD-MM-YYYY')}
-              </Text></View>
+                numberOfLines={1}>{' '} {moment(item?.created_at).format('DD-MM-YYYY')} </Text></View>
           </View>
           <Text
             style={{
-              fontSize: 16,
+              fontSize: 14,
               color: Color.black,
               fontFamily: Poppins.SemiBold,
               paddingTop: 5,
@@ -204,7 +204,7 @@ const AuctionItemCard = props => {
             <Text
               style={{
                 flex: 1,
-                fontSize: 16,
+                fontSize: 15,
                 color: Color.red,
                 fontFamily: Poppins.SemiBold,
               }}>
@@ -213,7 +213,7 @@ const AuctionItemCard = props => {
             <Text
               style={{
                 flex: 1,
-                fontSize: 14,
+                fontSize: 13,
                 color: Color.primary,
                 fontFamily: Poppins.SemiBold,
                 textAlign: "right"

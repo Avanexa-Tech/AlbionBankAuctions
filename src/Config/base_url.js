@@ -1,6 +1,7 @@
 export const baseUrl = 'https://backend.albionpropertyhub.com/';
 // export const baseUrl = 'https://grance.in/albion/';
-export const base_auctionUrl = 'https://api.albionbankauctions.com/';
+export const base_auctionUrl = 'https://api.albionbankauctions.com/';    // Live URL
+// export const base_auctionUrl = 'http://192.168.29.204:5000/';       //Local URL
 export const base_geolocation_Url = 'https://avanexa.in/';
 export const base_image_properties =
   'https://backend.albionpropertyhub.com/uploads/properties/';

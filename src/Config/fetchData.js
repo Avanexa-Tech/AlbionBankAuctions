@@ -147,27 +147,29 @@ export default {
 
   //Auctions
   Auction_login: data => {
-    let url = aution_api_name + 'Login/login';
+    let url = aution_api_name + 'login/login';
     return api.AuctionpostMethod(url, data);
   },
   Auction_OTPlogin: data => {
-    let url = aution_api_name + 'Login/login_with_otp';
+    let url = aution_api_name + 'login/login_with_otp';
     return api.AuctionpostMethod(url, data);
   },
   Auction_VerifyOTP: data => {
-    let url = aution_api_name + 'Login/verify_otp';
+    let url = aution_api_name + 'login/verify_otp';
     return api.AuctionpostMethod(url, data);
   },
   Auction: data => {
-    let url = aution_api_name + 'Auction/show';
+    let url = aution_api_name + 'auction/show';
     return api.AuctiongetMethod(url, data);
   },
-  get_Auction: data => {
-    let url = aution_api_name + 'Auction/show?' + data;
-    return api.AuctiongetMethod(url, data);
+  get_Auction: async (data) => {
+    let url = aution_api_name + 'auction/show?' + data;
+    const response = await api.AuctiongetMethod(url, data);
+    // console.log(url, response, "***********************")
+    return response;
   },
   get_banks: data => {
-    let url = aution_api_name + 'Auction/get_banks';
+    let url = aution_api_name + 'auction/get_banks';
     return api.AuctiongetMethod(url, data);
   },
   Auction_getState: data => {
@@ -179,47 +181,47 @@ export default {
     return api.Auction_geolocation_getMethod(url, data);
   },
   Auction_get_banners: data => {
-    let url = aution_api_name + 'Auction/get_banners';
+    let url = aution_api_name + 'auction/get_banners';
     return api.AuctiongetMethod(url, data);
   },
   Auction_register: data => {
-    let url = aution_api_name + 'Login/register';
+    let url = aution_api_name + 'login/register';
     return api.AuctionpostMethod(url, data);
   },
   Auction_forgot_password: data => {
-    let url = aution_api_name + 'Login/forgot_password';
+    let url = aution_api_name + 'login/forgot_password';
     return api.AuctionpostMethod(url, data);
   },
   Auction_verify_user: data => {
-    let url = aution_api_name + 'Login/verify_user';
+    let url = aution_api_name + 'login/verify_user';
     return api.AuctionpostMethod(url, data);
   },
   Auction_update_password: data => {
-    let url = aution_api_name + 'Login/update_password';
+    let url = aution_api_name + 'login/update_password';
     return api.AuctionpostMethod(url, data);
   },
   Auction_contact_verify: data => {
-    let url = aution_api_name + 'Login/contact_verify';
+    let url = aution_api_name + 'login/contact_verify';
     return api.AuctionpostMethod(url, data);
   },
   Auction_add_interest: data => {
-    let url = aution_api_name + 'Auction/add_interest';
+    let url = aution_api_name + 'auction/add_interest';
     return api.AuctionpostMethod(url, data);
   },
   Auction_remove_interest: data => {
-    let url = aution_api_name + 'Auction/remove_interest';
+    let url = aution_api_name + 'auction/remove_interest';
     return api.AuctionpostMethod(url, data);
   },
   Auction_check_interest: data => {
-    let url = aution_api_name + 'Auction/check_interest?' + data;
+    let url = aution_api_name + 'auction/check_interest?' + data;
     return api.AuctiongetMethod(url, data);
   },
   Auction_interest_show: data => {
-    let url = aution_api_name + 'Auction/show?' + data;
+    let url = aution_api_name + 'auction/show?' + data;
     return api.AuctiongetMethod(url, data);
   },
   Auction_notify_properties: data => {
-    let url = aution_api_name + 'Auction/add_notify_properties';
+    let url = aution_api_name + 'auction/add_notify_properties';
     return api.AuctionpostMethod(url, data);
   },
   Auction_deleteData: data => {
@@ -229,5 +231,25 @@ export default {
   Auction_eventBankData: data => {
     let url = aution_api_name + 'auction/show'
     return api.AuctionpostMethod(url, data);
+  },
+  Auction_feedbackData: data => {
+    let url = aution_api_name + 'auction/feedback'
+    return api.AuctionpostMethod(url, data);
+  },
+  Auction_plan_check_Data: data => {
+    let url = aution_api_name + 'plan/check/' + data;
+    return api.AuctiongetMethod(url, data);
+  },
+  Auction_contactData: data => {
+    let url = aution_api_name + 'auction/contact_us'
+    return api.AuctionpostMethod(url, data);
+  },
+  Auction_verify_pay: (data, header) => {
+    let url = api_name + 'plan/verify';
+    return api.postMethod(url, data, header);
+  },
+  Auction_requestProperty: (data, header) => {
+    let url = api_name + 'auction/request-property';
+    return api.postMethod(url, data, header);
   },
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -18,6 +18,7 @@ import fetchData from '../../../Config/fetchData';
 import { setActionUserData } from '../../../Redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
+import { RefreshControl } from 'react-native';
 
 const HEIGHT = Dimensions.get('screen').height;
 
@@ -26,12 +27,17 @@ const InterestedProperties = ({ navigation }) => {
   const dispatch = useDispatch();
   const [AuctionData, setAuctionData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const userData = useSelector(state => state.UserReducer.userData);
   var { user_id } = userData;
-  const Auction_userData = useSelector(
+  // const Auction_userData = useSelector(
+  //   state => state.UserReducer.auctionUserData,
+  // );
+  // var { id, name, phone_number, email } = Auction_userData;
+
+  const data = useSelector(
     state => state.UserReducer.auctionUserData,
   );
-  var { id, name, phone_number, email } = Auction_userData;
 
   useEffect(() => {
     getAction_UserData();
@@ -41,14 +47,31 @@ const InterestedProperties = ({ navigation }) => {
     });
   }, []);
 
-  const getApiData = async () => {
-    try {
-      var data = `user_id=` + id;
-      const check_interestData = await fetchData.Auction_interest_show(data);
-      setAuctionData(check_interestData);
-    } catch (error) {
-      console.log('error', error);
-    }
+  const getApiData = useCallback(
+    async (isRefreshing = false) => {
+      if (isRefreshing) {
+        setRefreshing(true);
+      }
+      try {
+        const getdata = `user_id=` + data?.id;
+        console.log("User Data ----------- : ", getdata);
+
+        const check_interestData = await fetchData.Auction_interest_show(getdata);
+        console.log("check_interestData ================== : ", check_interestData);
+        setAuctionData(check_interestData);
+      } catch (error) {
+        console.log('error', error);
+      } finally {
+        if (isRefreshing) {
+          setRefreshing(false);
+        }
+      }
+    },
+    [data?.id]
+  )
+
+  const handleRefresh = () => {
+    getApiData();
   };
 
   const getAction_UserData = async () => {
@@ -102,6 +125,12 @@ const InterestedProperties = ({ navigation }) => {
               />
             );
           }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
           ListEmptyComponent={() => {
             return (
               <View
@@ -122,7 +151,7 @@ const InterestedProperties = ({ navigation }) => {
                 />
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 16,
                     padding: 5,
                     paddingHorizontal: 20,
                     marginStart: 5,
@@ -131,7 +160,7 @@ const InterestedProperties = ({ navigation }) => {
                     color: Color.primary,
                     fontFamily: Poppins.SemiBold,
                   }}>
-                  No Properties
+                  No Properties Found
                 </Text>
               </View>
             );

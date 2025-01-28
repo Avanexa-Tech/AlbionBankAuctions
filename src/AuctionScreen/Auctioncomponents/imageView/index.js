@@ -1,35 +1,92 @@
-import React, {Component} from 'react';
-import {Modal, View, Text, TouchableOpacity, Dimensions} from 'react-native';
+import React, { Component } from 'react';
+import { Modal, View, Text, TouchableOpacity, Dimensions, ToastAndroid } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 //Config
 import ImageSlider from './ImageSlider';
 import ImageZoom from './imageZoom';
 import Color from '../../../Config/Color';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 export default class ImageView extends Component {
   constructor(props) {
     super(props);
-    this.state = {visible: false, active: 0};
+    this.state = {
+      visible: false,
+      active: 0,
+      expiredStatus: '',
+      planStatus: '',
+    };
   }
 
+  componentDidMount() {
+    // Equivalent to useEffect with an empty dependency array
+    this.plan_CheckData();
+  }
+
+  async plan_CheckData() {
+    try {
+      const myHeaders = new Headers();
+      myHeaders.append('accept', '*/*');
+
+      const requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow',
+      };
+
+      const response = await fetch(
+        `https://api.albionbankauctions.com/api/plan/user?user_id=${this.props.id}`,
+        requestOptions
+      );
+      const result = await response.json();
+
+      if (result?.status === true) {
+        console.log('profile data -----------------', result?.data[0]);
+        this.setState({
+          expiredStatus: result?.data[0]?.status,
+          planStatus: result?.data[0]?.plan_id,
+        });
+        // console.log('PLAN ======= :', result?.data[0]);
+      }
+    } catch (error) {
+      console.log('catch in plan_CheckData_Home : ', error);
+    }
+  }
+
+
+
+
   render() {
-    var {images} = this.props;
-    var {visible, active} = this.state;
+    var { images } = this.props;
+    var { visible, active, planStatus, expiredStatus } = this.state;
+    console.log("planStatus ================== :", planStatus);
     return (
-      <View style={{height: 220}}>
+      <View style={{ height: 220 }}>
         <ImageSlider
           images={images}
           width={width}
-          showModal={active => this.setState({visible: true, active})}
+          active={active}
+          planStatus={planStatus} // Pass planStatus as a prop
+          expiredStatus={expiredStatus} // Pass expiredStatus as a prop
+          showModal={active => {
+            console.log("onclick ========== :", active);
+            if (active === 0 || (planStatus > 1 && expiredStatus !== "expired")) {
+              // Do not open the modal
+              this.setState({ visible: false, active: false });
+              ToastAndroid.show('Access to property images requires an active plan. Please upgrade your plan to view this feature', ToastAndroid.LONG,);
+            } else {
+              // Open the modal
+              this.setState({ visible: true, active });
+            }
+          }}
         />
         <Modal
           transparent={true}
           animationType="slide"
           visible={visible}
-          onRequestClose={() => this.setState({visible: false})}>
-          <View style={{backgroundColor: Color.transparantBlack, flex: 1}}>
-            <View style={{flex: 1, justifyContent: 'center'}}>
+          onRequestClose={() => this.setState({ visible: false })}>
+          <View style={{ backgroundColor: Color.transparantBlack, flex: 1 }}>
+            <View style={{ flex: 1, justifyContent: 'center' }}>
               <ImageZoom
                 index={active}
                 images={images}
@@ -46,9 +103,9 @@ export default class ImageView extends Component {
                 justifyContent: 'flex-end',
                 alignItems: 'center',
               }}
-              onPress={() => this.setState({visible: false})}>
+              onPress={() => this.setState({ visible: false })}>
               <Text
-                style={{opacity: 1, color: Color.white, fontWeight: 'bold'}}>
+                style={{ opacity: 1, color: Color.white, fontWeight: 'bold' }}>
                 Close
               </Text>
               <Icon name={'close'} size={22.5} color={Color.white} />

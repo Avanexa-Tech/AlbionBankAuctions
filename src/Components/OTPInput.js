@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
-import {StyleSheet} from 'react-native';
-import {Pressable, TextInput, View, Keyboard, Text} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet } from 'react-native';
+import { Pressable, TextInput, View, Keyboard, Text } from 'react-native';
 import Color from '../Config/Color';
-import {Poppins} from '../Global/FontFamily';
+import { Poppins } from '../Global/FontFamily';
 
 const OTPInput = ({
   inputRef,
@@ -101,10 +101,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     padding: 12,
-    minWidth: 60,
-    height: 60,
+    minWidth: 55,
+    height: 55,
     justifyContent: 'center',
-    marginHorizontal: 30,
+    marginHorizontal: 35,
   },
   BoxInputValue: {
     fontSize: 18,

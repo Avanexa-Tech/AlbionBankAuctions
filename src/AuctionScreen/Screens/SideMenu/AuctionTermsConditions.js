@@ -13,6 +13,7 @@ import Color from '../../../Config/Color';
 import common_fn from '../../../Config/common_fn';
 import { scr_height, scr_width } from '../../../Utils/Dimensions';
 import { Iconviewcomponent } from '../../../Components/Icontag';
+import { Poppins } from '../../../Global/FontFamily';
 
 const freeRentalData = [
     {
@@ -57,22 +58,20 @@ const AuctionTermsConditions = () => {
                             source={{ uri: Media.about_banner }}
                             style={{
                                 width: scr_width,
-                                height: 220, resizeMode: 'contain'
+                                height: 220, resizeMode: 'cover'
                             }}
                         />
                     </View>
 
                     <View style={{ width: '100%', padding: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-                            <Text style={{ fontSize: 20, color: primarycolor, fontFamily: 'Poppins-Bold' }}>Bank Auctions - Terms and Conditions</Text>
-                        </View>
-                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>These terms and conditions outline the rules and regulations for the use of Company Name's Website, located at Website.com</Text>
-                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>By accessing this website we assume you accept these terms and conditions. Do not continue to use Website Name if you do not agree to take all of the terms and conditions stated on this page.</Text>
+                        <Text style={{ fontSize: 20, color: primarycolor, fontFamily: Poppins.SemiBold }}>Bank Auctions - Terms and Conditions</Text>
+                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, textAlign: 'justify' }}>These terms and conditions outline the rules and regulations for the use of Company Name's Website, located at Website.com</Text>
+                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, textAlign: 'justify' }}>By accessing this website we assume you accept these terms and conditions. Do not continue to use Website Name if you do not agree to take all of the terms and conditions stated on this page.</Text>
                         <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, textAlign: 'justify' }}>The following terminology applies to these Terms and Conditions, Privacy Statement and Disclaimer Notice and all Agreements: “Client”, “You” and “Your” refers to you, the person log on this website and compliant to the Company's terms and conditions. “The Company”, “Ourselves”, “We”, “Our” and “Us”, refers to our Company. “Party”, “Parties”, or “Us”, refers to both the Client and ourselves. All terms refer to the offer, acceptance and consideration of payment necessary to undertake the process of our assistance to the Client in the most appropriate manner for the express purpose of meeting the Client's needs in respect of provision of the Company's stated services, in accordance with and subject to, prevailing law of Netherlands. Any use of the above terminology or other words in the singular, plural, capitalization and/or he/she or they, are taken as interchangeable and therefore as referring to same.</Text>
                     </View>
 
                     <View style={{ width: '100%', padding: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: -20 }}>
                             <Text style={{ fontSize: 18, color: 'black', fontFamily: 'Poppins-SemiBold' }}>Cookies</Text>
                         </View>
                         <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>We employ the use of cookies. By accessing Website Name, you agreed to use cookies in agreement with the Company Name's Privacy Policy.</Text>
@@ -80,38 +79,38 @@ const AuctionTermsConditions = () => {
                     </View>
 
                     <View style={{ width: '100%', padding: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: -10 }}>
                             <Text style={{ fontSize: 18, color: 'black', fontFamily: 'Poppins-SemiBold' }}>License</Text>
                         </View>
                         <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>Unless otherwise stated, Company Name and/or its licensors own the intellectual property rights for all material on Website Name. All intellectual property rights are reserved. You may access this from Website Name for your own personal use subjected to restrictions set in these terms and conditions.</Text>
-                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-SemiBold', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>You must not:</Text>
+                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-SemiBold', lineHeight: 25, paddingVertical: 10, textAlign: 'justify', marginTop: -20 }}>You must not:</Text>
 
-                        <View style={{ width: '95%', paddingVertical: 5, paddingHorizontal: 10 }}>
+                        <View style={{ width: '100%', paddingVertical: 5, paddingHorizontal: 10 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ width: 5, height: 5, backgroundColor: '#666', borderRadius: 50 }}></View>
                                 <Text style={{ fontSize: 14, color: '#333', textAlign: 'justify', marginHorizontal: 10, fontFamily: 'Poppins-Regular', }}>Republish material from Website Name </Text>
                             </View>
                         </View>
 
-                        <View style={{ width: '95%', paddingVertical: 5, paddingHorizontal: 10 }}>
+                        <View style={{ width: '100%', paddingVertical: 5, paddingHorizontal: 10 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ width: 5, height: 5, backgroundColor: '#666', borderRadius: 50 }}></View>
                                 <Text style={{ fontSize: 14, color: '#333', textAlign: 'justify', marginHorizontal: 10, fontFamily: 'Poppins-Regular', }}>Sell, rent or sub-license material from Website Name</Text>
                             </View>
                         </View>
-                        <View style={{ width: '95%', paddingVertical: 5, paddingHorizontal: 10 }}>
+                        <View style={{ width: '100%', paddingVertical: 5, paddingHorizontal: 10 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ width: 5, height: 5, backgroundColor: '#666', borderRadius: 50 }}></View>
                                 <Text style={{ fontSize: 14, color: '#333', textAlign: 'justify', marginHorizontal: 10, fontFamily: 'Poppins-Regular', }}>Reproduce, duplicate or copy material from Website Name</Text>
                             </View>
                         </View>
-                        <View style={{ width: '95%', paddingVertical: 5, paddingHorizontal: 10 }}>
+                        <View style={{ width: '100%', paddingVertical: 5, paddingHorizontal: 10 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ width: 5, height: 5, backgroundColor: '#666', borderRadius: 50 }}></View>
                                 <Text style={{ fontSize: 14, color: '#333', textAlign: 'justify', marginHorizontal: 10, fontFamily: 'Poppins-Regular', }}>Redistribute content from Website Name</Text>
                             </View>
                         </View>
-                        <View style={{ width: '95%', paddingVertical: 5, paddingHorizontal: 10 }}>
+                        <View style={{ width: '100%', paddingVertical: 5, paddingHorizontal: 10 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={{ width: 5, height: 5, backgroundColor: '#666', borderRadius: 50 }}></View>
                                 <Text style={{ fontSize: 14, color: '#333', textAlign: 'justify', marginHorizontal: 10, fontFamily: 'Poppins-Regular', }}>This Agreement shall begin on the date hereof.</Text>
@@ -133,29 +132,29 @@ const AuctionTermsConditions = () => {
             return (
                 <View style={{ width: '100%', height: height, alignItems: 'center', backgroundColor: 'white' }}>
 
-                    <View style={{ width: '100%', padding: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ width: '95%', padding: 0 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: -10 }}>
                             <Text style={{ fontSize: 18, color: 'black', fontFamily: 'Poppins-SemiBold' }}>iFrames</Text>
                         </View>
                         <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>Without prior approval and written permission, you may not create frames around our Webpages that alter in any way the visual presentation or appearance of our Website.</Text>
                     </View>
 
-                    <View style={{ width: '100%', padding: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ width: '95%', padding: 0 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 0 }}>
                             <Text style={{ fontSize: 18, color: 'black', fontFamily: 'Poppins-SemiBold' }}>Content Liability</Text>
                         </View>
                         <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>We shall not be hold responsible for any content that appears on your Website. You agree to protect and defend us against all claims that is rising on your Website. No link(s) should appear on any Website that may be interpreted as libelous, obscene or criminal, or which infringes, otherwise violates, or advocates the infringement or other violation of, any third party rights.</Text>
                     </View>
 
-                    <View style={{ width: '100%', padding: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ width: '95%', padding: 0 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: -10 }}>
                             <Text style={{ fontSize: 18, color: 'black', fontFamily: 'Poppins-SemiBold' }}>Reservation of Rights</Text>
                         </View>
                         <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>We reserve the right to request that you remove all links or any particular link to our Website. You approve to immediately remove all links to our Website upon request. We also reserve the right to amen these terms and conditions and it's linking policy at any time. By continuously linking to our Website, you agree to be bound to and follow these linking terms and conditions.</Text>
                     </View>
 
-                    <View style={{ width: '100%', padding: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ width: '95%', padding: 0 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 0 }}>
                             <Text style={{ fontSize: 18, color: 'black', fontFamily: 'Poppins-SemiBold' }}>Removal of links from our website</Text>
                         </View>
                         <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Regular', lineHeight: 25, paddingVertical: 10, textAlign: 'justify' }}>If you find any link on our Website that is offensive for any reason, you are free to contact and inform us any moment. We will consider requests to remove links but we are not obligated to or so or to respond to you directly.</Text>
@@ -193,7 +192,7 @@ const AuctionTermsConditions = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={{ width: '95%', flexDirection: 'row', alignItems: 'center', marginVertical: 20 }}>
+                    <View style={{ width: '95%', flexDirection: 'row', alignItems: 'center', marginVertical: 0 }}>
                         <View style={{ flex: 0, justifyContent: 'center', alignItems: 'center' }}>
                             <Image
                                 source={{ uri: Media.albionlogo }}
@@ -206,9 +205,9 @@ const AuctionTermsConditions = () => {
                         </View>
                     </View>
 
-                    <View style={{ width: '95%', justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={{ width: '95%', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
                         <Text style={{ width: '100%', fontSize: 16, color: '#000', fontFamily: 'Poppins-SemiBold', textAlign: 'justify', lineHeight: 20 }}>Bank Auctions simplified </Text>
-                        <Text style={{ width: '100%', fontSize: 14, color: '#666', fontFamily: 'Poppins-Regular', textAlign: 'justify', lineHeight: 20, paddingVertical: 10 }}>Albion is a super convenient portal designed and developed to help private and public banks to auction their NPAs in the most effective and easiest approach. Participating in auction is no more burdensome.</Text>
+                        <Text style={{ width: '100%', fontSize: 14, color: '#666', fontFamily: 'Poppins-Regular', textAlign: 'justify', lineHeight: 22, paddingVertical: 10 }}>Albion is a super convenient portal designed and developed to help private and public banks to auction their NPAs in the most effective and easiest approach. Participating in auction is no more burdensome.</Text>
                     </View>
 
                     <View style={{ width: '95%', alignItems: 'center', paddingHorizontal: 10, marginVertical: 20 }}>
@@ -265,12 +264,11 @@ const AuctionTermsConditions = () => {
                 barStyle='dark-content'
                 networkActivityIndicatorVisible={true} />
 
-            {/* {netInfo_State ? null :
+            {netInfo_State ? null :
                 <Animated.View animation="fadeInRight" style={{ position: 'absolute', zIndex: 9999, width: '100%', alignItems: 'center', backgroundColor: '#626262', opacity: 0.5, padding: 10, marginTop: Platform.OS == "ios" ? 80 : 45 }}>
                     <Text style={{ color: 'white' }}>No Internet Connection</Text>
                 </Animated.View>
-            } */}
-
+            }
 
             <View style={{ width: scr_width, height: height, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white' }}>
                 <FlatList
@@ -279,7 +277,7 @@ const AuctionTermsConditions = () => {
                     ListHeaderComponent={() => renderHeaderItem()}
                     // renderItem={({ item, index }) => renderFreeRentalItem(item, index)}
                     ListFooterComponent={() => renderfooterItem()}
-                    style={{ width: '95%' }}
+                    style={{ width: '100%' }}
                     showsVerticalScrollIndicator={false}
                 />
             </View>
