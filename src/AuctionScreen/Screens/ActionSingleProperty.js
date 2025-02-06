@@ -18,6 +18,7 @@ import {
   Platform,
   ActivityIndicator,
   LogBox,
+  Linking,
 } from 'react-native';
 import { Media } from '../../Global/Media';
 import Color from '../../Config/Color';
@@ -41,6 +42,7 @@ import ImageView from '../Auctioncomponents/imageView';
 import { useRoute } from '@react-navigation/native';
 import AuctionBottomLogin from '../Auctioncomponents/AuctionBottomLogin';
 import { Iconviewcomponent } from '../../Components/Icontag';
+import { Alert } from 'react-native';
 
 var { width, height } = Dimensions.get('screen');
 
@@ -55,7 +57,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
     .join(' '); // Join the words with a space
 
-  // console.log("single item ==================== :", item);
+  // console.log("single item ==================== :", item?.borrowers_name);
 
   const [showMoreButton, setShowMoreButton] = useState(false);
   const [discMoreButton, setDiscShowMoreButton] = useState(false);
@@ -71,7 +73,6 @@ const ActionSingleProperty = ({ navigation, route }) => {
   const [ReservedPriceFrom, setReservedPriceFrom] = useState('');
   const [check_interest, setCheck_interest] = useState('');
   const [ReservedPriceTo, setReservedPriceTo] = useState('');
-
 
   const [HomeLoanVisible, setHomeLoanVisible] = useState(false);
   const [requestModal, setRequestModal] = useState(false);
@@ -135,15 +136,15 @@ const ActionSingleProperty = ({ navigation, route }) => {
 
   useEffect(() => {
     if (data?.id && item?.file_id) {
-      check_interestfn();
       setLoading(true);
+      check_interestfn();
       const interval = setTimeout(() => {
         setLoading(false);
       }, 1000);
 
       return () => clearInterval(interval);
     }
-  }, [data, item]);
+  }, [data?.id, item?.file_id]);
 
   useEffect(() => {
     try {
@@ -171,7 +172,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
       };
 
       // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${data?.id}`, requestOptions)
-      fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}`, requestOptions)
+      fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
           if (result?.status == true) {
@@ -200,7 +201,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
   };
 
   const toggleTextShown = () => {
-    console.log("planStatus ========== :" + planStatus + "   expireStatus ========= :" + expireStatus);
+    // console.log("planStatus ========== :" + planStatus + "   expireStatus ========= :" + expireStatus);
 
     if (planStatus > 1 && expireStatus != "expired") {
       console.log("============true================");
@@ -285,10 +286,11 @@ const ActionSingleProperty = ({ navigation, route }) => {
         from_interest_reserve_price: 0,
         to_interest_reserve_price_max: 0,
       };
+      console.log("interestdata ============== :", interestdata);
       const interest = await fetchData.Auction_add_interest(interestdata);
-      console.log("Interest ============== :", interest);
+      console.log("Interest ============== :", interest?.message);
 
-      if (interest) {
+      if (interest?.message) {
         if (Platform.OS === 'android') {
           common_fn.showToast(interest?.message);
         } else {
@@ -329,18 +331,26 @@ const ActionSingleProperty = ({ navigation, route }) => {
 
   const check_interestfn = async () => {
     try {
-      var checkdata = `user_id=${data?.id}&auction_id=${item?.file_id}`;
+      const checkdata = `user_id=${data?.id}&auction_id=${item?.file_id}`;
       console.log("checkdata ------------------- :", checkdata);
 
       const check_interestData = await fetchData.Auction_check_interest(checkdata);
-
-      if (check_interestData?.interested !== undefined) {
-        console.log('check_interestData?.interested =================:', check_interestData.interested);
+      console.log("check_interestData ================ :", check_interestData);
+      if (check_interestData?.interested == true) {
         setCheck_interest(check_interestData.interested);
       } else {
-        console.warn('No interest data found. Response:', check_interestData);
-        setCheck_interest(null); // Or set to a default value
+        setCheck_interest("");
       }
+
+
+
+      // if (check_interestData?.interested == true) {
+      //   console.log('check_interestData?.interested =================:', check_interestData.interested);
+      //   setCheck_interest(check_interestData.interested);
+      // } else {
+      //   console.warn('No interest data found. Response:', check_interestData);
+      //   setCheck_interest(null); // Or set to a default value
+      // }
     } catch (error) {
       setCheck_interest(null); // Handle error by setting a fallback value
       console.log('catch in check_interestfn_API :', error);
@@ -368,6 +378,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
 
   const checkPermission = async () => {
     if (Platform.OS === 'ios') {
+      // iOS: Directly proceed to download (permissions are handled during app installation)
       downloadImage();
     } else {
       try {
@@ -375,16 +386,42 @@ const ActionSingleProperty = ({ navigation, route }) => {
           PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
           {
             title: 'Storage Permission Required',
-            message: 'App needs access to your storage to download Photos',
+            message: 'App needs access to your storage to download Photos.',
           },
         );
+
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          // Permission granted, proceed to download
           downloadImage();
-        } else {
-          alert('Storage Permission Not Granted');
+        } else if (granted === PermissionsAndroid.RESULTS.DENIED) {
+          // Permission denied, show alert with guidance
+          Alert.alert(
+            'Permission Denied',
+            'You need to grant storage permission to download photos.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Open Settings',
+                onPress: () => Linking.openSettings(), // Opens app settings
+              },
+            ],
+          );
+        } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+          // Permission denied with "Don't ask again"
+          Alert.alert(
+            'Permission Required',
+            'Storage permission is required to download photos. Please enable it from the app settings.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Open Settings',
+                onPress: () => Linking.openSettings(),
+              },
+            ],
+          );
         }
       } catch (err) {
-        console.warn(err);
+        console.warn('Permission error:', err);
       }
     }
   };
@@ -413,7 +450,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
       const response = await config(options).fetch('GET', image_URL);
       if (response) {
         common_fn.showToast("Document downloaded successfully!");
-        // common_fn.showToast("File downloaded to :", JSON.stringify(response?.data));
+        // common_fn.showToast("File downloaded to :", JSON.stringify(response));
       } else {
         common_fn.showToast("Failed to download documents, Try after some times");
       }
@@ -448,9 +485,9 @@ const ActionSingleProperty = ({ navigation, route }) => {
           rating: defaultRating,
           feedback: comments
         };
-        console.log("feedbackdata ------------- :", feedbackdata);
+        // console.log("feedbackdata ------------- :", feedbackdata);
         const feedbackresponse = await fetchData.Auction_feedbackData(feedbackdata);
-        console.log("SUCCESS ------------- :", feedbackresponse);
+        // console.log("SUCCESS ------------- :", feedbackresponse);
 
         if (feedbackresponse?.status == true) {
           common_fn.showToast(feedbackresponse?.message);
@@ -529,7 +566,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
       fetch("https://api.albionbankauctions.com/api/auction/request-property", requestOptions)
         .then((response) => response.json())
         .then((result) => {
-          console.log("Request Prop resp ============== :", result);
+          // console.log("Request Prop resp ============== :", result);
           if (result?.status == true) {
             common_fn.showToast(result?.message);
             setRequestModal(false);
@@ -606,7 +643,11 @@ const ActionSingleProperty = ({ navigation, route }) => {
                       marginRight: 10,
                     }}
                     onPress={() => {
-                      onShare();
+                      if (data?.id == undefined) {
+                        navigation.navigate("ActionLogin");
+                      } else {
+                        onShare();
+                      }
                     }}>
                     <Icon
                       name="share-outline"
@@ -652,7 +693,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
               }}
             >
               {loading || (propertyImagesArray?.length > 0) ? (
-                <ImageView images={propertyImagesArray} id={data?.id} />
+                <ImageView images={propertyImagesArray} id={data?.id} navigation={navigation} />
               )
                 : (
                   <Image
@@ -705,7 +746,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
                   <View style={{ flex: 1.2, justifyContent: 'center', alignItems: 'center' }}>
                     {compareDate == "Lessthan" ?
                       (<TouchableOpacity onPress={() => setRequestModal(true)} style={{ padding: 7, paddingHorizontal: 15, backgroundColor: Color.primary, borderRadius: 5 }}>
-                        <Text style={{ fontSize: 12, color: Color.white }}>Request Property</Text>
+                        <Text style={{ fontSize: 12, color: Color.white }}>Request this Property</Text>
                       </TouchableOpacity>) :
 
                       <Button
@@ -723,11 +764,13 @@ const ActionSingleProperty = ({ navigation, route }) => {
                             : '#239D0F', padding: 7, paddingHorizontal: 15
                         }}
                         onPress={() => {
-                          data?.id == undefined
-                            ? setLoginEnable(true)
-                            : check_interest
+                          if (data?.id == undefined) {
+                            navigation.navigate("ActionLogin");
+                          } else {
+                            check_interest
                               ? removeInterestfn()
                               : setInterestVisible(true);
+                          }
                         }}
                       />
                     }
@@ -813,17 +856,17 @@ const ActionSingleProperty = ({ navigation, route }) => {
                             <Text
                               onTextLayout={onDescriptionTextLayout}
                               style={{
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Color.black,
-                                textAlign: 'justify',
+                                textAlign: 'left',
                                 fontFamily: Poppins.Bold,
-                                lineHeight: 20,
+                                lineHeight: 22,
                                 letterSpacing: 0.5,
                               }}
                               numberOfLines={numLines}>
                               {!discriptiontextShown
                                 ? item?.property_description
-                                  .substring(0, 55)
+                                  .substring(0, 38)
                                   .concat('...')
                                 : item?.property_description}{' '}
                               {showMoreButton || numLines > 2 ? (
@@ -840,14 +883,15 @@ const ActionSingleProperty = ({ navigation, route }) => {
                             </Text>
                           </View>
                         </View>
-                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                          <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Borrower's Name </Text>
-                          </View>
-                          <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                            <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, letterSpacing: 0.5 }}>{item?.borrowers_name}</Text>
-                          </View>
-                        </View>
+                        {item?.borrowers_name != null ?
+                          <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
+                            <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
+                              <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Borrower's Name </Text>
+                            </View>
+                            <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
+                              <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, letterSpacing: 0.5 }}>{item?.borrowers_name}</Text>
+                            </View>
+                          </View> : null}
                         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
                           <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
                             <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Country </Text>
@@ -1332,7 +1376,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
             flex: 1,
             backgroundColor: Color.transparantBlack,
             justifyContent: 'center',
-            padding: 20, backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 15, backgroundColor: 'rgba(0, 0, 0, 0.8)',
           }}>
           <View
             style={{
@@ -1342,7 +1386,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
             }}>
 
             <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
-              <Text style={{ width: '100%', fontSize: 20, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20, paddingVertical: 10 }}>Request Property</Text>
+              <Text style={{ width: '100%', fontSize: 18, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20, paddingVertical: 10 }}>Request Property</Text>
 
               <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', marginVertical: 30 }}>
                 <Image
@@ -1352,18 +1396,18 @@ const ActionSingleProperty = ({ navigation, route }) => {
               </View>
 
               <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 10 }}>
-                <Text style={{ textAlign: 'justify', fontSize: 16, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5, lineHeight: 22 }}>Thank you for your patience. We will notify you with the details shortly. Your understanding is greatly appreciated</Text>
+                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5, lineHeight: 22 }}>Thank you for your patience. We will notify you with the details shortly. Your understanding is greatly appreciated</Text>
               </View>
 
               <TouchableOpacity onPress={() => requestSubmitClick()}
-                style={{ width: '95%', height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
+                style={{ width: '95%', height: 45, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
                 {updateLoader ? (
                   <ActivityIndicator color={Color.white} />
                 ) : (
                   <Text
                     style={{
                       textAlign: 'center',
-                      fontSize: 14,
+                      fontSize: 13,
                       color: Color.white,
                       fontFamily: Poppins.Medium,
                     }}>

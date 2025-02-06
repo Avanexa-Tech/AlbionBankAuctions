@@ -1,7 +1,7 @@
 //import liraries
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState, useRef } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { ActivityIndicator, Image, Modal, StyleSheet } from 'react-native';
 import {
     View,
     Text,
@@ -37,6 +37,9 @@ const AuctionPrime = () => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const [loading, setLoading] = useState(true);
+    const [requestModal, setRequestModal] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState("");
+    const [updateLoader, setUpdateLoader] = useState(false);
 
     const Auction_userData = useSelector(
         state => state.UserReducer.auctionUserData,
@@ -54,6 +57,8 @@ const AuctionPrime = () => {
     ]);
 
     const [planData, setPlanData] = useState([]);
+    const [currentPlanId, setCurrentPlanId] = useState("");
+    const [currentPlanStatus, setCurrentPlanStatus] = useState("");
 
 
     useEffect(() => {
@@ -81,12 +86,14 @@ const AuctionPrime = () => {
             };
 
             // fetch("http://192.168.29.204:5000/api/plan", requestOptions)
-            fetch("https://api.albionbankauctions.com/api/plan", requestOptions)
+            fetch(`https://api.albionbankauctions.com/api/plan/${data?.id}`, requestOptions)
                 .then((response) => response.json())
                 .then((result) => {
-                    // console.log("Plan Data ------------------: ", result);
+                    console.log("Plan Data ------------------: ", result?.current_plan);
                     if (result?.message == "Data Fetched Successfully") {
                         setPlanData(result?.data);
+                        setCurrentPlanId(result?.current_plan?.plan_id)
+                        setCurrentPlanStatus(result?.current_plan?.status)
                         setLoading(false);
                     }
                     else {
@@ -291,7 +298,8 @@ const AuctionPrime = () => {
                                                 data={planData}
                                                 keyExtractor={(item, index) => item + index}
                                                 renderItem={({ item, index }) => {
-                                                    // console.log("Item Check-------------------- :", item.description);
+                                                    const isActive = item.id === currentPlanId; // Check if the plan is active
+                                                    console.log("isActive-------------------- :", isActive + " item.description ============ :" + item.description);
 
                                                     const getBackgroundColor = (description) => {
                                                         switch (description) {
@@ -309,12 +317,12 @@ const AuctionPrime = () => {
                                                     };
 
                                                     return (
-                                                        <View style={{ width: '100%', alignItems: 'center', backgroundColor: item.description == "Free plan" ? "#008B89" : Color.white, borderWidth: 1, borderColor: getBackgroundColor(item.description), borderRadius: 5, margin: 5, marginVertical: 10, padding: 10 }}>
+                                                        <View style={{ width: '100%', alignItems: 'center', backgroundColor: isActive ? Color.primary : Color.white, borderWidth: 1, borderColor: Color.cloudyGrey, borderRadius: 5, margin: 5, marginVertical: 10, padding: 10 }}>
                                                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 5 }}>
                                                                 <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                                                    <Text style={{ fontSize: 18, color: item.description == "Free plan" ? Color.white : Color.black, fontWeight: 'bold' }}>{item.name}</Text>
+                                                                    <Text style={{ fontSize: 18, color: isActive ? Color.white : Color.black, fontWeight: 'bold' }}>{item.name}</Text>
                                                                 </View>
-                                                                <View style={{ backgroundColor: item.description == "Free plan" ? "#D49727" : getBackgroundColor(item.description), padding: 7, paddingHorizontal: 20, borderRadius: 30 }}>
+                                                                <View style={{ backgroundColor: "#D49727", padding: 7, paddingHorizontal: 20, borderRadius: 30 }}>
                                                                     <Text style={{ fontSize: 14, color: Color.white }}>{item.description == "Free plan" ? "Free" : "Pro"}</Text>
                                                                 </View>
                                                             </View>
@@ -324,27 +332,27 @@ const AuctionPrime = () => {
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.whatsapp_alert != "--" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.whatsapp_alert != "--" && item.whatsapp_alert.trim() ? item.whatsapp_alert : "WhatsApp Alert"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.whatsapp_alert != "--" && item.whatsapp_alert.trim() ? item.whatsapp_alert : "WhatsApp Alert"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.daily_notification != "--" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.daily_notification != "--" ? item.daily_notification : "Daily Notification Via App"}</Text>
+                                                                    <Text style={{ textAlign: 'left', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.daily_notification != "--" ? item.daily_notification : "Daily Notification Via App"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.complete_auction != "--" && item.complete_auction.trim() !== "" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>
                                                                         {item.complete_auction != "--" && item.complete_auction.trim() !== "" ? item.complete_auction : "Complete Auction Details"}
                                                                     </Text>
                                                                 </View>
@@ -353,67 +361,71 @@ const AuctionPrime = () => {
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.auction_document != "--" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.auction_document != "--" ? item.auction_document : "Auction Document & Notice"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.auction_document != "--" ? item.auction_document : "Auction Document & Notice"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.download_property != "--" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.download_property != "--" ? item.download_property : "Download Property Pictures"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.download_property != "--" ? item.download_property : "Download Property Pictures"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.property_location != "--" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.property_location != "--" ? item.property_location : "Property Location"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.property_location != "--" ? item.property_location : "Property Location"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.email_support != "--" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.email_support != "--" ? item.email_support : "Email Support"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.email_support != "--" ? item.email_support : "Email Support"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.auction_history != "--" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.auction_history != "--" ? item.auction_history : "Auction History"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.auction_history != "--" ? item.auction_history : "Auction History"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
                                                                         Icontag={'Ionicons'}
                                                                         iconname={item.relationship_manager != "--" ? 'checkmark-sharp' : "close"}
                                                                         icon_size={25}
-                                                                        icon_color={item.description == "Free plan" ? Color.white : Color.black}
+                                                                        icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: item.description == "Free plan" ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.relationship_manager != "--" ? item.relationship_manager : "Relationship Manager Assist"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.relationship_manager != "--" ? item.relationship_manager : "Relationship Manager Assist"}</Text>
                                                                 </View>
                                                             </View>
-                                                            <View style={{ width: '100%', height: 0.5, backgroundColor: item.description == "Free plan" ? Color.white : getBackgroundColor(item.description), marginVertical: 10 }}></View>
+                                                            <View style={{ width: '100%', height: 0.5, backgroundColor: Color.cloudyGrey, marginVertical: 10 }}></View>
                                                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 5 }}>
                                                                 <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                                                    <Text style={{ paddingHorizontal: 20, fontSize: 22, color: item.description == "Free plan" ? Color.white : getBackgroundColor(item.description), fontFamily: Poppins.SemiBold }}>₹ {item.price}</Text>
+                                                                    <Text style={{ paddingHorizontal: 20, fontSize: 22, color: isActive ? Color.white : Color.black, fontFamily: Poppins.SemiBold }}>₹ {item.price}</Text>
                                                                 </View>
                                                                 <View style={{ flex: 1, width: '100%', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                                                                     <TouchableOpacity
                                                                         disabled={item.description === "Free plan"}
-                                                                        onPress={() => subscribePlanClick(item, index)}
-                                                                        style={{ width: '90%', height: 45, backgroundColor: item.description == "Free plan" ? Color.white : getBackgroundColor(item.description), borderRadius: 30, justifyContent: 'center', alignItems: 'center' }}>
-                                                                        <Text style={{ fontSize: 14, color: item.description == "Free plan" ? Color.black : Color.white, fontFamily: Poppins.SemiBold }}>{item.description == "Free plan" ? "Activated" : "Subscribe"}</Text>
+                                                                        onPress={() => {
+                                                                            setSelectedPlan(item);
+                                                                            setRequestModal(true);
+                                                                            // subscribePlanClick(item, index)
+                                                                        }}
+                                                                        style={{ width: '90%', height: 45, backgroundColor: isActive ? Color.white : Color.primary, borderRadius: 30, justifyContent: 'center', alignItems: 'center' }}>
+                                                                        <Text style={{ fontSize: 14, color: isActive ? Color.black : Color.white, fontFamily: Poppins.SemiBold }}>{isActive ? "Activated" : "Subscribe"}</Text>
                                                                     </TouchableOpacity>
                                                                 </View>
                                                             </View>
@@ -459,26 +471,96 @@ const AuctionPrime = () => {
                                         </View>
                                     </View>
                                 );
-                            // case 'Banners':
-                            //     return (
-                            //         <View style={{ alignItems: 'center', paddingHorizontal: 10, marginVertical: 10 }}>
-                            //             <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium, letterSpacing: 0.5, lineHeight: 22 }}>By Continuing, you agree to our </Text>
-                            //             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            //                 <TouchableOpacity onPress={() => navigation.navigate("AuctionTermsConditions")}>
-                            //                     <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5, textDecorationLine: 'underline' }}>Terms & Conditions </Text>
-                            //                 </TouchableOpacity>
-                            //                 <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium, letterSpacing: 0.5, lineHeight: 22 }}> and </Text>
-                            //                 <TouchableOpacity onPress={() => navigation.navigate("AuctionPrivacyPolicy")}>
-                            //                     <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5, textDecorationLine: 'underline' }} >Privacy Policy</Text>
-                            //                 </TouchableOpacity>
-                            //             </View>
-                            //         </View>
-                            //     );
-
                         }
                     }}
                 />
+
+
             )}
+
+            <Modal visible={requestModal} transparent animationType="slide">
+                <View
+                    style={{
+                        flex: 1,
+                        backgroundColor: Color.transparantBlack,
+                        justifyContent: 'center',
+                        padding: 20, backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    }}>
+                    <View
+                        style={{
+                            backgroundColor: 'white',
+                            padding: 5,
+                            borderRadius: 10,
+                        }}>
+
+                        <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
+                            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
+                                <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                    <Text style={{ width: '100%', fontSize: 20, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 10 }}>Proceed to Pay</Text>
+                                </View>
+                                <View style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'flex-end', paddingHorizontal: 10 }}>
+                                    <TouchableOpacity onPress={() => {
+                                        setRequestModal(false);
+                                    }}>
+                                        <Iconviewcomponent
+                                            Icontag={'AntDesign'}
+                                            iconname={"closecircleo"}
+                                            icon_size={25}
+                                            icon_color={Color.black}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                            <View style={{ width: '95%', alignItems: 'center', }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>Plan Price</Text>
+                                    </View>
+                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{selectedPlan?.price}</Text>
+                                    </View>
+                                </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 }}>
+                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>GST</Text>
+                                    </View>
+                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{(selectedPlan?.price * 18) / 100}</Text>
+                                    </View>
+                                </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 }}>
+                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>Total Price</Text>
+                                    </View>
+                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{selectedPlan?.price + (selectedPlan?.price * 18) / 100}</Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <TouchableOpacity onPress={() => {
+                                setRequestModal(false);
+                                subscribePlanClick(selectedPlan)
+                            }}
+                                style={{ width: '95%', height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
+                                {loading ? (
+                                    <ActivityIndicator color={Color.white} />
+                                ) : (
+                                    <Text
+                                        style={{
+                                            textAlign: 'center',
+                                            fontSize: 14,
+                                            color: Color.white,
+                                            fontFamily: Poppins.Medium,
+                                        }}>
+                                        Submit
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
             {/* <PostCompletedModal navigation={navigation} /> */}
         </View>
     );

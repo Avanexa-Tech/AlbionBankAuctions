@@ -32,6 +32,18 @@ const AuctionSearchScreen = ({ navigation }) => {
   const [page, setPage] = useState(0);
 
   useEffect(() => {
+    if (search === '') {
+      setAuctionData([]); // Clear the list when search is empty
+      setPage(0);
+      setEndReached(false);
+      propertySearch(); // Fetch original data
+    } else {
+      propertySearch();
+    }
+  }, [search]);
+
+
+  useEffect(() => {
     const backAction = () => {
       navigation.goBack();  // Navigates to the previous screen
       return true;           // Prevent default behavior (exit app)
@@ -46,20 +58,20 @@ const AuctionSearchScreen = ({ navigation }) => {
   }, [navigation]);
 
   const propertySearch = async () => {
-
     try {
-      var data = search !== '' && 'like=' + search;
+      // console.log("search ========= :", search);
+
+      var data = 'like=' + search;
+      // console.log("payload search ============= :", data);
+
       const getAuction = await fetchData.get_Auction(data);
-      setPage(1)
-      console.log("dfssdfsdfasdfs=======|||||||||||||||||||||||||", getAuction, data)
+      setPage(1);
       setAuctionData(getAuction);
     } catch (error) {
-      console.log('error', error);
+      console.log('catch in propertySearch_Api:', error);
     }
   };
-  useEffect(() => {
-    propertySearch()
-  }, [search])
+
 
   const loadMoreData = async () => {
     if (loadMore || endReached || AuctionData.length < 1) {
@@ -69,7 +81,7 @@ const AuctionSearchScreen = ({ navigation }) => {
     try {
       const nextPage = page + 1;
       var data = search !== '' ? 'like=' + search + '&page_number=' + nextPage : "page_number=" + nextPage;
-      console.log("fdkgnkjfdhjjkfdhdkl", data);
+      // console.log("fdkgnkjfdhjjkfdhdkl", data);
 
       const response = await fetchData.get_Auction(data);
       if (response.length > 0) {
@@ -80,7 +92,7 @@ const AuctionSearchScreen = ({ navigation }) => {
             .toLowerCase()
             .includes(search.toLowerCase()),
         );
-        console.log("dfssdfsdfasdfs=>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        // console.log("dfssdfsdfasdfs=>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         setAuctionData([...AuctionData, ...updatedData]);
       } else {
         setEndReached(true);
@@ -90,6 +102,23 @@ const AuctionSearchScreen = ({ navigation }) => {
     } finally {
       setLoadMore(false);
     }
+  };
+
+  const clearSearch = async () => {
+    setSearch('');
+    setAuctionData([]);  // Clear the list immediately
+    setPage(0);
+    setEndReached(false);
+
+    setTimeout(async () => {  // Ensures state updates before fetching new data
+      try {
+        const defaultData = await fetchData.get_Auction(""); // Fetch without search filter
+        console.log("defaultData ----------------- : ", defaultData);
+        setAuctionData(defaultData);
+      } catch (error) {
+        console.error('Error fetching default data:', error);
+      }
+    }, 100); // Small delay for UI update
   };
 
   return (
@@ -113,9 +142,12 @@ const AuctionSearchScreen = ({ navigation }) => {
           borderColor: Color.primary,
           color: Color.black,
         }}
-        inputStyle={{ color: Color.black }}
+        inputStyle={{ fontSize: 14, color: Color.black }}
         iconColor={Color.cloudyGrey}
+        clearIcon="close"  // Default clear icon
+        onIconPress={clearSearch} // Call function on clear
       />
+
 
       <FlatList
         data={AuctionData}

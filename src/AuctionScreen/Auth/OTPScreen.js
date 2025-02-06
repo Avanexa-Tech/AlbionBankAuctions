@@ -559,7 +559,8 @@ const AuctionOTPScreen = ({ route }) => {
           dispatch(setLoginType('Auction'));
           await AsyncStorage.setItem('action_user_data', JSON.stringify(VerifyOTP?.user),);
           await AsyncStorage.setItem('action_login_type', JSON.stringify({ login_type: 'Auction' }),);
-          navigation.replace('ActionHome', VerifyOTP?.user);
+          // navigation.replace('ActionHome', VerifyOTP?.user);
+          navigation.dispatch(navigation.replace('ActionHome', VerifyOTP?.user));
           if (Platform.OS === 'android') {
             common_fn.showToast(`Welcome to Albion ${VerifyOTP?.user?.name}`);
           } else {

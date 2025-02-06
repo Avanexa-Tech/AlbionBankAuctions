@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Text,
   View,
@@ -15,13 +15,13 @@ import Color from '../Config/Color';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {Poppins} from '../Global/FontFamily';
-import {Button} from 'react-native-elements';
+import { Poppins } from '../Global/FontFamily';
+import { Button } from 'react-native-elements';
 import axios from 'axios';
-import {useDispatch, useSelector} from 'react-redux';
-import {setPayCancelVisible, setPaySuccessVisible} from '../Redux';
-import {useNavigation} from '@react-navigation/native';
-import {AgentPlanData, BuyerPlanData, OwnerPlanData} from '../contentJson';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPayCancelVisible, setPaySuccessVisible } from '../Redux';
+import { useNavigation } from '@react-navigation/native';
+import { AgentPlanData, BuyerPlanData, OwnerPlanData } from '../contentJson';
 import Table from './PayTable';
 import fetchData from '../Config/fetchData';
 import common_fn from '../Config/common_fn';
@@ -33,9 +33,9 @@ const PlanPurchase = props => {
   const dispatch = useDispatch();
   const [selectItem, setSelectItem] = useState({});
   const [selectPlan, setSelectPlan] = useState('');
-  const userData = useSelector(state => state.UserReducer.userData);
+  const userData = useSelector(state => state.UserReducer.userData || {});
   const [changeResponseText, setChangeResponseText] = useState('');
-  var {user_id, username, mobile_number, user_type_id, change_persona, email} =
+  var { user_id, username, mobile_number, user_type_id, change_persona, email } =
     userData;
   const [visible, setVisible] = useState({});
   function selectPlanItem(item, index) {
@@ -189,7 +189,7 @@ const PlanPurchase = props => {
 
   const paymentDetails = async () => {
     console.log("Razorpay=========");
-    
+
     // const paymentData = {
     //   user_id: user_id,
     //   plan_id: selectItem?.plan_id,
@@ -274,7 +274,7 @@ const PlanPurchase = props => {
   };
 
   const clickHistory = index => {
-    setVisible({...visible, [index]: !visible[index]});
+    setVisible({ ...visible, [index]: !visible[index] });
     common_fn.Accordion;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   };
@@ -356,7 +356,7 @@ const PlanPurchase = props => {
             // horizontal
             // showsHorizontalScrollIndicator={false}
             keyExtractor={(item, index) => item + index}
-            renderItem={({item, index}) => {
+            renderItem={({ item, index }) => {
               let selecttextbg = 'black';
               let selectsubtextbg = '#666';
               // let selecttextbg = selectItem?.id === item?.id ? 'white' : 'black';
@@ -373,7 +373,7 @@ const PlanPurchase = props => {
                   ? Color.white
                   : Color.cloudyGrey;
               return (
-                <View style={{marginVertical: 10}} key={index}>
+                <View style={{ marginVertical: 10 }} key={index}>
                   <TouchableOpacity
                     onPress={() => {
                       clickHistory(index);
@@ -414,14 +414,14 @@ const PlanPurchase = props => {
                               item.plan_name == 'Free'
                                 ? Color.grey
                                 : item.plan_name == 'Basic'
-                                ? Color.lightgrey
-                                : item.plan_name == 'Standard'
-                                ? Color.blue
-                                : item.plan_name == 'Premium'
-                                ? Color.green
-                                : item.plan_name == 'Premium Plus'
-                                ? Color.purple
-                                : Color.sunShade,
+                                  ? Color.lightgrey
+                                  : item.plan_name == 'Standard'
+                                    ? Color.blue
+                                    : item.plan_name == 'Premium'
+                                      ? Color.green
+                                      : item.plan_name == 'Premium Plus'
+                                        ? Color.purple
+                                        : Color.sunShade,
                             borderRadius: 10,
                             paddingVertical: 5,
                             paddingHorizontal: 5,
@@ -522,8 +522,8 @@ const PlanPurchase = props => {
                             }}>
                             <Text key={item.plan_name} style={styles.cell}>
                               {key !== 'duration' &&
-                              key !== 'response_rate' &&
-                              key !== 'no_of_listings' ? (
+                                key !== 'response_rate' &&
+                                key !== 'no_of_listings' ? (
                                 renderIcon(item[key], key) == '1' ? (
                                   <Icon
                                     name="checkmark-circle"
@@ -578,15 +578,15 @@ const PlanPurchase = props => {
 
 export const PlanPhonePurchase = props => {
   const [planData, setPlanData] = useState([]);
-  var {setPhoneQuotoVisible, phoneQuotoVisible} = props;
+  var { setPhoneQuotoVisible, phoneQuotoVisible } = props;
   const [cardHeight] = useState(undefined);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [selectItem, setSelectItem] = useState({});
   const [selectPlan, setSelectPlan] = useState('');
   const [visible, setVisible] = useState({});
-  const userData = useSelector(state => state.UserReducer.userData);
-  var {user_id, username, mobile_number, user_type_id, change_persona, email} =
+  const userData = useSelector(state => state.UserReducer.userData || {});
+  var { user_id, username, mobile_number, user_type_id, change_persona, email } =
     userData;
   function selectPlanItem(item, index) {
     try {
@@ -730,7 +730,7 @@ export const PlanPhonePurchase = props => {
 
   const paymentDetails = async () => {
     console.log('payment details =============');
-    
+
     // const paymentData = {
     //   user_id: user_id,
     //   plan_id: selectItem?.plan_id,
@@ -801,7 +801,7 @@ export const PlanPhonePurchase = props => {
   };
 
   const clickHistory = index => {
-    setVisible({...visible, [index]: !visible[index]});
+    setVisible({ ...visible, [index]: !visible[index] });
     common_fn.Accordion;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   };
@@ -881,7 +881,7 @@ export const PlanPhonePurchase = props => {
             // horizontal
             // showsHorizontalScrollIndicator={false}
             keyExtractor={(item, index) => item + index}
-            renderItem={({item, index}) => {
+            renderItem={({ item, index }) => {
               let selecttextbg = 'black';
               let selectsubtextbg = '#666';
               // let selecttextbg = selectItem?.id === item?.id ? 'white' : 'black';
@@ -898,7 +898,7 @@ export const PlanPhonePurchase = props => {
                   ? Color.white
                   : Color.cloudyGrey;
               return (
-                <View style={{marginVertical: 10}} key={index}>
+                <View style={{ marginVertical: 10 }} key={index}>
                   <TouchableOpacity
                     onPress={() => {
                       clickHistory(index);
@@ -939,14 +939,14 @@ export const PlanPhonePurchase = props => {
                               item.plan_name == 'Free'
                                 ? Color.grey
                                 : item.plan_name == 'Basic'
-                                ? Color.lightgrey
-                                : item.plan_name == 'Standard'
-                                ? Color.blue
-                                : item.plan_name == 'Premium'
-                                ? Color.green
-                                : item.plan_name == 'Premium Plus'
-                                ? Color.purple
-                                : Color.sunShade,
+                                  ? Color.lightgrey
+                                  : item.plan_name == 'Standard'
+                                    ? Color.blue
+                                    : item.plan_name == 'Premium'
+                                      ? Color.green
+                                      : item.plan_name == 'Premium Plus'
+                                        ? Color.purple
+                                        : Color.sunShade,
                             borderRadius: 10,
                             paddingVertical: 5,
                             paddingHorizontal: 5,
@@ -1047,8 +1047,8 @@ export const PlanPhonePurchase = props => {
                             }}>
                             <Text key={item.plan_name} style={styles.cell}>
                               {key !== 'duration' &&
-                              key !== 'response_rate' &&
-                              key !== 'no_of_listings' ? (
+                                key !== 'response_rate' &&
+                                key !== 'no_of_listings' ? (
                                 renderIcon(item[key], key) == '1' ? (
                                   <Icon
                                     name="checkmark-circle"
@@ -1108,8 +1108,8 @@ export const AgentPlanPurchase = props => {
   const [selectItem, setSelectItem] = useState({});
   const [visible, setVisible] = useState({});
   const [selectPlan, setSelectPlan] = useState('');
-  const userData = useSelector(state => state.UserReducer.userData);
-  var {user_id, username, mobile_number, user_type_id, change_persona, email} =
+  const userData = useSelector(state => state.UserReducer.userData || {});
+  var { user_id, username, mobile_number, user_type_id, change_persona, email } =
     userData;
   function selectPlanItem(item, index) {
     try {
@@ -1262,7 +1262,7 @@ export const AgentPlanPurchase = props => {
 
   const paymentDetails = async () => {
     console.log("details -------");
-    
+
     // const paymentData = {
     //   user_id: user_id,
     //   plan_id: selectItem?.plan_id,
@@ -1347,7 +1347,7 @@ export const AgentPlanPurchase = props => {
   };
 
   const clickHistory = index => {
-    setVisible({...visible, [index]: !visible[index]});
+    setVisible({ ...visible, [index]: !visible[index] });
     common_fn.Accordion;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   };
@@ -1429,7 +1429,7 @@ export const AgentPlanPurchase = props => {
             // horizontal
             // showsHorizontalScrollIndicator={false}
             keyExtractor={(item, index) => item + index}
-            renderItem={({item, index}) => {
+            renderItem={({ item, index }) => {
               let selecttextbg = 'black';
               let selectsubtextbg = '#666';
               // let selecttextbg = selectItem?.id === item?.id ? 'white' : 'black';
@@ -1446,7 +1446,7 @@ export const AgentPlanPurchase = props => {
                   ? Color.white
                   : Color.cloudyGrey;
               return (
-                <View style={{marginVertical: 10}} key={index}>
+                <View style={{ marginVertical: 10 }} key={index}>
                   <TouchableOpacity
                     onPress={() => {
                       clickHistory(index);
@@ -1487,14 +1487,14 @@ export const AgentPlanPurchase = props => {
                               item.plan_name == 'Free'
                                 ? Color.grey
                                 : item.plan_name == 'Basic'
-                                ? Color.lightgrey
-                                : item.plan_name == 'Standard'
-                                ? Color.blue
-                                : item.plan_name == 'Premium'
-                                ? Color.green
-                                : item.plan_name == 'Premium Plus'
-                                ? Color.purple
-                                : Color.sunShade,
+                                  ? Color.lightgrey
+                                  : item.plan_name == 'Standard'
+                                    ? Color.blue
+                                    : item.plan_name == 'Premium'
+                                      ? Color.green
+                                      : item.plan_name == 'Premium Plus'
+                                        ? Color.purple
+                                        : Color.sunShade,
                             borderRadius: 10,
                             paddingVertical: 5,
                             paddingHorizontal: 5,
@@ -1595,8 +1595,8 @@ export const AgentPlanPurchase = props => {
                             }}>
                             <Text key={item.plan_name} style={styles.cell}>
                               {key !== 'duration' &&
-                              key !== 'response_rate' &&
-                              key !== 'no_of_listings' ? (
+                                key !== 'response_rate' &&
+                                key !== 'no_of_listings' ? (
                                 renderIcon(item[key], key) == '1' ? (
                                   <Icon
                                     name="checkmark-circle"

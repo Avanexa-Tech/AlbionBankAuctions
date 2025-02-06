@@ -165,7 +165,7 @@ export default {
   get_Auction: async (data) => {
     let url = aution_api_name + 'auction/show?' + data;
     const response = await api.AuctiongetMethod(url, data);
-    // console.log(url, response, "***********************")
+    // console.log(url, "***********************")
     return response;
   },
   get_banks: data => {

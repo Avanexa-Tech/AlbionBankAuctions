@@ -23,7 +23,7 @@ import common_fn from '../../Config/common_fn';
 const { width, height } = Dimensions.get('window');
 const AuctionItemCard = props => {
   var { navigation, item, index } = props;
-  // console.log("Auction item  =================== : ", moment(item?.auction_start_date_and_time).format('DD-MM-YYYY'));
+  // console.log("Auction item  =================== : ", item?.auction_start_date_and_time);
 
   return (
     <TouchableOpacity
@@ -34,6 +34,7 @@ const AuctionItemCard = props => {
         });
       }}
       style={{
+        width: '98%',
         // flex: 1,
         // backgroundColor: 'white',
         flexDirection: 'row',
@@ -54,17 +55,18 @@ const AuctionItemCard = props => {
       }}>
       <View
         style={{
+          flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
         }}>
         <Image
           source={
-            // item?.property_img_1 != null
-            //   ? {uri: base_albionbankauctions_url + item.property_img_1}
-            //   : Media.noImage
-            {
-              uri: base_auction_image_url + item?.bank_logo,
-            }
+            item?.property_img_1 != null
+              ? { uri: base_albionbankauctions_url + item.property_img_1 }
+              : { uri: base_auction_image_url + item?.bank_logo }
+            // {
+            //   uri: base_auction_image_url + item?.bank_logo,
+            // }
           }
           style={{
             width: 90,
@@ -76,18 +78,18 @@ const AuctionItemCard = props => {
       </View>
       <View
         style={{
-          flex: 1,
+          flex: 2.7, width: '100%',
           alignItems: 'center', paddingHorizontal: 5
         }}>
-        <View style={{ padding: 5 }}>
+        <View style={{ width: '100%', padding: 2 }}>
           <View
             style={{
-              flexDirection: 'row',
+              width: '100%',
+              flexDirection: 'row', justifyContent: 'space-around',
               alignItems: 'center',
             }}>
             <View
               style={{
-                flex: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
               }}>
@@ -102,12 +104,12 @@ const AuctionItemCard = props => {
               </Text>
               <Text
                 style={{
-                  fontSize: 13,
+                  fontSize: 12,
                   color: Color.black,
                   fontFamily: Poppins.Bold,
                 }}
                 numberOfLines={1}>
-                {" "}{item?.id}
+                {item?.id}
               </Text></View>
             <View
               style={{
@@ -125,11 +127,15 @@ const AuctionItemCard = props => {
               </Text>
               <Text
                 style={{
-                  fontSize: 13,
+                  fontSize: 12,
                   color: Color.lightBlack,
                   fontFamily: Poppins.Bold,
                 }}
-                numberOfLines={1}>{' '} {moment(item?.created_at).format('DD-MM-YYYY')} </Text></View>
+                numberOfLines={1}>
+                {moment(item?.auction_start_date_and_time || new Date()).format('DD-MM-YYYY')}
+                {/* {moment(item?.auction_start_date_and_time).format('DD-MM-YYYY')} */}
+              </Text>
+            </View>
           </View>
           <Text
             style={{

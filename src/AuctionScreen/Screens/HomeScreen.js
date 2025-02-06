@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -36,16 +36,18 @@ import AuctionItemCard from '../Auctioncomponents/AuctionItemCard';
 import { scr_height } from '../../Utils/Dimensions';
 import AuctionEnableLogin from '../Auctioncomponents/AuctionEnableLogin';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Iconviewcomponent } from '../../Components/Icontag';
 import { ImageBackground } from 'react-native';
 import { color } from 'react-native-elements/dist/helpers';
 import common_fn from '../../Config/common_fn';
 import PostCompletedModal from './OrderCompletionModal';
+import { RefreshControl } from 'react-native';
 
 const { height, width } = Dimensions.get('screen');
 
-const AutionHomeScreen = ({ navigation }) => {
+const AutionHomeScreen = () => {
+  const navigation = useNavigation();
   const [LatestNews, setLatestNews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loginVisible, setLoginVisible] = useState(false);
@@ -64,9 +66,23 @@ const AutionHomeScreen = ({ navigation }) => {
   const [eventBank, seteventBank] = useState([]);
   const routeName = useRoute();
   const [imageVisible, setImageVisible] = useState(false);
+  const [planExpiredStatus, setPlanExpiredStatus] = useState(false);
+
+  const [planStatus, setPlanStatus] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
   const data = useSelector(
     state => state.UserReducer.auctionUserData,
   );
+
+  console.log("user data ================ :", data?.id);
+
+  // useEffect(() => {
+  //   if (data?.id == null && data?.id == undefined) {  // Using optional chaining to prevent errors
+  //     navigation.replace("OnboardingScreen2");
+  //   }
+  // }, [data.id])
+
 
   useEffect(() => {
     getAction_UserData();
@@ -78,39 +94,14 @@ const AutionHomeScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (data.id) {
-      // console.log("------------checking");
-      plan_CheckData()
+    if (data?.id) {  // Using optional chaining to prevent errors
+      user_CheckData();
+      plan_CheckData();
+    }
+    else {
+      navigation.replace("OnboardingScreen2");  // Use replace to prevent going back
     }
   }, [data.id])
-
-
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButtonClick);
-    return () => backHandler.remove();
-  }, [routeName.name, navigation]);
-
-
-  function handleBackButtonClick() {
-    if (routeName.name === 'ActionHome') {
-      Alert.alert(
-        "Hold on!",
-        "Are you sure you want to exit the app?",
-        [
-          {
-            text: "Cancel",
-            onPress: () => null,
-            style: "cancel"
-          },
-          { text: "YES", onPress: () => BackHandler.exitApp() }
-        ]
-      );
-      return true;
-    } else {
-      navigation.goBack();
-      return true;
-    }
-  }
 
   const animated = useRef(new Animated.Value(0)).current;
   // const tabBarHeight = useBottomTabBarHeight()
@@ -175,6 +166,38 @@ const AutionHomeScreen = ({ navigation }) => {
     }
   }
 
+  const user_CheckData = async () => {
+    try {
+      const myHeaders = new Headers();
+      myHeaders.append("accept", "*/*");
+
+      const requestOptions = {
+        method: "GET",
+        headers: myHeaders,
+        redirect: "follow"
+      };
+
+      // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${id}`, requestOptions) 
+      fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          if (result?.status == true) {
+            console.log("profile data -----------------", result?.data[0]?.status)
+            setPlanStatus(result?.data[0]?.status);
+            if (result?.data[0]?.status === "expired") {
+              setPlanExpiredStatus(true);
+            }
+            // console.log("PLAN ======= :", result?.data[0])
+          }
+        }
+        )
+        .catch((error) => console.error(error));
+
+    } catch (error) {
+      console.log("catch in plan_CheckData_Home : ", error);
+    }
+  }
+
 
   const dataArray = Object.entries(Banner)
     .filter(
@@ -194,10 +217,15 @@ const AutionHomeScreen = ({ navigation }) => {
   // }, [Auction_userData]);
 
 
-  const getApiData = async () => {
+  const getApiData = useCallback(async (isRefreshing = false) => {
+    if (isRefreshing) {
+      setRefreshing(true);
+    }
     try {
       //Auctions
       const getAuction = await fetchData.Auction({});
+      console.log("RECENT AUCTIONS ===================== :", getAuction);
+
       setAuctionData(getAuction);
 
       //Top Banks
@@ -217,13 +245,20 @@ const AutionHomeScreen = ({ navigation }) => {
       //Event Bank 
       // var data = 'event_bank=' + "Albion India";
       // const eventBankData = await fetchData.Auction_eventBankData({ data });
-
       // seteventBank(eventBankData)
 
 
     } catch (error) {
       console.log('catch in getApiData_HomeScreen:', error);
+    } finally {
+      if (isRefreshing) {
+        setRefreshing(false);
+      }
     }
+  }, [])
+
+  const handleRefresh = () => {
+    getApiData();
   };
 
   const getEventBank = () => {
@@ -236,15 +271,14 @@ const AutionHomeScreen = ({ navigation }) => {
       fetch("https://api.albionbankauctions.com/api/auction/show?event_bank=Albion India", requestOptions)
         .then((response) => response.json())
         .then((result) => {
-          // console.log("SUCCESS ============== : ",result);
-          seteventBank(result)
+          // console.log("SUCCESS BANK============== : ", result);
+          seteventBank(result);
         })
         .catch((error) => console.error(error));
     } catch (error) {
       console.log("catch in getEvent_Bank : ", error);
     }
   }
-
 
 
   const claimFreePlanClick = () => {
@@ -289,6 +323,7 @@ const AutionHomeScreen = ({ navigation }) => {
     }
   }
 
+  console.log("planStatus =============== :", planStatus);
 
 
   return (
@@ -364,6 +399,9 @@ const AutionHomeScreen = ({ navigation }) => {
             contentContainerStyle={{ padding: 10, flexGrow: 1 }}
             nestedScrollEnabled
             initialNumToRender={5}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            }
             renderItem={({ item, index }) => {
               switch (item) {
                 case 'Categories':
@@ -422,7 +460,7 @@ const AutionHomeScreen = ({ navigation }) => {
                             <TouchableOpacity
                               key={index}
                               onPress={() => {
-                                console.log("item?.value =============== :", item?.value);
+                                // console.log("item?.value =============== :", item?.value);
 
                                 navigation.navigate('ListScreen', {
                                   property_sub_category: item?.value,
@@ -854,6 +892,12 @@ const AutionHomeScreen = ({ navigation }) => {
                             </View>
                           );
                         }}
+                        refreshControl={
+                          <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={handleRefresh}
+                          />
+                        }
                       />
                     </View>
                   );
@@ -1122,6 +1166,41 @@ const AutionHomeScreen = ({ navigation }) => {
               </View>
             </Modal>
           )}
+
+          {planExpiredStatus && (
+            <Modal transparent={true} animationType="fade" visible={planExpiredStatus}>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.8)', flex: 1 }}>
+                <View
+                  style={{ width: 300, height: 350, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.white, borderRadius: 5 }}>
+                  <Text style={{ fontSize: 14, color: Color.lightBlack, fontFamily: Poppins.SemiBold, paddingVertical: 5 }}>Your Plan is Expired! Please Purchase</Text>
+                  <ImageBackground
+                    source={require('../../assets/image/free.jpg')}
+                    style={{
+                      width: 200,
+                      height: 220,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      resizeMode: 'contain',
+                    }}
+                  >
+                  </ImageBackground>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setPlanExpiredStatus(false);
+                      navigation.navigate("AuctionPrime");
+                    }}
+                    style={{
+                      // position: 'absolute', bottom: 20,
+                      width: '80%', height: 45, backgroundColor: Color.primary, borderRadius: 30, justifyContent: 'center', alignItems: 'center'
+                    }}>
+                    <Text style={{ fontSize: 12, fontFamily: Poppins.Bold, color: Color.white }}>Plan Now</Text>
+                  </TouchableOpacity>
+
+                </View>
+              </View>
+            </Modal>
+          )}
+
         </>
       )}
       <PostCompletedModal navigation={navigation} />

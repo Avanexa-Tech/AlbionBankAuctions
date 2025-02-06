@@ -297,10 +297,15 @@ const AuctionNotifyProperties = () => {
   const [AutionData, setAutionData] = useState([]);
   const [loginEnable, setLoginEnable] = useState(false);
 
-  const Auction_userData = useSelector(
+  // const Auction_userData = useSelector(
+  //   state => state.UserReducer.auctionUserData,
+  // );
+  // var { id, name, phone_number, email } = Auction_userData;
+
+  const data = useSelector(
     state => state.UserReducer.auctionUserData,
   );
-  var { id, name, phone_number, email } = Auction_userData;
+
   const [ReservedPriceFrom, setReservedPriceFrom] = useState('');
   const [ReservedPriceTo, setReservedPriceTo] = useState('');
 
@@ -458,8 +463,8 @@ const AuctionNotifyProperties = () => {
 
   async function submitClick() {
     try {
-      const data = {
-        user_id: id,
+      const submitdata = {
+        user_id: data?.id,
         from_reserve_price: ReservedPriceFrom,
         to_reserve_price: ReservedPriceTo,
         state: selectState?.name,
@@ -472,8 +477,8 @@ const AuctionNotifyProperties = () => {
         return; // Exit if validation fails
       }
 
-      console.log("data ----------- : ", data);
-      const notifyProperties = await fetchData.Auction_notify_properties(data);
+      // console.log("data ----------- : ", submitdata);
+      const notifyProperties = await fetchData.Auction_notify_properties(submitdata);
       console.log("Getting Response ----------- : ", JSON.stringify(notifyProperties));
 
       if (notifyProperties) {
@@ -495,13 +500,13 @@ const AuctionNotifyProperties = () => {
     try {
       if (defaultRating != null && comments != '') {
         setUpdateLoader(true);
-        var data = {
-          user_id: id,
+        const feedbackdata = {
+          user_id: data?.id,
           rating: defaultRating,
           feedback: comments
         };
 
-        const feedbackresponse = await fetchData.Auction_feedbackData(data);
+        const feedbackresponse = await fetchData.Auction_feedbackData(feedbackdata);
         console.log("SUCCESS ------------- :", feedbackresponse);
 
         if (feedbackresponse?.status == true) {
@@ -1115,8 +1120,7 @@ const AuctionNotifyProperties = () => {
           <TouchableOpacity
             activeOpacity={0.5}
             onPress={() => {
-              id == undefined ||
-                (Auction_userData?.length > 0 && Auction_userData == undefined) ?
+              data?.id == undefined ?
                 setLoginEnable(true)
                 :
                 submitClick()
@@ -1212,7 +1216,7 @@ const AuctionNotifyProperties = () => {
                 <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F3EAE4', paddingVertical: 20, borderTopRightRadius: 10, borderTopLeftRadius: 10 }}>
                   <Image
                     source={require('../../../assets/image/feedback.png')}
-                    style={{ width: '100%', height: 120, resizeMode: 'contain', padding: 2, }}
+                    style={{ width: '100%', height: 110, resizeMode: 'contain', padding: 2, }}
                   />
                   <View style={{ position: 'absolute', right: 10, top: 10 }}>
                     <TouchableOpacity onPress={() => setHomeLoanVisible(false)}>
@@ -1263,11 +1267,11 @@ const AuctionNotifyProperties = () => {
                     })}
                   </View>
                 </View>
-                <View style={{ width: '95%', height: 1, backgroundColor: '#EAEAEF', borderRadius: 30, marginVertical: 10 }}></View>
-                <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 10 }}>
+                <View style={{ width: '95%', height: 1, backgroundColor: '#EAEAEF', borderRadius: 30, marginVertical: 5 }}></View>
+                <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 5 }}>
                   <Text style={{ width: '100%', fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20 }}>Share your experience</Text>
 
-                  <View style={{ width: '95%', backgroundColor: Color.white, borderWidth: 1, borderColor: Color.lightgrey, borderRadius: 5, marginTop: 10 }}>
+                  <View style={{ width: '95%', backgroundColor: Color.white, borderWidth: 1, borderColor: Color.lightgrey, borderRadius: 5, marginTop: 5 }}>
                     <TextInput
                       placeholder="Enter your comments here ..."
                       placeholderTextColor={Color.cloudyGrey}
@@ -1283,14 +1287,14 @@ const AuctionNotifyProperties = () => {
                   </View>
                 </View>
                 <TouchableOpacity onPress={() => feedbackSubmitClick()}
-                  style={{ width: '95%', height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
+                  style={{ width: '95%', height: 45, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 5 }}>
                   {updateLoader ? (
                     <ActivityIndicator color={Color.white} />
                   ) : (
                     <Text
                       style={{
                         textAlign: 'center',
-                        fontSize: 14,
+                        fontSize: 12,
                         color: Color.white,
                         fontFamily: Poppins.Medium,
                       }}>
@@ -1419,8 +1423,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   starImageStyle: {
-    width: 35,
-    height: 35,
+    width: 30,
+    height: 30,
     resizeMode: 'cover',
   },
   phoneTextInput: {

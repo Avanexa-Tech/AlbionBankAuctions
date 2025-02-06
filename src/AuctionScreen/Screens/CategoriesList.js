@@ -66,6 +66,7 @@ const CategoriesList = ({ navigation }) => {
             </View>
           );
         }}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );

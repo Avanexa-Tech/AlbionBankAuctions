@@ -28,7 +28,7 @@ const InterestedProperties = ({ navigation }) => {
   const [AuctionData, setAuctionData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const userData = useSelector(state => state.UserReducer.userData);
+  const userData = useSelector(state => state.UserReducer.userData || {});
   var { user_id } = userData;
   // const Auction_userData = useSelector(
   //   state => state.UserReducer.auctionUserData,
@@ -42,9 +42,15 @@ const InterestedProperties = ({ navigation }) => {
   useEffect(() => {
     getAction_UserData();
     setLoading(true);
-    getApiData().finally(() => {
-      setLoading(false);
-    });
+
+    const interval = setInterval(() => {
+      getApiData().finally(() => {
+        setLoading(false);
+      });
+    }, 1000); // Adjust the interval as needed
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
+
   }, []);
 
   const getApiData = useCallback(
@@ -54,10 +60,11 @@ const InterestedProperties = ({ navigation }) => {
       }
       try {
         const getdata = `user_id=` + data?.id;
-        console.log("User Data ----------- : ", getdata);
+        // console.log("User Data ----------- : ", getdata);
 
         const check_interestData = await fetchData.Auction_interest_show(getdata);
-        console.log("check_interestData ================== : ", check_interestData);
+        // console.log("check_interestData ================== : ", check_interestData);
+        // const sortArrayData = check_interestData?.sort((a,b) => a.created_at -b.created_at);
         setAuctionData(check_interestData);
       } catch (error) {
         console.log('error', error);

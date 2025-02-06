@@ -59,7 +59,7 @@ const SubscriptionDetails = () => {
             // console.log("plan check -------------", data?.id);
 
             // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${data?.id}`, requestOptions)
-            fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}`, requestOptions)
+            fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
                 .then((response) => response.json())
                 .then((result) => {
                     // console.log("resultdata -----------------:", result)
@@ -136,18 +136,18 @@ const SubscriptionDetails = () => {
                         </View>
                         <View style={{ width: '100%', height: 1, backgroundColor: '#F3EAE4', marginVertical: 10 }}></View>
                         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 10 }}>
-                            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            {/* <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                                 <TouchableOpacity onPress={() => cancelMemberClick()}>
                                     <Text style={{ fontSize: 13, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>Cancel Membership</Text>
                                 </TouchableOpacity>
-                            </View>
+                            </View> */}
                             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                                 <TouchableOpacity onPress={() => navigation.navigate("AuctionPrime")} style={{ width: '90%', height: 45, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: Color.primary, borderRadius: 30 }}>
                                     <Text style={{ fontSize: 13, color: Color.white, fontFamily: Poppins.SemiBold, paddingHorizontal: 5 }}>Upgrade Plan</Text>
                                     <Iconviewcomponent
                                         Icontag={'Ionicons'}
                                         iconname={"chevron-forward-outline"}
-                                        icon_size={20}
+                                        icon_size={18}
                                         icon_color={Color.white}
                                     />
                                 </TouchableOpacity>

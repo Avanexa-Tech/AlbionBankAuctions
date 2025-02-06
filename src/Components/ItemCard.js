@@ -21,7 +21,7 @@ const ItemCard = props => {
   const [ProductLoad, setProductLoad] = useState(false);
   const [processingProducts, setProcessingProducts] = useState([]);
 
-  const userData = useSelector(state => state.UserReducer.userData);
+  const userData = useSelector(state => state.UserReducer.userData || {});
   var { user_id } = userData;
 
   const twentyFourHoursAgo = moment(new Date() - 24 * 60 * 60 * 1000).format(

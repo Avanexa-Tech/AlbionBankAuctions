@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   Alert,
   Pressable,
+  BackHandler,
 } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation, useNavigationState } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import CustomDrawerContent from './Components/Nav/CustomDrawerContent';
@@ -58,6 +59,8 @@ import AlbionPrime from './AuctionScreen/Screens/AuctionPrime';
 import SubscriptionDetails from './AuctionScreen/Screens/SubscriptionDetails';
 import AuctionPrime from './AuctionScreen/Screens/AuctionPrime';
 import FeedbackRatings from './AuctionScreen/Screens/SideMenu/FeedbackRatings';
+import AuctionEditProfile from './AuctionScreen/Screens/profile/AuctionEditProfile';
+import InvoiceList from './AuctionScreen/Screens/SideMenu/InvoiceList';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -155,11 +158,36 @@ const MainApp = () => {
       order: 'asc',
     },
   ]);
+  const navigation = useNavigation();
+  const currentRoute = useNavigationState(state => state?.routes[state.index]?.name);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (currentRoute === 'ActionHome') { // Run only on ActionHome
+        Alert.alert(
+          'Hold on!',
+          'Are you sure you want to exit?',
+          [
+            { text: 'Cancel', onPress: () => navigation.goBack(), style: 'cancel' },
+            { text: 'Yes', onPress: () => BackHandler.exitApp() },
+          ],
+          { cancelable: false }
+        );
+        return true; // Prevent default back action
+      }
+      return false; // Let other screens use default back behavior
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [currentRoute, navigation]); // Re-run effect when screen changes
+
   return (
     <>
       <StatusBar backgroundColor={Color.primary} />
       {/* <ForegroundHandler /> */}
-      <Stack.Navigator initialRouteName="UpgradeTab">
+      <Stack.Navigator initialRouteName="Splash">
         {/* Property Screens */}
         <Stack.Screen
           name="Splash"
@@ -635,10 +663,48 @@ const MainApp = () => {
         />
 
         <Stack.Screen
+          name="InvoiceList"
+          component={InvoiceList}
+          options={({ navigation, route }) => ({
+            headerTitle: 'Invoice List',
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
+            headerLeft: () => (
+              <View style={{ marginHorizontal: 10 }}>
+                <Icon
+                  name="arrow-back"
+                  size={30}
+                  color={Color.white}
+                  onPress={() => navigation.goBack()}
+                />
+              </View>
+            ),
+          })}
+        />
+        <Stack.Screen
           name="AuctionProfile"
           component={AuctionProfile}
           options={({ navigation, route }) => ({
             headerTitle: 'Your Auction Profile',
+            headerTitleStyle: { color: Color.white },
+            headerStyle: { backgroundColor: Color.primary },
+            headerLeft: () => (
+              <View style={{ marginHorizontal: 10 }}>
+                <Icon
+                  name="arrow-back"
+                  size={30}
+                  color={Color.white}
+                  onPress={() => navigation.goBack()}
+                />
+              </View>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="AuctionEditProfile"
+          component={AuctionEditProfile}
+          options={({ navigation, route }) => ({
+            headerTitle: 'Edit Profile',
             headerTitleStyle: { color: Color.white },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (

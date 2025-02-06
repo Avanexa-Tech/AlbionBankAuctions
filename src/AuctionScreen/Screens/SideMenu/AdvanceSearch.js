@@ -28,6 +28,8 @@ import { Poppins } from '../../../Global/FontFamily';
 import { useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { scr_height, scr_width } from '../../../Utils/Dimensions';
+import common_fn from '../../../Config/common_fn';
+import { Keyboard } from 'react-native';
 
 const { height } = Dimensions.get('screen');
 
@@ -61,14 +63,15 @@ const AdvanceSearch = ({ navigation, route }) => {
         getApiData().finally(() => {
             setLoading(false);
         });
-    }, [starttDate,
-        endDate,
+    }, [
+        // starttDate,
+        // endDate,
         selectProperty,
         selectState,
         currentDistrict,
         BankSelected,
-        minAmount,
-        maxAmount
+        // minAmount,
+        // maxAmount
     ]);
 
     useEffect(() => {
@@ -123,7 +126,6 @@ const AdvanceSearch = ({ navigation, route }) => {
     };
 
     const dataPayload = () => {
-        const params = new URLSearchParams();
         const payload = {
             property_sub_category: selectProperty?.value,
             event_bank: BankSelected?.bank_name,
@@ -135,16 +137,15 @@ const AdvanceSearch = ({ navigation, route }) => {
             max: maxAmount,
         };
 
-        console.log("payload ================ :", payload);
-
+        // Initialize params as a new URLSearchParams instance
+        const params = new URLSearchParams();
         for (const key in payload) {
-            if (payload[key] != null && payload[key]?.length > 0) {
+            if (payload[key] != null && payload[key]?.toString().trim().length > 0) {
                 params.append(key, payload[key]);
             }
         }
-
         const queryString = params.toString();
-        const query = queryString.replace('%20', ' ');
+        const query = queryString.replace(/%20/g, ' '); // Replace all occurrences of '%20' with a space
         return query;
     };
 
@@ -171,12 +172,47 @@ const AdvanceSearch = ({ navigation, route }) => {
 
     const AuctionApiData = async () => {
         try {
-            var data = dataPayload()
-            console.log("data =========== : ", data);
-            const getAuction = await fetchData.get_Auction(data);
-            // console.log("auctions search =========== : ", getAuction);
-            setAutionData(getAuction);
+            setLoading(true);
+            console.log("min ============= :", minAmount + " maxAmount ----------- :", maxAmount);
+            // Ensure they are numbers
+            const minAmountNum = Number(minAmount);
+            const maxAmountNum = Number(maxAmount);
+
+            if (minAmountNum > maxAmountNum) {
+                console.log("Please enter a min value is less than or equal to max value");
+                common_fn.showToast("Please enter a min value is less than or equal to max value");
+            } else {
+                const payload = {
+                    property_sub_category: selectProperty?.value,
+                    event_bank: BankSelected?.bank_name,
+                    state: selectState?.name,
+                    district: currentDistrict?.name,
+                    from: starttDate,
+                    to: endDate,
+                    min: minAmountNum,
+                    max: maxAmountNum,
+                };
+
+                // Initialize params as a new URLSearchParams instance
+                const params = new URLSearchParams();
+                for (const key in payload) {
+                    if (payload[key] != null && payload[key]?.toString().trim().length > 0) {
+                        params.append(key, payload[key]);
+                    }
+                }
+                const queryString = params.toString();
+                const query = queryString.replace(/%20/g, ' '); // Replace all occurrences of '%20' with a space
+
+                // // var data = dataPayload();
+                // console.log("query =========== : ", query);
+                const getAuction = await fetchData.get_Auction(query);
+                // console.log("auctions search =========== : ", getAuction);
+                setAutionData(getAuction);
+                setLoading(false);
+            }
+
         } catch (error) {
+            setLoading(false);
             console.log('catch in AuctionApi_Data', error)
         }
     }
@@ -188,6 +224,7 @@ const AdvanceSearch = ({ navigation, route }) => {
             setEndDate('');
             setSelectState('');
             setCurrentDistrict('');
+            setBankSelected({})
             setMinAmount('');
             setMaxAmount('')
         } catch (error) {
@@ -241,6 +278,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                 }}>
                 <View
                     style={{
+                        width: '100%',
                         flexDirection: 'row',
                         alignItems: 'center',
                     }}>
@@ -254,9 +292,9 @@ const AdvanceSearch = ({ navigation, route }) => {
                             // paddingHorizontal: 5,
                             paddingHorizontal: 10,
                             // height: 50,
-                            width: '43%',
-                            height: 45,
-                            marginHorizontal: 10,
+                            width: '45%',
+                            height: 46,
+                            marginHorizontal: 2,
                         }}
                         placeholderStyle={{
                             fontSize: 12,
@@ -295,11 +333,11 @@ const AdvanceSearch = ({ navigation, route }) => {
                             backgroundColor: Color.white,
                             borderColor: Color.cloudyGrey,
                             borderWidth: 1,
-                            paddingHorizontal: 10,
+                            paddingHorizontal: 5,
                             borderRadius: 5,
-                            width: '40%',
-                            height: 45,
-                            marginHorizontal: 10,
+                            width: '45%',
+                            height: 46,
+                            marginHorizontal: 2,
                         }}
                         placeholderStyle={{
                             fontSize: 12,
@@ -348,7 +386,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                         style={{
                             width: '100%',
                             backgroundColor: '#FDF0F5',
-                            padding: 10,
+                            padding: 0, marginTop: 10
                         }}>
                         <Dropdown
                             style={{
@@ -360,7 +398,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                                 width: '100%',
                                 height: 45,
                                 // marginHorizontal: 10,
-                                marginVertical: 10,
+                                marginVertical: 0,
                             }}
                             placeholderStyle={{
                                 fontSize: 12,
@@ -402,10 +440,11 @@ const AdvanceSearch = ({ navigation, route }) => {
                         borderWidth: 1,
                         paddingHorizontal: 10,
                         borderRadius: 5,
-                        width: '95%',
+                        width: '100%',
                         height: 45,
+                        marginTop: 10,
                         // marginHorizontal: 10,
-                        marginVertical: 10,
+                        marginVertical: 5,
                     }}
                     placeholderStyle={{
                         fontSize: 12,
@@ -438,7 +477,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                         />
                     )}
                 />
-                <View style={{ width: '95%', marginVertical: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ width: '100%', marginVertical: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <TextInput
                         placeholder="Minimum Price"
                         placeholderTextColor={Color.cloudyGrey}
@@ -447,6 +486,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                         onChangeText={value => {
                             setMinAmount(value)
                         }}
+                        onSubmitEditing={() => Keyboard.dismiss()}
                         style={{
                             flex: 1,
                             color: Color.black,
@@ -456,7 +496,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                             borderWidth: 1,
                             borderColor: Color.cloudyGrey,
                             backgroundColor: 'white',
-                            borderRadius: 5,
+                            borderRadius: 5, fontSize: 14
                         }}
                     />
                     <View style={{ width: 4, height: '100%' }}></View>
@@ -468,6 +508,7 @@ const AdvanceSearch = ({ navigation, route }) => {
                         onChangeText={value => {
                             setMaxAmount(value)
                         }}
+                        onSubmitEditing={() => Keyboard.dismiss()}
                         style={{
                             flex: 1,
                             color: Color.black,
@@ -477,13 +518,14 @@ const AdvanceSearch = ({ navigation, route }) => {
                             borderWidth: 1,
                             borderColor: Color.cloudyGrey,
                             backgroundColor: 'white',
-                            borderRadius: 5,
+                            borderRadius: 5, fontSize: 14
                         }}
                     />
                 </View>
                 <View style={{ width: '95%', marginVertical: 5, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <TouchableOpacity
                         onPress={() => {
+                            Keyboard.dismiss();  // Hide keyboard
                             AuctionApiData()
                         }}
                         style={{

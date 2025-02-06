@@ -35,13 +35,13 @@ export default class ImageView extends Component {
       };
 
       const response = await fetch(
-        `https://api.albionbankauctions.com/api/plan/user?user_id=${this.props.id}`,
+        `https://api.albionbankauctions.com/api/plan/user?user_id=${this.props.id}&status=activated`,
         requestOptions
       );
       const result = await response.json();
 
       if (result?.status === true) {
-        console.log('profile data -----------------', result?.data[0]);
+        // console.log('profile data -----------------', result?.data[0]);
         this.setState({
           expiredStatus: result?.data[0]?.status,
           planStatus: result?.data[0]?.plan_id,
@@ -55,21 +55,21 @@ export default class ImageView extends Component {
 
 
 
-
   render() {
-    var { images } = this.props;
+    var { images, } = this.props;
     var { visible, active, planStatus, expiredStatus } = this.state;
-    console.log("planStatus ================== :", planStatus);
+    // console.log("navigation ================== :", this.props.navigation);
     return (
       <View style={{ height: 220 }}>
         <ImageSlider
           images={images}
           width={width}
           active={active}
+          navigation={this.props.navigation}
           planStatus={planStatus} // Pass planStatus as a prop
           expiredStatus={expiredStatus} // Pass expiredStatus as a prop
           showModal={active => {
-            console.log("onclick ========== :", active);
+            // console.log("onclick ========== :", active);
             if (active === 0 || (planStatus > 1 && expiredStatus !== "expired")) {
               // Do not open the modal
               this.setState({ visible: false, active: false });

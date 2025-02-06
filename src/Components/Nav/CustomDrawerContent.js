@@ -67,7 +67,7 @@ const CustomDrawerContent = props => {
     },
   ]);
   const Login_type = useSelector(state => state.UserReducer.Login_type);
-  const userData = useSelector(state => state.UserReducer.userData);
+  const userData = useSelector(state => state.UserReducer.userData || {});
   var {
     user_id,
     username,
@@ -455,7 +455,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 5,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -504,7 +504,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 5,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -519,7 +519,7 @@ const CustomDrawerContent = props => {
                     ? 'notification-add'
                     : 'notification-add'
                 }
-                icon_size={itemSelected === 'NotifyProperty' ? 22 : 22}
+                icon_size={itemSelected === 'NotifyProperty' ? 24 : 24}
                 icon_color={
                   itemSelected === 'NotifyProperty' ? Color.white : Color.primary
                 }
@@ -553,7 +553,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 5,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -568,7 +568,7 @@ const CustomDrawerContent = props => {
                     ? 'home-heart'
                     : 'home-heart'
                 }
-                icon_size={itemSelected === 'InterestedProperties' ? 22 : 22}
+                icon_size={itemSelected === 'InterestedProperties' ? 24 : 24}
                 icon_color={
                   itemSelected === 'InterestedProperties'
                     ? Color.white
@@ -578,8 +578,8 @@ const CustomDrawerContent = props => {
               <Text
                 style={{
                   fontSize: itemSelected === 'InterestedProperties' ? 16 : 14,
-                  width: 150,
-                  marginLeft: 8,
+                  width: 200,
+                  marginLeft: 10,
                   color:
                     itemSelected === 'InterestedProperties'
                       ? Color.white
@@ -604,7 +604,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 7,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -617,7 +617,7 @@ const CustomDrawerContent = props => {
                 iconname={
                   itemSelected === 'AdvanceSearch' ? 'search' : 'search'
                 }
-                icon_size={20}
+                icon_size={itemSelected === 'AdvanceSearch' ? 22 : 22}
                 icon_color={
                   itemSelected === 'AdvanceSearch' ? Color.white : Color.primary
                 }
@@ -651,7 +651,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 7,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -666,7 +666,7 @@ const CustomDrawerContent = props => {
                     ? 'information-outline'
                     : 'information'
                 }
-                icon_size={22}
+                icon_size={itemSelected === 'AuctionAboutUs' ? 22 : 22}
                 icon_color={
                   itemSelected === 'AuctionAboutUs' ? Color.white : Color.primary
                 }
@@ -699,7 +699,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 7,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -712,7 +712,7 @@ const CustomDrawerContent = props => {
                 iconname={
                   itemSelected === 'AuctionContact' ? 'call-outline' : 'call'
                 }
-                icon_size={20}
+                icon_size={itemSelected === 'AuctionContact' ? 22 : 20}
                 icon_color={
                   itemSelected === 'AuctionContact' ? Color.white : Color.primary
                 }
@@ -721,7 +721,7 @@ const CustomDrawerContent = props => {
                 style={{
                   fontSize: itemSelected === 'AuctionContact' ? 16 : 14,
                   width: 150,
-                  marginLeft: 10,
+                  marginLeft: 12,
                   color:
                     itemSelected === 'AuctionContact'
                       ? Color.white
@@ -743,7 +743,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 7,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -758,7 +758,7 @@ const CustomDrawerContent = props => {
                     ? 'information-outline'
                     : 'information'
                 }
-                icon_size={22}
+                icon_size={itemSelected === 'FAQs' ? 24 : 24}
                 icon_color={
                   itemSelected === 'FAQs' ? Color.white : Color.primary
                 }
@@ -785,7 +785,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 7,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -806,7 +806,7 @@ const CustomDrawerContent = props => {
                 style={{
                   fontSize: itemSelected === 'RateReviews' ? 16 : 14,
                   width: 150,
-                  marginLeft: 10,
+                  marginLeft: 12,
                   color:
                     itemSelected === 'RateReviews'
                       ? Color.white
@@ -831,7 +831,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 7,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -846,7 +846,7 @@ const CustomDrawerContent = props => {
                     ? 'policy'
                     : 'policy'
                 }
-                icon_size={22}
+                icon_size={itemSelected === 'AuctionPrivacyPolicy' ? 24 : 24}
                 icon_color={
                   itemSelected === 'AuctionPrivacyPolicy'
                     ? Color.white
@@ -882,7 +882,7 @@ const CustomDrawerContent = props => {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginHorizontal: 10,
+                marginHorizontal: 7,
                 paddingVertical: 10,
                 padding: 10,
               }}
@@ -897,7 +897,7 @@ const CustomDrawerContent = props => {
                     ? 'content-copy'
                     : 'content-save-all'
                 }
-                icon_size={20}
+                icon_size={itemSelected === 'AuctionTerms' ? 20 : 20}
                 icon_color={
                   itemSelected === 'AuctionTerms' ? Color.white : Color.primary
                 }
@@ -906,7 +906,7 @@ const CustomDrawerContent = props => {
                 style={{
                   fontSize: itemSelected === 'AuctionTerms' ? 16 : 14,
                   width: 150,
-                  marginLeft: 10,
+                  marginLeft: 12,
                   color:
                     itemSelected === 'AuctionTerms'
                       ? Color.white

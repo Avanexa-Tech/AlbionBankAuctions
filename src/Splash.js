@@ -31,73 +31,18 @@ const SplashScreen = ({ navigation }) => {
 
   const setNetInfo = () => {
     NetInfo.fetch().then(state => {
+      console.log("setLoading", state?.isConnected);
+
       setLoading(state.isConnected);
     });
   };
 
-  const userLogin_type = async () => {
-    try {
-      const action_login_type = await AsyncStorage.getItem('action_login_type');
-      var { login_type } = JSON.parse(action_login_type);
-      dispatch(setLoginType(login_type));
-    } catch (error) {
-      console.log('error', error);
-    }
-  };
-
-  const getUserData = async () => {
-    try {
-      const action_value = await AsyncStorage.getItem('action_user_data');
-      const value = await AsyncStorage.getItem('user_data');
-      console.log('value !== null', value !== null, action_value !== null);
-      if (value !== null) {
-        dispatch(setLoginType('properties'));
-      } else if (action_value !== null) {
-        dispatch(setLoginType('Auction'));
-      } else {
-        dispatch(setLoginType(''));
-      }
-      if (value == null && action_value == null) {
-        replace('OnboardingScreen2');
-      } else {
-        if (Login_type == 'Auction') {
-          var { id } = JSON.parse(action_value);
-          if (id == '0') {
-            replace('ActionLogin');
-          } else {
-            dispatch(setActionUserData(action_value));
-            replace('ActionHome');
-          }
-        } else {
-          var { user_id } = JSON.parse(value);
-          if (user_id == '0') {
-            replace('ActionLogin');
-          } else {
-            dispatch(setUserData(value));
-            replace('TabNavigator');
-          }
-        }
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  const getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem('UserState');
-      if (value !== null) {
-        dispatch(setAsync(JSON.parse(value)));
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   useEffect(() => {
+    setNetInfo();
+    // console.log("klbndklnl",loading);
     if (loading) {
+      // console.log("jhvjhvjhvjh");      
       const SplashLoad = setTimeout(() => {
-        // // checkForUpdates();
         getUserData();
         getData();
       }, 3000);
@@ -116,6 +61,66 @@ const SplashScreen = ({ navigation }) => {
       clearInterval(Login_typeLoad);
     };
   }, [Login_type]);
+
+
+  const userLogin_type = async () => {
+    try {
+      const action_login_type = await AsyncStorage.getItem('action_login_type');
+      var { login_type } = JSON.parse(action_login_type);
+      dispatch(setLoginType(login_type));
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
+
+
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('UserState');
+      if (value !== null) {
+        dispatch(setAsync(JSON.parse(value)));
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const getUserData = async () => {
+    try {
+      const action_value = await AsyncStorage.getItem('action_user_data');
+      const value = await AsyncStorage.getItem('user_data');
+
+      console.log('value !== ============', value);
+
+      if (!value && !action_value) {
+        replace('OnboardingScreen2');
+        return;
+      }
+
+      if (value) {
+        dispatch(setLoginType('properties'));
+        const { user_id } = JSON.parse(value);
+        if (user_id === '0') {
+          replace('ActionLogin');
+        } else {
+          dispatch(setUserData(JSON.parse(value)));
+          replace('ActionHome');
+        }
+      } else if (action_value) {
+        dispatch(setLoginType('Auction'));
+        const { id } = JSON.parse(action_value);
+        if (id === '0') {
+          replace('ActionLogin');
+        } else {
+          dispatch(setActionUserData(JSON.parse(action_value)));
+          replace('ActionHome');
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
 
   // const checkForUpdates = async () => {
   //   try {

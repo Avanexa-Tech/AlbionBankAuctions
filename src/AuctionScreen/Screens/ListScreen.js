@@ -11,6 +11,7 @@ import {
   TextInput,
   Modal, ActivityIndicator
 } from 'react-native';
+import DatePicker from 'react-native-ui-datepicker';
 import { Dropdown } from 'react-native-element-dropdown';
 import Color from '../../Config/Color';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -28,21 +29,27 @@ import AuctionItemCard from '../Auctioncomponents/AuctionItemCard';
 import { useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import common_fn from '../../Config/common_fn';
+import dayjs from 'dayjs';
+import { Alert } from 'react-native';
 
 const { height } = Dimensions.get('screen');
 
 const ListScreen = ({ navigation, route }) => {
   const routeName = useRoute();
-  const [property_sub_category] = useState(route.params.property_sub_category);
-  const [event_bank] = useState(route.params.event_bank);
-  const [selectProperty, setSelectProperty] = useState({});
+  // const [property_sub_category] = useState(route.params.property_sub_category);
+  // console.log("property_sub_category -**************** :", route.params);
+
+  const [property_sub_category, setPropertySubCategory] = useState(route.params.property_sub_category);
+  const [event_bank, setEvent_bank] = useState(route.params.event_bank);
+  // const [selectProperty, setSelectProperty] = useState("");
   const [calenderVisible, setCalenderVisible] = useState(false);
   const sortdata = useSelector(state => state.PropertyReducer.AuctionSort);
   const [Location, setLocation] = useState([]);
   const [AutionFilterData, setAutionFilterData] = useState([]);
+
   const [markDates, setMarkedDates] = useState({});
-  const [starttDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [starttDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
   const [loading, setLoading] = useState(false);
   const [isStartDatePicked, setIsStartDatePicked] = useState(false);
   const [isEndDatePicked, setIsEndDatePicked] = useState(false);
@@ -50,6 +57,7 @@ const ListScreen = ({ navigation, route }) => {
   const [loadMore, setLoadMore] = useState(false);
   const [endReached, setEndReached] = useState(false);
   const [page, setPage] = useState(0);
+  const [dateRange, setDateRange] = useState({});
   const [property] = useState([
     { label: '50,000', value: '50,000' },
     { label: '1,00,000', value: '1,00,000' },
@@ -76,72 +84,86 @@ const ListScreen = ({ navigation, route }) => {
   );
 
 
+  // console.log(dateRange,"<<-------------------dateRange");
+
+
   useEffect(() => {
     setLoading(true);
     getApiData().finally(() => {
       setLoading(false);
     });
   }, [
-    endDate,
-    selectProperty,
+    // selectProperty,
     property_sub_category,
     selectState,
     currentDistrict,
     event_bank,
-    sortdata
+    sortdata,
+    starttDate,
+    endDate
   ]);
 
+  // useEffect(() => {
+  //   if (!property_sub_category) {
+  //     setEvent_bank(""); // Reset bank selection if category is cleared
+  //   }
+  // }, [property_sub_category]);
 
-  // console.log("selectProperty ============= :", JSON.stringify(selectProperty) + "\n" + "starttDate ====== :" + starttDate + "\n" +
-  //   "endDate =========== :" + endDate + "\n" + "property_sub_category ========= :" + property_sub_category);
+  // console.log("property_sub_category ========= :" + property_sub_category + " selectProperty  " + selectProperty);
 
 
   const dataPayload = () => {
     const params = new URLSearchParams();
-    const payload = {
+    let payload = {
       property_sub_category: property_sub_category,
-      // property_sub_category: selectProperty?.value,
-      event_bank,
+      // selectProperty: selectProperty,
+      event_bank: event_bank,
       state: selectState?.name,
       district: currentDistrict?.name,
-      from: starttDate,
-      to: endDate,
       sort: sortdata?.value,
       order: sortdata?.order,
       min: minAmount,
       max: maxAmount,
+      from: dayjs(starttDate).format('YYYY-MM-DD'),
+      to: dayjs(endDate).format('YYYY-MM-DD'),
     };
-    console.log("payload ========================= :", payload);
+
+    // console.log("payload1212 ========================= :", payload);
     for (const key in payload) {
-      if (payload[key] != null && payload[key]?.length > 0) {
+      if (!!payload[key]) {
         params.append(key, payload[key]);
       }
     }
-
+    // console.log("params1212 ========================= :", params);
     const queryString = params.toString();
     const query = queryString.replace('%20', ' ');
-    console.log("query ========================= :", query);
+    // console.log("query1212 ========================= :", query);
 
     return query;
   };
 
   const getApiData = async () => {
+    // console.log(starttDate, endDate, "------------------------------>>>>>>>>>>>>>>>>>");
+
     try {
-      const payload = {
+      let payload = {
         property_sub_category: property_sub_category,
-        event_bank,
+        // selectProperty: selectProperty,
+        event_bank: event_bank,
         state: selectState?.name,
         district: currentDistrict?.name,
-        from: starttDate,
-        to: endDate,
         sort: sortdata?.value,
         order: sortdata?.order,
         min: minAmount,
         max: maxAmount,
+        from: starttDate,
+        to: endDate
       };
+
 
       // Initialize params as a new URLSearchParams instance
       const params = new URLSearchParams();
+      // console.log(payload, "payload before structure__________________________________");
 
       for (const key in payload) {
         if (payload[key] != null && payload[key]?.toString().trim().length > 0) {
@@ -152,7 +174,10 @@ const ListScreen = ({ navigation, route }) => {
       const queryString = params.toString();
       const query = queryString.replace(/%20/g, ' '); // Replace all occurrences of '%20' with a space
 
+      // console.log("Query ======================= :", query);
+
       const getAuction = await fetchData.get_Auction(query);
+      // console.log("resp ------------------- :", getAuction);
       setAutionData(getAuction);
 
       //get State
@@ -167,52 +192,115 @@ const ListScreen = ({ navigation, route }) => {
     }
   };
 
-  const onDayPress = day => {
-    if (isStartDatePicked == false) {
-      let markedDates = {};
-      markedDates[day.dateString] = {
+
+  const datePicker = () => {
+
+  }
+
+  const onDayPress = (day) => {
+    let newMarkedDates = {};
+
+    // if (!isStartDatePicked) {
+    //   // If start date is not picked yet
+    //   setStartDate(day.dateString);
+    //   setEndDate(null);
+    //   newMarkedDates[day.dateString] = {
+    //     startingDay: true,
+    //     color: '#00B0BF',
+    //     textColor: '#FFFFFF',
+    //   };
+    //   setIsStartDatePicked(true);
+    // } else {
+    // If start date is already picked, set end date
+    const start = moment(starttDate);
+    const end = moment(day.dateString);
+    const range = end.diff(start, 'days');
+
+    if (range > 0) {
+      for (let i = 0; i <= range; i++) {
+        const tempDate = start.clone().add(i, 'days').format('YYYY-MM-DD');
+
+        newMarkedDates[tempDate] = {
+          color: '#00B0BF',
+          textColor: '#FFFFFF',
+        };
+
+        if (i === 0) {
+          newMarkedDates[tempDate].startingDay = true;
+        } else if (i === range) {
+          newMarkedDates[tempDate].endingDay = true;
+        }
+      }
+
+      setStartDate(start.format('YYYY-MM-DD'));
+      setEndDate(end.format('YYYY-MM-DD'));
+    } else {
+      // If end date is before start date, reset selection
+      setStartDate(day.dateString);
+      // setEndDate(null);
+      newMarkedDates[day.dateString] = {
         startingDay: true,
         color: '#00B0BF',
         textColor: '#FFFFFF',
       };
-      setMarkedDates(markedDates);
-      setIsStartDatePicked(true);
-      setIsEndDatePicked(false);
-      setStartDate(day.dateString);
-    } else {
-      let markedDates = markDates;
-      let startDate = moment(starttDate);
-      let endDate = moment(day.dateString);
-      let range = endDate.diff(startDate, 'days');
-      if (range > 0) {
-        for (let i = 1; i <= range; i++) {
-          let tempDate = startDate.clone().add(1, 'day');
-          // tempDate = moment(tempDate).format('YYYY-MM-DD');
-          if (i < range) {
-            markedDates[tempDate.toISOString()] = { color: '#00B0BF', textColor: '#FFFFFF' };
-          } else {
-            markedDates[tempDate.toISOString()] = {
-              endingDay: true,
-              color: '#00B0BF',
-              textColor: '#FFFFFF',
-            };
-          }
-        }
-
-        // console.log("starttDate ============ :", starttDate + "day.dateString ============= : " + day.dateString);
-
-        setMarkedDates(markedDates);
-        setIsStartDatePicked(false);
-        setIsEndDatePicked(true);
-        setStartDate(starttDate);
-        setEndDate(day.dateString);
-        setCalenderVisible(false);
-      } else {
-        setEndDate(starttDate);
-        setCalenderVisible(false);
-      }
     }
+    setMarkedDates(newMarkedDates);
+    // setIsStartDatePicked(false);
+    if (starttDate && endDate) {
+      setCalenderVisible(false);
+    }
+    // }
+
+    // setMarkedDates(newMarkedDates);
+    // setCalenderVisible(false);
   };
+
+  // const onDayPress = day => {
+  //   if (isStartDatePicked == false) {
+  //     let markedDates = {};
+  //     markedDates[day.dateString] = {
+  //       startingDay: true,
+  //       color: '#00B0BF',
+  //       textColor: '#FFFFFF',
+  //     };
+  //     setMarkedDates(markedDates);
+  //     setIsStartDatePicked(true);
+  //     setIsEndDatePicked(false);
+  //     setStartDate(day.dateString);
+  //   } else {
+  //     let markedDates = markDates;
+  //     let startDate = moment(starttDate);
+  //     let endDate = moment(day.dateString);
+  //     let range = endDate.diff(startDate, 'days');
+  //     if (range > 0) {
+  //       for (let i = 1; i <= range; i++) {
+  //         let tempDate = startDate.clone().add(1, 'day');
+  //         // tempDate = moment(tempDate).format('YYYY-MM-DD');
+  //         if (i < range) {
+  //           markedDates[tempDate.toISOString()] = { color: '#00B0BF', textColor: '#FFFFFF' };
+  //         } else {
+  //           markedDates[tempDate.toISOString()] = {
+  //             endingDay: true,
+  //             color: '#00B0BF',
+  //             textColor: '#FFFFFF',
+  //           };
+  //         }
+  //       }
+
+  //       // console.log("starttDate ============ :", starttDate + "day.dateString ============= : " + day.dateString);
+
+  //       setMarkedDates(markedDates);
+  //       setIsStartDatePicked(false);
+  //       setIsEndDatePicked(true);
+  //       setStartDate(starttDate);
+  //       setEndDate(day.dateString);
+  //       setCalenderVisible(false);
+  //     } else {
+  //       setEndDate(starttDate);
+  //       setCalenderVisible(false);
+  //     }
+  //   }
+  // };
 
   function handleBackButtonClick() {
     if (routeName.name == "ListScreen") {
@@ -264,7 +352,7 @@ const ListScreen = ({ navigation, route }) => {
         "email": data?.email,
         "state": selectState?.name !== "" && selectState?.name,
         "district": currentDistrict?.name !== "" && currentDistrict?.name,
-        "propertySubCategory": selectProperty?.label !== "" && selectProperty?.label
+        "propertySubCategory": property_sub_category !== "" && property_sub_category
       });
 
       const requestOptions = {
@@ -273,7 +361,8 @@ const ListScreen = ({ navigation, route }) => {
         body: raw,
         redirect: "follow"
       };
-      console.log("Request Prop requestOptions ============== :", requestOptions);
+
+      // console.log("Request Prop requestOptions ============== :", requestOptions);
       fetch("https://api.albionbankauctions.com/api/auction/request-property", requestOptions)
         .then((response) => response.json())
         .then((result) => {
@@ -311,7 +400,16 @@ const ListScreen = ({ navigation, route }) => {
 
   const clearListClick = () => {
     try {
-      setSelectProperty({});
+      // If category is cleared, reset the bank selection
+      if (!property_sub_category) {
+        setEvent_bank("");
+      }
+
+      // If bank is cleared, reset the category (optional)
+
+      setPropertySubCategory(route.params.property_sub_category);
+
+
       setSelectState({});
       setCurrentDistrict({});
       setMarkedDates({});
@@ -370,9 +468,11 @@ const ListScreen = ({ navigation, route }) => {
             valueField="value"
             placeholder="Select property"
             searchPlaceholder="Search..."
-            value={selectProperty}
+            value={property_sub_category}
             onChange={item => {
-              setSelectProperty(item);
+              // console.log("item ============= : ", item);
+              setPropertySubCategory(item?.value)
+              // setSelectProperty(item?.value);
             }}
             renderRightIcon={() => (
               <Icon
@@ -551,14 +651,31 @@ const ListScreen = ({ navigation, route }) => {
             marginHorizontal: 5,
             elevation: 4,
           }}>
-          <Calendar
+          <DatePicker
+            mode='range'
+            locale='en'
+            displayFullDays='false'
+            startDate={starttDate}
+            endDate={endDate}
+            onChange={(e) => {
+              console.log(e, "6516511231221123dasdasdsdsadasdsad");
+
+              setStartDate(e.startDate);
+              setEndDate(e.endDate);
+              if (e.startDate && e.endDate) {
+                setCalenderVisible(false)
+              }
+            }
+            }
+          />
+          {/* <Calendar
             monthFormat={'MMMM yyyy'}
             markedDates={markDates}
             markingType="period"
             hideExtraDays={true}
             hideDayNames={true}
             onDayPress={day => onDayPress(day)}
-          />
+          /> */}
         </View>
       )}
       {loading ? (
@@ -577,6 +694,7 @@ const ListScreen = ({ navigation, route }) => {
       ) : (
         <FlatList
           data={AutionData}
+          // data={AutionData.filter(item => item.id !== data?.id)}
           keyExtractor={(item, index) => item + index}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: animatedOpacityValue } } }],
@@ -674,7 +792,7 @@ const ListScreen = ({ navigation, route }) => {
 
               <View style={{ width: '95%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 10, }}>
                 <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium, letterSpacing: 0.5, lineHeight: 22 }}>Thank you for your request! We will notify you shortly with the details of
-                  <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}> {selectProperty?.label}</Text> properties in
+                  <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}> {property_sub_category}</Text> properties in
                   <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{' '}{selectState?.name} {' '}</Text>
                   <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{currentDistrict?.name}</Text>.
                   We greatly appreciate your patience</Text>

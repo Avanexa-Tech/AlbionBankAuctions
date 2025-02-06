@@ -8,14 +8,11 @@ import {
   TextInput,
   Keyboard,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Image,
   StatusBar,
   TouchableOpacity,
-  Alert,
-  Platform,
-  PermissionsAndroid,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 
 import { primarycolor } from '../../../Utils/Colors';
@@ -23,11 +20,13 @@ import Color from '../../../Config/Color';
 import { Media } from '../../../Global/Media';
 import { Poppins } from '../../../Global/FontFamily';
 import { Iconviewcomponent } from '../../../Components/Icontag';
-
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import NetInfo from '@react-native-community/netinfo';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
+import common_fn from '../../../Config/common_fn';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+var { width, height } = Dimensions.get('screen');
 
 // create a component
 const AuctionEditProfile = () => {
@@ -35,30 +34,81 @@ const AuctionEditProfile = () => {
   const navigation = useNavigation();
   const [netInfo_State, setNetinfo] = useState(true);
 
-  const Auction_userData = useSelector(
+  const data = useSelector(
     state => state.UserReducer.auctionUserData,
   );
-  var { id, name, email, phone_number, state, district } = Auction_userData;
 
-  const [Username, setUsername] = useState(name);
+  console.log("data ********************* : ", data);
+
+  const [loading, setLoading] = useState(false);
+  const [Username, setUsername] = useState("");
   const [errorUsername, setErrorUsername] = useState('');
-  const [number, setNumber] = useState(phone_number);
+  const [number, setNumber] = useState("");
   const [error, setError] = useState(false);
-  const [Usermail, setUsermail] = useState(email);
+  const [Usermail, setUsermail] = useState("");
+  const [address, setAddress] = useState("");
   const [emailValidError, setEmailValidError] = useState('');
+  const [userData, setUserData] = useState({});
+  const [refreshProfile, setRefreshProfile] = useState(false);
+
+  useEffect(() => {
+    if (userData) {
+      setUsername(userData?.name || "");
+      setUsermail(userData?.email || "");
+      setNumber(userData?.phone_number || "");
+      setAddress(userData?.address || "");
+    }
+  }, [userData]); // Run when `data` changes
+
+  useEffect(() => {
+    if (data?.id) {
+      profileShowData();
+      setLoading(true);
+      const interval = setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [data, refreshProfile]);
+
+
+
+  const profileShowData = () => {
+    try {
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+      fetch(`https://api.albionbankauctions.com/api/user/get_user?user_id=${data?.id}&status=activated`, requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          console.log("Profile Data =========== :", result?.data);
+          if (result?.status === true) {
+            setUserData(result?.data)
+          } else {
+            common_fn.showToast(result?.message);
+          }
+          // console.log("Profile Data =========== :", result.data);
+        })
+        .catch((error) => console.error("catch in profileShowData_Api :", error));
+    } catch (error) {
+      console.log("catch in profileShow_Data:", error);
+    }
+  }
 
   function changeUsername(text) {
     try {
       let Username = text;
       if (Username == '') {
         setUsername(Username);
-        setErrorUsername('Enter the name');
+        // setErrorUsername('Enter the name');
       } else {
-        setUsername(Username);
-        setErrorUsername('');
+        // setUsername(Username);
+        setErrorUsername('Enter the name');
       }
     } catch (error) {
-      console.log('catch in profile change_Username ' + error);
+      console.log('catch in profile change_Username :' + error);
     }
   }
 
@@ -96,16 +146,69 @@ const AuctionEditProfile = () => {
 
   const updateProfile = async () => {
     try {
-      // var data = {
-      //     user_id: user_id,
-      //     username: Username,
-      //     mobile_number: number,
-      //     email: Usermail,
-      //     user_type_id: currentStatus?.value,
+      // var updatedata = {
+      //   user_id: data?.id,
+      //   name: Username,
+      //   phone_number: number,
+      //   email: Usermail,
+      //   address: address,
       // };
-      if (Username != '' && Usermail != '' && number != '') {
-        alert('Success');
+      if (Username != '' && Usermail != '' && number != '' && address != '') {
+        // console.log("Success ================== :", Username + "   " + Usermail + "   " + number + "   " + address);
+
+
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        const raw = JSON.stringify({
+          "user_id": userData?.user_id,
+          "name": Username,
+          "email": Usermail,
+          "phone_number": number,
+          "address": address
+        });
+
+        const requestOptions = {
+          method: "PUT",
+          headers: myHeaders,
+          body: raw,
+          redirect: "follow"
+        };
+        console.log("PAY LOAD =============== :", requestOptions);
+
+
+        fetch("https://api.albionbankauctions.com/api/user/edit_user", requestOptions)
+          .then((response) => response.json())
+          .then(async (result) => {
+            if (result?.status === true) {
+              console.log("Profile Update ================= :", result);
+              // setUserData(result?.data)
+              const UserLogin = {
+                ...result?.data,
+              };
+              await AsyncStorage.setItem('action_user_data', JSON.stringify(UserLogin),);
+
+              // //  Update userData state so UI refreshes
+              // setUserData(prevState => ({
+              //   ...prevState,
+              //   name: Username,
+              //   email: Usermail,
+              //   phone_number: number,
+              //   address: address
+              // }));
+              common_fn.showToast(result?.message);
+              navigation.navigate("AuctionProfile");
+              setRefreshProfile(prev => !prev); // Toggle value to trigger useEffect
+            }
+            else {
+              common_fn.showToast(result?.message);
+              console.log("Profile Else ================= :", result?.message);
+            }
+          })
+          .catch((error) => console.error("catch in update_profile_api:", error));
+        // alert('Success');
       } else {
+        common_fn.showToast("Please enter all mandatory fields")
         setErrorUsername('Enter the name');
         setEmailValidError('Enter email address');
         setError('Enter mobile number');
@@ -114,6 +217,9 @@ const AuctionEditProfile = () => {
       console.log('catch in update_Profile :', error);
     }
   };
+
+  console.log("address ----------------- :", address + "    Username ======== :" + Username);
+
 
   return (
     <View style={styles.container}>
@@ -139,190 +245,229 @@ const AuctionEditProfile = () => {
             />
           </View>
         </View>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-          }}>
+        {loading ? (
           <View
             style={{
-              width: '95%',
-              marginVertical: 10,
-            }}>
-            <Text
-              style={{
-                fontSize: 14,
-                color: 'black',
-                fontFamily: Poppins.Regular,
-                textAlign: 'left',
-              }}
-              numberOfLines={1}>
-              Username
-            </Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                height: 50,
-                marginTop: 5,
-                backgroundColor: 'white',
-                borderWidth: 1,
-                borderColor: Color.cloudyGrey,
-                borderRadius: 5,
-              }}>
-              <TextInput
-                placeholder="Enter your name"
-                placeholderTextColor={Color.cloudyGrey}
-                multiline={false}
-                value={Username}
-                onChangeText={text => changeUsername(text)}
-                returnKeyType={'next'}
-                style={{
-                  width: '90%',
-                  color: 'black',
-                  fontFamily: Poppins.SemiBold,
-                  fontSize: 16,
-                  paddingHorizontal: 10,
-                  flexDirection: 'row',
-                }}
-              />
-
-              <Iconviewcomponent
-                Icontag={'FontAwesome5'}
-                iconname={'user-edit'}
-                icon_size={20}
-                icon_color={'black'}
-              />
-            </View>
-          </View>
-          {!Username && (
-            <Text
-              style={{
-                width: '100%',
-                fontSize: 12,
-                color: 'red',
-                marginVertical: 1,
-                paddingHorizontal: 10,
-              }}>
-              {errorUsername}
-            </Text>
-          )}
-          <View
-            style={{
-              width: '95%',
-              marginVertical: 15,
-            }}>
-            <Text
-              style={{
-                fontSize: 14,
-                color: 'black',
-                fontFamily: Poppins.Regular,
-                textAlign: 'left',
-              }}
-              numberOfLines={1}>
-              Email address
-            </Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                height: 50,
-                marginTop: 5,
-                backgroundColor: 'white',
-                borderWidth: 1,
-                borderColor: Color.cloudyGrey,
-                borderRadius: 5,
-              }}>
-              <TextInput
-                placeholder="Enter your Email"
-                placeholderTextColor={Color.cloudyGrey}
-                multiline={false}
-                value={Usermail}
-                onChangeText={value => {
-                  setUsermail(value);
-                  handleValidEmail(value);
-                }}
-                keyboardType="email-address"
-                returnKeyType={'next'}
-                style={{
-                  width: '90%',
-                  color: 'black',
-                  fontSize: 16,
-                  fontFamily: Poppins.SemiBold,
-                  paddingHorizontal: 10,
-                  flexDirection: 'row',
-                }}
-              />
-
-              <Iconviewcomponent
-                Icontag={'MaterialCommunityIcons'}
-                iconname={'email-edit'}
-                icon_size={26}
-                icon_color={'black'}
-              />
-            </View>
-            {emailValidError ? (
-              <Text
-                style={{
-                  width: '100%',
-                  fontSize: 12,
-                  color: 'red',
-                  marginTop: 10,
-                  paddingHorizontal: 5,
-                }}>
-                {emailValidError}
-              </Text>
-            ) : null}
-          </View>
-          <View
-            style={{
-              width: '95%',
-              marginVertical: 5,
-            }}>
-            <Text
-              style={{
-                fontSize: 14,
-                color: 'black',
-                fontFamily: Poppins.Regular,
-                textAlign: 'left',
-              }}
-              numberOfLines={1}>
-              Phone Number
-            </Text>
-            <View style={styles.NumberBoxConatiner}>
-              <Text style={styles.numberCountryCode}>+91</Text>
-              <TextInput
-                placeholder="Enter your phone number"
-                placeholderTextColor={Color.cloudyGrey}
-                value={number}
-                keyboardType="phone-pad"
-                maxLength={10}
-                returnKeyType={'done'}
-                onChangeText={number => {
-                  chkNumber(number);
-                  chkNumberError(number);
-                }}
-                style={styles.numberTextBox}
-              />
-            </View>
-            {error && <Text style={styles.invalidLogin}>{error}</Text>}
-          </View>
-          <TouchableOpacity
-            onPress={() => updateProfile()}
-            disabled={true}
-            style={{
-              width: '95%',
-              height: 45,
-              marginVertical: 30,
-              backgroundColor: primarycolor,
-              borderRadius: 5,
+              alignItems: 'center',
               justifyContent: 'center',
+              height: height,
+            }}>
+            <Image
+              source={{ uri: Media.loader }}
+              style={{ width: 80, height: 80, resizeMode: 'contain' }}
+            />
+          </View>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'flex-start',
               alignItems: 'center',
             }}>
-            <Text style={{ fontSize: 16, color: 'white' }}>Update</Text>
-          </TouchableOpacity>
-        </View>
+            <View
+              style={{
+                width: '95%',
+                marginVertical: 10,
+              }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: 'black',
+                  fontFamily: Poppins.Regular,
+                  textAlign: 'left',
+                }}
+                numberOfLines={1}>
+                Username *
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  height: 50,
+                  marginTop: 5,
+                  backgroundColor: 'white',
+                  borderWidth: 1,
+                  borderColor: Color.cloudyGrey,
+                  borderRadius: 5,
+                }}>
+                <TextInput
+                  placeholder="Enter your name"
+                  placeholderTextColor={Color.cloudyGrey}
+                  multiline={false}
+                  value={Username}  // ✅ Use state
+                  onChangeText={text => setUsername(text)} // ✅ Update state on change
+                  keyboardType="name-phone-pad"
+                  returnKeyType={'next'}
+                  style={{
+                    width: '90%',
+                    color: 'black',
+                    fontFamily: Poppins.SemiBold,
+                    fontSize: 16,
+                    paddingHorizontal: 10,
+                    flexDirection: 'row',
+                  }}
+                />
+                <Iconviewcomponent
+                  Icontag={'FontAwesome5'}
+                  iconname={'user-edit'}
+                  icon_size={20}
+                  icon_color={'black'}
+                />
+              </View>
+            </View>
+            <View
+              style={{
+                width: '95%',
+                marginVertical: 10,
+              }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: 'black',
+                  fontFamily: Poppins.Regular,
+                  textAlign: 'left',
+                }}
+                numberOfLines={1}>
+                Email address *
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  height: 50,
+                  marginTop: 5,
+                  backgroundColor: 'white',
+                  borderWidth: 1,
+                  borderColor: Color.cloudyGrey,
+                  borderRadius: 5,
+                }}>
+                <TextInput
+                  placeholder="Enter your Email"
+                  placeholderTextColor={Color.cloudyGrey}
+                  multiline={false}
+                  value={Usermail}  // ✅ Use state
+                  onChangeText={value => {
+                    setUsermail(value);
+                    handleValidEmail(value);
+                  }}
+                  keyboardType="email-address"
+                  returnKeyType={'next'}
+                  style={{
+                    width: '90%',
+                    color: 'black',
+                    fontSize: 16,
+                    fontFamily: Poppins.SemiBold,
+                    paddingHorizontal: 10,
+                    flexDirection: 'row',
+                  }}
+                />
+                <Iconviewcomponent
+                  Icontag={'MaterialCommunityIcons'}
+                  iconname={'email-edit'}
+                  icon_size={26}
+                  icon_color={'black'}
+                />
+              </View>
+            </View>
+            <View
+              style={{
+                width: '95%',
+                marginVertical: 5,
+              }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: 'black',
+                  fontFamily: Poppins.Regular,
+                  textAlign: 'left',
+                }}
+                numberOfLines={1}>
+                Phone Number *
+              </Text>
+              <View style={styles.NumberBoxConatiner}>
+                <Text style={styles.numberCountryCode}>+91</Text>
+                <TextInput
+                  placeholder="Enter your phone number"
+                  placeholderTextColor={Color.cloudyGrey}
+                  value={number}  // ✅ Use state
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  returnKeyType={'next'}
+                  onChangeText={num => {
+                    setNumber(num);
+                    chkNumberError(num);
+                  }}
+                  style={styles.numberTextBox}
+                />
+                <View style={{ paddingHorizontal: 10 }}>
+                  <Iconviewcomponent
+                    Icontag={'Entypo'}
+                    iconname={'phone'}
+                    icon_size={26}
+                    icon_color={'black'}
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={{
+                width: '95%',
+                marginVertical: 10,
+              }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: 'black',
+                  fontFamily: Poppins.Regular,
+                  textAlign: 'left',
+                }}
+                numberOfLines={1}>
+                Address *
+              </Text>
+              <View style={{
+                width: '100%',
+                alignItems: 'center',
+              }}>
+                <TextInput
+                  placeholder="Enter your address"
+                  placeholderTextColor={Color.cloudyGrey}
+                  multiline={true}
+                  value={address}  // ✅ Use state
+                  onChangeText={value => setAddress(value)}
+                  keyboardType="name-phone-pad"
+                  returnKeyType={'done'}
+                  style={{
+                    width: '100%',
+                    color: 'black',
+                    fontSize: 14,
+                    fontFamily: Poppins.SemiBold,
+                    paddingHorizontal: 10,
+                    height: 110,
+                    maxHeight: 150,
+                    textAlignVertical: 'top',
+                    borderWidth: 1,
+                    borderColor: Color.cloudyGrey,
+                    borderRadius: 5,
+                  }}
+                />
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => updateProfile()}
+              style={{
+                width: '95%',
+                height: 45,
+                marginVertical: 20,
+                backgroundColor: primarycolor,
+                borderRadius: 5,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <Text style={{ fontSize: 16, color: 'white' }}>Update</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -337,7 +482,6 @@ const styles = StyleSheet.create({
   },
   NumberBoxConatiner: {
     width: '100%',
-    // flex:1,
     borderColor: Color.cloudyGrey,
     borderWidth: 1,
     height: 50,
@@ -369,26 +513,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 16,
     fontFamily: Poppins.SemiBold,
-  },
-
-  searchSection: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  searchIcon: {
-    padding: 10,
-  },
-  input: {
-    flex: 1,
-    paddingTop: 10,
-    paddingRight: 10,
-    paddingBottom: 10,
-    paddingLeft: 0,
-    backgroundColor: '#fff',
-    color: '#424242',
   },
 });
 

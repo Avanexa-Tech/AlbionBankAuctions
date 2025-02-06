@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Animated, View, Image, TouchableOpacity, Text } from 'react-native';
+import { Animated, View, Image, TouchableOpacity, Text, ToastAndroid } from 'react-native';
 import Color from '../../../Config/Color';
 import { base_albionbankauctions_url } from '../../../Config/base_url';
 //Config
@@ -15,6 +15,7 @@ export default class ImageSlider extends Component {
       width: 0,
     };
   }
+
 
   componentDidMount() {
     var { images, width, planStatus, expiredStatus, active } = this.props;
@@ -60,10 +61,21 @@ export default class ImageSlider extends Component {
             {images.map((image, i) => {
               // const isRestricted = active === 1 || (planStatus > 1 && expiredStatus !== "expired");
               const isRestricted = !(planStatus > 1 && expiredStatus !== 'expired')
-              console.log("isRestricted --------------", isRestricted);
-
+              // console.log("isRestricted --------------", isRestricted);
               return (
-                <TouchableOpacity key={i} onPress={() => !isRestricted && showModal(i)}>
+                <TouchableOpacity key={i}
+                  onPress={() => {
+                    //  !isRestricted && showModal(i)
+                    if (isRestricted) {
+                      // Navigate to a specific screen or show an alert if restricted
+                      // navigation.navigate('RestrictedScreen'); // Replace 'RestrictedScreen' with your desired route
+                      this.props.navigation.navigate('AuctionPrime');
+                      // ToastAndroid.show('Modal not open', ToastAndroid.LONG,);
+                    } else {
+                      showModal(i); // Show the modal if not restricted
+                    }
+                  }}
+                >
                   <Image
                     source={{
                       uri: base_albionbankauctions_url + image?.image_url,
@@ -98,9 +110,6 @@ export default class ImageSlider extends Component {
                           }}
                         />
                       </View>
-                      {/* <Text style={{ color: '#000', fontSize: 16, fontWeight: 'bold', textAlign: 'center' }}>
-                        Access to this image requires an active plan.
-                      </Text> */}
                     </View>
                   )}
                 </TouchableOpacity>
