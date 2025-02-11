@@ -321,6 +321,7 @@ const LoginScreen = ({ navigation }) => {
     return () => backHandler.remove();
   }, [routeName.name, navigation]);
 
+  
   const chkNumberError = number => {
     let reg = /^[6-9][0-9]*$/;
 
