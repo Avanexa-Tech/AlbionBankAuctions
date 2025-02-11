@@ -89,7 +89,8 @@ const InvoiceList = () => {
             };
 
             // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${id}`, requestOptions)
-            fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+            // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+            fetch(`http://13.127.95.5:5000/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
                 .then((response) => response.json())
                 .then((result) => {
                     if (result?.status == true) {
@@ -176,49 +177,51 @@ const InvoiceList = () => {
     const downloadImage = async (item) => {
         try {
             const invoicePath = item?.Invoice?.invoice_path;
-            if (!invoicePath) {
-                Alert.alert("Error", "Invoice file not found.");
-                return;
-            }
+            console.log("invoiceDatainvoiceData",`http://13.127.95.5/${invoicePath}`);
+            Linking?.openURL(`http://13.127.95.5/${invoicePath}`);  
+            // if (!invoicePath) {
+            //     Alert.alert("Error", "Invoice file not found.");
+            //     return;
+            // }
 
-            const fileUrl = base_albionbankauctions_url + invoicePath;
-            const fileName = fileUrl.split('/').pop(); // Extract filename
-            const downloadDest = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+            // const fileUrl = base_albionbankauctions_url + invoicePath;
+            // const fileName = fileUrl.split('/').pop(); // Extract filename
+            // const downloadDest = `${RNFS.DownloadDirectoryPath}/${fileName}`;
 
-            if (Platform.OS === 'android') {
-                const granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-                    {
-                        title: "Storage Permission Required",
-                        message: "App needs access to your storage to download files.",
-                        buttonPositive: "OK"
-                    }
-                );
-                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-                    Alert.alert("Permission Denied", "Cannot download without permission.");
-                    return;
-                }
-            }
+            // if (Platform.OS === 'android') {
+            //     const granted = await PermissionsAndroid.request(
+            //         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            //         {
+            //             title: "Storage Permission Required",
+            //             message: "App needs access to your storage to download files.",
+            //             buttonPositive: "OK"
+            //         }
+            //     );
+            //     if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            //         Alert.alert("Permission Denied", "Cannot download without permission.");
+            //         return;
+            //     }
+            // }
 
-            // Download file
-            const options = {
-                fromUrl: fileUrl,
-                toFile: downloadDest,
-                background: true,
-                discretionary: true,
-            };
+            // // Download file
+            // const options = {
+            //     fromUrl: fileUrl,
+            //     toFile: downloadDest,
+            //     background: true,
+            //     discretionary: true,
+            // };
 
-            const response = await RNFS.downloadFile(options).promise;
+            // const response = await RNFS.downloadFile(options).promise;
 
-            if (response.statusCode === 200) {
-                console.log("Invoice saved to ", downloadDest);
+            // if (response.statusCode === 200) {
+            //     console.log("Invoice saved to ", downloadDest);
 
-                common_fn.showToast(`Downloaded successfully! ${downloadDest}`);
-                // common_fn.showToast("File downloaded to :", JSON.stringify(response));
-            } else {
-                common_fn.showToast("Failed to download documents, Try after some times");
-                throw new Error("Download failed!");
-            }
+            //     common_fn.showToast(`Downloaded successfully! ${downloadDest}`);
+            //     // common_fn.showToast("File downloaded to :", JSON.stringify(response));
+            // } else {
+            //     common_fn.showToast("Failed to download documents, Try after some times");
+            //     throw new Error("Download failed!");
+            // }
 
         } catch (error) {
             console.error("Download Error:", error);

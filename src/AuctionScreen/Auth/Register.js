@@ -172,11 +172,11 @@ const Register = ({ navigation }) => {
       ) {
         const Auction_register = await fetchData.Auction_register(data);
         if (Auction_register?.isRegistered == true) {
-          // navigation.replace('AuctionOTPScreen', {
-          //   data: data,
-          //   register: Auction_register,
-          // });
-          navigation.replace("ActionLogin")
+          navigation.replace('AuctionOTPScreen', {
+            data: data,
+            register: Auction_register,
+          });
+          // navigation.replace("ActionLogin")
           if (Platform.OS === 'android') {
             common_fn.showToast(Auction_register?.message);
           } else {

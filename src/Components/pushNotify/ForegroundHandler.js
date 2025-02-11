@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import PushNotificationIOS from '@react-native-community/push-notification-ios';
+// import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import messaging from '@react-native-firebase/messaging';
 import {Platform} from 'react-native';
 import PushNotification from 'react-native-push-notification';
@@ -25,12 +25,12 @@ const ForegroundHandler = () => {
       // );
       var {notification, messageId} = remoteMessage;
       if (Platform.OS == 'ios') {
-        PushNotificationIOS.addNotificationRequest({
-          id: messageId,
-          body: remoteMessage.notification.body,
-          title: remoteMessage.notification.title,
-          sound: 'default',
-        });
+        // PushNotificationIOS.addNotificationRequest({
+        //   id: messageId,
+        //   body: remoteMessage.notification.body,
+        //   title: remoteMessage.notification.title,
+        //   sound: 'default',
+        // });
       } else {
         PushNotification.localNotification({
           channelId: 'my-channel',

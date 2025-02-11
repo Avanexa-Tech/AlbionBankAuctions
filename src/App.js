@@ -61,6 +61,7 @@ import AuctionPrime from './AuctionScreen/Screens/AuctionPrime';
 import FeedbackRatings from './AuctionScreen/Screens/SideMenu/FeedbackRatings';
 import AuctionEditProfile from './AuctionScreen/Screens/profile/AuctionEditProfile';
 import InvoiceList from './AuctionScreen/Screens/SideMenu/InvoiceList';
+import ForegroundHandler from './Components/pushNotify/ForegroundHandler';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -186,7 +187,7 @@ const MainApp = () => {
   return (
     <>
       <StatusBar backgroundColor={Color.primary} />
-      {/* <ForegroundHandler /> */}
+      <ForegroundHandler />
       <Stack.Navigator initialRouteName="Splash">
         {/* Property Screens */}
         <Stack.Screen

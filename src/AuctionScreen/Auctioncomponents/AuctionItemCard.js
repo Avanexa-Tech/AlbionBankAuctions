@@ -85,13 +85,14 @@ const AuctionItemCard = props => {
           <View
             style={{
               width: '100%',
-              flexDirection: 'row', justifyContent: 'space-around',
-              alignItems: 'center',
+              flexDirection: 'row', justifyContent: 'space-between',
+              // alignItems: 'center',
             }}>
             <View
               style={{
                 flexDirection: 'row',
-                alignItems: 'center',
+
+                // alignItems: 'center',
               }}>
               <Text
                 style={{

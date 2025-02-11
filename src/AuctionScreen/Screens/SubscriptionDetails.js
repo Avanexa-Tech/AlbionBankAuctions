@@ -59,12 +59,14 @@ const SubscriptionDetails = () => {
             // console.log("plan check -------------", data?.id);
 
             // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${data?.id}`, requestOptions)
-            fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+            // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+            fetch(`http://13.127.95.5:5000/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
                 .then((response) => response.json())
                 .then((result) => {
                     // console.log("resultdata -----------------:", result)
                     if (result?.status == true) {
                         // console.log("subscription data -----------------:", result?.data[0]?.Plan)
+                        console.log("data",result?.data[0]);
                         setExpireDate(moment(result?.data[0]?.expires_at).format('DD-MM-YYYY'));
                         setPlanStatus(result?.data[0]?.plan_id);
                         setPlanDayStatus(result?.data[0]?.Plan);

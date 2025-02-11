@@ -31,6 +31,8 @@ import { useSelector } from 'react-redux';
 import common_fn from '../../Config/common_fn';
 import dayjs from 'dayjs';
 import { Alert } from 'react-native';
+import { enGB } from 'date-fns/locale';
+
 
 const { height } = Dimensions.get('screen');
 
@@ -409,7 +411,7 @@ const ListScreen = ({ navigation, route }) => {
 
       setPropertySubCategory(route.params.property_sub_category);
 
-
+      setCalenderVisible(false);
       setSelectState({});
       setCurrentDistrict({});
       setMarkedDates({});
@@ -639,26 +641,23 @@ const ListScreen = ({ navigation, route }) => {
       {calenderVisible && (
         <View
           style={{
-            backgroundColor: Color.white,
+            backgroundColor: Color.primary, // Change background here
+            padding: 10, marginHorizontal: 15,
+            borderRadius: 10,
             shadowColor: Color.black,
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.23,
-            shadowRadius: 2.62,
-            marginVertical: 5,
-            marginHorizontal: 5,
-            elevation: 4,
+            shadowOpacity: 0.2,
+            shadowRadius: 3,
+            elevation: 5,
           }}>
           <DatePicker
             mode='range'
-            locale='en'
-            displayFullDays='false'
+            locale={enGB}
+            displayFullDays='true'
+            // headerContainerStyle={{ color: Color.primary }}
             startDate={starttDate}
             endDate={endDate}
             onChange={(e) => {
-              console.log(e, "6516511231221123dasdasdsdsadasdsad");
+              // console.log(e, "6516511231221123dasdasdsdsadasdsad");
 
               setStartDate(e.startDate);
               setEndDate(e.endDate);
@@ -667,6 +666,27 @@ const ListScreen = ({ navigation, route }) => {
               }
             }
             }
+            headerContainerStyle={{
+              backgroundColor: Color.primary, // Custom header background
+            }}
+            dayContainerStyle={(date) => ({
+              backgroundColor: starttDate && endDate && date >= starttDate && date <= endDate
+                ? Color.primary
+                : 'transparent',
+            })}
+            dayTextStyle={(date) => {
+              const today = new Date();
+              const isToday = date.toDateString() === today.toDateString();
+
+              return {
+                color: isToday
+                  ? Color.white // Color for today's date
+                  : starttDate && endDate && date >= starttDate && date <= endDate
+                    ? '#fff' // Color for selected dates
+                    : '#000', // Default text color
+                fontWeight: isToday ? Poppins.Bold : Poppins.Medium,
+              };
+            }}
           />
           {/* <Calendar
             monthFormat={'MMMM yyyy'}

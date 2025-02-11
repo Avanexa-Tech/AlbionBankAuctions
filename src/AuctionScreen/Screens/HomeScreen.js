@@ -127,6 +127,7 @@ const AutionHomeScreen = () => {
     try {
       const action_value = await AsyncStorage.getItem('action_user_data');
       if (action_value !== null) {
+        console.log("action_value ================ :", action_value);
         dispatch(setActionUserData(JSON.parse(action_value)));
       }
     } catch (e) {
@@ -145,11 +146,11 @@ const AutionHomeScreen = () => {
         headers: myHeaders,
         redirect: "follow"
       };
-      fetch(`https://api.albionbankauctions.com/api/plan/check/${data?.id}`, requestOptions)
+      // fetch(`https://api.albionbankauctions.com/api/plan/check/${data?.id}`, requestOptions)
+      fetch(`http://13.127.95.5:5000/api/plan/check/${data?.id}`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
           console.log("Plan Status =============== :", result);
-
           if (result?.status == false) {
             setImageVisible(true);
           } else {
@@ -170,15 +171,14 @@ const AutionHomeScreen = () => {
     try {
       const myHeaders = new Headers();
       myHeaders.append("accept", "*/*");
-
       const requestOptions = {
         method: "GET",
         headers: myHeaders,
         redirect: "follow"
       };
-
       // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${id}`, requestOptions) 
-      fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+      fetch(`http://13.127.95.5:5000/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+      // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
           if (result?.status == true) {
@@ -268,7 +268,8 @@ const AutionHomeScreen = () => {
         redirect: "follow"
       };
 
-      fetch("https://api.albionbankauctions.com/api/auction/show?event_bank=Albion India", requestOptions)
+      fetch("http://13.127.95.5:5000/api/auction/show?event_bank=Albion India", requestOptions)
+      // fetch("https://api.albionbankauctions.com/api/auction/show?event_bank=Albion India", requestOptions)
         .then((response) => response.json())
         .then((result) => {
           // console.log("SUCCESS BANK============== : ", result);
@@ -300,7 +301,8 @@ const AutionHomeScreen = () => {
         redirect: "follow"
       };
 
-      fetch("https://api.albionbankauctions.com/api/plan", requestOptions)
+      fetch("http://13.127.95.5:5000/api/plan", requestOptions)
+      // fetch("https://api.albionbankauctions.com/api/plan", requestOptions)
         .then((response) => response.json())
         .then((result) => {
           console.log("SUCCESS FREE PLAN================ :", result)

@@ -130,12 +130,14 @@ const AuctionProfile = ({ navigation }) => {
       };
 
       // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${id}`, requestOptions)
-      fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+      fetch(`http://13.127.95.5:5000/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
           if (result?.status == true) {
             // console.log("profile data -----------------113232123", result?.data[0]?.Invoice)
             setExpireDate(moment(result?.data[0]?.expires_at).format('DD-MM-YYYY'));
+            console.log("http://13.127.95.5:5000/api/plan/2266",result?.data[0]);
+            
             setPlanStatus(result?.data[0]?.plan_id)
             setInvoiceShown(result?.data[0]?.Invoice)
             // console.log("PLAN ======= :", result?.data[0])

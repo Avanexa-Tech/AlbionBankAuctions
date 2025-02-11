@@ -71,7 +71,6 @@ const BottomLogin = ({login, setLogin}) => {
   const [token, setToken] = useState('');
   const dispatch = useDispatch();
   const [percentage, setPercentage] = useState(0);
-
   const [otp, setOtp] = useState('');
 
   const chkNumber = number => {

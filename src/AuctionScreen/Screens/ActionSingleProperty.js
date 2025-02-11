@@ -172,7 +172,8 @@ const ActionSingleProperty = ({ navigation, route }) => {
       };
 
       // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${data?.id}`, requestOptions)
-      fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+      fetch(`http://13.127.95.5:5000/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+      // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
           if (result?.status == true) {
@@ -500,7 +501,6 @@ const ActionSingleProperty = ({ navigation, route }) => {
           // navigation.navigate("ActionHome");
           setUpdateLoader(false);
         }
-
       } else {
         common_fn.showToast("Please select your rating and enter your comments");
         setUpdateLoader(false);
@@ -563,7 +563,8 @@ const ActionSingleProperty = ({ navigation, route }) => {
         redirect: "follow"
       };
 
-      fetch("https://api.albionbankauctions.com/api/auction/request-property", requestOptions)
+      fetch("http://13.127.95.5:5000/api/auction/request-property", requestOptions)
+      // fetch("https://api.albionbankauctions.com/api/auction/request-property", requestOptions)
         .then((response) => response.json())
         .then((result) => {
           // console.log("Request Prop resp ============== :", result);
@@ -612,7 +613,8 @@ const ActionSingleProperty = ({ navigation, route }) => {
               {
                 useNativeDriver: false,
               },
-            )}>
+            )}
+            >
             <View style={styles.header}>
               <View style={styles.header_row}>
                 <TouchableOpacity

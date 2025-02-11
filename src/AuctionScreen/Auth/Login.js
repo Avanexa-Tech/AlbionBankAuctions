@@ -276,6 +276,7 @@ const LoginScreen = ({ navigation }) => {
   const [error, setError] = useState(false);
   const [uniqueId, setUniqueId] = useState(false);
   const [userInfo, setUserInfo] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -335,6 +336,7 @@ const LoginScreen = ({ navigation }) => {
 
   const login = async () => {
     try {
+      setLoading(true);
       if (number.length == 10) {
         const login = await fetchData.Auction_OTPlogin({
           phone_number: number
@@ -342,6 +344,8 @@ const LoginScreen = ({ navigation }) => {
         console.log("login ================= :", login);
 
         var { message, status } = login;
+        console.log("login",login);
+        
         if (message == "Success") {
           if (Platform.OS === 'android') {
             common_fn.showToast('OTP Sent Successfully');
@@ -349,10 +353,12 @@ const LoginScreen = ({ navigation }) => {
             alert("OTP Sent Successfully")
           }
           navigation.navigate('AuctionOTPScreen', { number });
+          setLoading(false);
         } else {
           var msg = message;
           setError(msg);
           common_fn.showToast(message);
+          setLoading(false);
         }
       } else {
         if (Platform.OS === 'android') {
@@ -360,8 +366,10 @@ const LoginScreen = ({ navigation }) => {
         } else {
           alert("Invalid Phone Number, Please Enter Your 10 Digit Phone Number")
         }
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
       console.log("catch in  login_catch ================= :", error);
     }
   };
@@ -520,6 +528,7 @@ const LoginScreen = ({ navigation }) => {
                 login(navigation);
                 // requestSMSPermission();
               }}
+              loading={loading}
             />
           </View>
           {/* <Text

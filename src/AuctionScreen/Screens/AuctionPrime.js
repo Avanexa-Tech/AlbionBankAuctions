@@ -70,12 +70,12 @@ const AuctionPrime = () => {
     useEffect(() => {
         setLoading(true);
         getApiData().finally(() => {
-            setLoading(false);
+            // setLoading(false);
         });
     }, []);
 
     const getApiData = async () => {
-        try {
+        try { setLoading(true)
             const myHeaders = new Headers();
             myHeaders.append("accept", "*/*");
 
@@ -86,7 +86,8 @@ const AuctionPrime = () => {
             };
 
             // fetch("http://192.168.29.204:5000/api/plan", requestOptions)
-            fetch(`https://api.albionbankauctions.com/api/plan/${data?.id}`, requestOptions)
+            // fetch(`https://api.albionbankauctions.com/api/plan/${data?.id}`, requestOptions)
+            fetch(`http://13.127.95.5:5000/api/plan/${data?.id}`, requestOptions)
                 .then((response) => response.json())
                 .then((result) => {
                     console.log("Plan Data ------------------: ", result?.current_plan);
@@ -141,7 +142,8 @@ const AuctionPrime = () => {
                     redirect: "follow"
                 };
 
-                fetch("https://api.albionbankauctions.com/api/plan", requestOptions)
+                fetch("http://13.127.95.5:5000/api/plan", requestOptions)
+                // fetch("https://api.albionbankauctions.com/api/plan", requestOptions)
                     .then((response) => response.json())
                     .then((result) => {
                         console.log("SUCCESS ================ :", result)

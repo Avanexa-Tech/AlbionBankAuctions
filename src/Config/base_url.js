@@ -1,6 +1,10 @@
-export const baseUrl = 'https://backend.albionpropertyhub.com/';
+// export const baseUrl = 'https://backend.albionpropertyhub.com/';
+export const baseUrl = 'http://13.127.95.5:5000/';
+
 // export const baseUrl = 'https://grance.in/albion/';
-export const base_auctionUrl = 'https://api.albionbankauctions.com/';    // Live URL
+// export const base_auctionUrl = 'https://api.albionbankauctions.com/';    // Live URL
+// export const base_auctionUrl = 'http://13.127.95.5:5000/';
+export const base_auctionUrl = 'http://13.127.95.5:5000/';    // Live URL
 // export const base_auctionUrl = 'http://192.168.29.204:5000/';       //Local URL
 export const base_geolocation_Url = 'https://avanexa.in/';
 export const base_image_properties =
