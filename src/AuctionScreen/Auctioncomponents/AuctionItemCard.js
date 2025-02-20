@@ -6,24 +6,44 @@ import {
   Dimensions,
   Image,
   TouchableOpacity,
+  Share,
 } from 'react-native';
 import moment from 'moment';
-import { Media } from '../../Global/Media';
 import Color from '../../Config/Color';
 import { Poppins } from '../../Global/FontFamily';
 import OIcon from 'react-native-vector-icons/Octicons';
 import F6Icon from 'react-native-vector-icons/FontAwesome6';
 import {
   base_albionbankauctions_url,
-  base_auctionUrl,
   base_auction_image_url,
 } from '../../Config/base_url';
 import common_fn from '../../Config/common_fn';
+import { scr_height } from '../../Utils/Dimensions';
 
 const { width, height } = Dimensions.get('window');
 const AuctionItemCard = props => {
-  var { navigation, item, index } = props;
-  // console.log("Auction item  =================== : ", item?.auction_start_date_and_time);
+  var { navigation, item, index, isExpired} = props;
+
+
+  const onShare = async () => {
+      try {
+        const result = await Share.share({
+          message: `https://albionbankauctions.com/web/view-auctions/${item?.file_id}`,
+        });
+        if (result.action === Share.sharedAction) {
+          if (result.activityType) {
+            // shared with activity type of result.activityType
+          } else {
+            // shared
+          }
+        } else if (result.action === Share.dismissedAction) {
+          // dismissed
+        }
+      } catch (error) {
+        console.log('error', error);
+      }
+    };
+  
 
   return (
     <TouchableOpacity
@@ -33,27 +53,248 @@ const AuctionItemCard = props => {
           item: item,
         });
       }}
+      onLongPress={() => {onShare()}}
       style={{
         width: '98%',
-        // flex: 1,
-        // backgroundColor: 'white',
         flexDirection: 'row',
         marginVertical: 5,
         marginHorizontal: 5,
-        borderRadius: 10,
+        borderRadius: 8,
         shadowColor: '#000',
         shadowOffset: {
           width: 0,
           height: 1,
         },
-        padding: 5,
+        padding: 10,
         shadowOpacity: 0.2,
         shadowRadius: 1.41,
-        // elevation: 8,
         borderWidth: 1,
-        borderColor: '#a5a5a5',
+        borderColor: '#CCCCCCCC',
+        height:scr_height / 5,
+        alignItems:"center",
+        backgroundColor:"#FFF"
       }}>
       <View
+        style={{
+          width: "30%",
+          height:"100%",
+          borderRadius: 8,
+          overflow:"hidden",
+          position:"relative",
+          alignItems:"center",
+          justifyContent:"center"
+        }}
+      >
+        {
+          item?.property_img_1 != null ? <Image
+            source={{ uri: base_albionbankauctions_url + item.property_img_1 }}
+            style={{
+              resizeMode: "cover",
+              height: "100%",
+              width: "100%",
+            }}
+          /> : <Image
+            source={{ uri: base_auction_image_url + item?.bank_logo ?? "https://albion-backend.s3.ap-south-1.amazonaws.com/AlbionBankAuctions/noimageprovided.png" }}
+            style={{
+              resizeMode: "contain"
+            }}
+            height={70}
+            width={70}
+          />
+        }
+        {/* {
+          isExpired &&
+          <View
+            style={{
+              position: "absolute",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+              width: "100%"
+            }}
+          >
+            <Iconviewcomponent
+              Icontag={'MaterialCommunityIcons'}
+              iconname={"shield-crown"}
+              icon_size={46}
+              icon_color={"#F6C324"}
+            />
+          </View>
+        } */}
+      </View>
+      <View
+        style={{
+          width: "70%",
+          paddingLeft:20,
+          position:"relative"
+        }}
+      >
+        <View style={{ width: '100%', height:"100%",display: "flex",flexDirection:"column",gap:5}}>
+          <View
+            style={{
+              width: '100%',
+              flexDirection: 'row', justifyContent: 'space-between',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: "center"
+              }}>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: Color.lightBlack,
+                  fontFamily: Poppins.Medium,
+                }}
+                numberOfLines={1}>
+                ID :{" "}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: Color.black,
+                  fontFamily: Poppins.Bold,
+                }}
+                numberOfLines={1}>
+                {item?.id}
+              </Text></View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              {/* <Text
+                style={{
+                  fontSize: 10,
+                  color: Color.lightBlack,
+                  fontFamily: Poppins.Medium,
+                }}
+                numberOfLines={1}>
+                Auction Date :{" "}
+              </Text> */}
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: Color.lightBlack,
+                  fontFamily: Poppins.Bold,
+                }}
+                numberOfLines={1}>
+                {moment(item?.auction_start_date_and_time || new Date()).format('DD/MM/YYYY')}
+              </Text>
+            </View>
+          </View>
+          <Text
+            style={{
+              fontSize: 14,
+              color: Color.black,
+              fontFamily: Poppins.SemiBold,
+            }}
+            numberOfLines={1}>
+            {item.title}
+          </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 5
+            }}>
+            <OIcon
+              name={'location'}
+              size={18}
+              style={{ color: Color.lightgrey }}
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                color: Color.cloudyGrey,
+                fontFamily: Poppins.Medium,
+              }}
+              numberOfLines={1}>
+              {`${item?.district}, ${item?.state}.`}
+            </Text>
+          </View>
+          {
+            !isNaN(parseInt(item?.area)) &&
+            <View
+              style={{
+                width: '100%',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  gap: 5,
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                }}>
+                <F6Icon
+                  name={'object-ungroup'}
+                  size={20}
+                  style={{ color: Color.sunShade }}
+                />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: Color.cloudyGrey,
+                    fontFamily: Poppins.Medium,
+                  }}>
+                  {item?.area} {item?.area_size === "Sq Feet" ? "sq.ft ." : item?.area_size}
+                </Text>
+              </View>
+            </View>
+          }
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: "center",
+              justifyContent: 'space-between',
+            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                color: Color.primary,
+                fontFamily: Poppins.SemiBold,
+              }}>
+              ₹ {common_fn.formatNumberIndianEnglishCommas(item?.reserve_price)}
+            </Text>
+          </View>
+          <View
+              style={{
+                height: 50,
+                width: 50,
+                borderRadius:50,
+                overflow:"hidden",
+                display:"flex",
+                justifyContent:"center",
+                alignItems:"center",
+                position:"absolute",
+                backgroundColor:Color.white,
+                bottom:0,
+                right:0,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.3,
+              shadowRadius: 15,
+              elevation: 10,
+              }}
+            >
+              <Image
+                source={
+                  { uri: base_auction_image_url + item?.bank_logo }
+                }
+                width={"60%"}
+                height={"60%"}
+                style={{
+                  resizeMode: `contain`,
+                }}
+              />
+            </View>
+        </View>
+      </View>
+      {/* <View
         style={{
           flex: 1,
           justifyContent: 'center',
@@ -64,9 +305,6 @@ const AuctionItemCard = props => {
             item?.property_img_1 != null
               ? { uri: base_albionbankauctions_url + item.property_img_1 }
               : { uri: base_auction_image_url + item?.bank_logo }
-            // {
-            //   uri: base_auction_image_url + item?.bank_logo,
-            // }
           }
           style={{
             width: 90,
@@ -78,7 +316,7 @@ const AuctionItemCard = props => {
       </View>
       <View
         style={{
-          flex: 2.7, width: '100%',
+          flex: 2.5, width: '100%',
           alignItems: 'center', paddingHorizontal: 5
         }}>
         <View style={{ width: '100%', padding: 2 }}>
@@ -86,13 +324,11 @@ const AuctionItemCard = props => {
             style={{
               width: '100%',
               flexDirection: 'row', justifyContent: 'space-between',
-              // alignItems: 'center',
             }}>
             <View
               style={{
                 flexDirection: 'row',
-
-                // alignItems: 'center',
+                alignItems:"center"
               }}>
               <Text
                 style={{
@@ -101,7 +337,7 @@ const AuctionItemCard = props => {
                   fontFamily: Poppins.Medium,
                 }}
                 numberOfLines={1}>
-                Id:
+                ID :{" "}
               </Text>
               <Text
                 style={{
@@ -124,7 +360,7 @@ const AuctionItemCard = props => {
                   fontFamily: Poppins.Medium,
                 }}
                 numberOfLines={1}>
-                Auction Date:
+                Auction Date :{" "}
               </Text>
               <Text
                 style={{
@@ -134,7 +370,6 @@ const AuctionItemCard = props => {
                 }}
                 numberOfLines={1}>
                 {moment(item?.auction_start_date_and_time || new Date()).format('DD-MM-YYYY')}
-                {/* {moment(item?.auction_start_date_and_time).format('DD-MM-YYYY')} */}
               </Text>
             </View>
           </View>
@@ -229,7 +464,7 @@ const AuctionItemCard = props => {
             </Text>
           </View>
         </View>
-      </View>
+      </View> */}
     </TouchableOpacity>
   );
 };

@@ -105,7 +105,6 @@ const BottomLogin = ({login, setLogin}) => {
       .catch('error  ----------', console.log);
 
     startOtpListener(message => {
-      console.log('message----------------', message);
       if (message != null) {
         const otp = /(\d{4})/g.exec(message)[1];
         setOTPCode(otp);
@@ -319,7 +318,6 @@ const BottomLogin = ({login, setLogin}) => {
           email: userInfo?.user?.email,
         };
         const updateProfiledata = await fetchData.login_with_gmail(data);
-        console.log('updateProfiledata', updateProfiledata);
         if (updateProfiledata.message) {
           dispatch(setUserData(updateProfiledata?.users));
 
@@ -407,13 +405,13 @@ const BottomLogin = ({login, setLogin}) => {
                   }}>
                   <Text
                     style={{
-                      fontFamily: 'Poppins-SemiBold',
                       fontSize: 20,
                       fontWeight: 'bold',
                       textAlign: 'center',
                       color: Color.black,
                       marginRight: 10,
                       marginVertical: 10,
+                      fontFamily: Poppins.Light,
                     }}>
                     Enter OTP
                   </Text>
@@ -452,6 +450,7 @@ const BottomLogin = ({login, setLogin}) => {
                       backgroundColor: Color.primary,
                       borderRadius: 10,
                       marginVertical: 10,
+                      fontFamily: Poppins.Light,
                     }}
                     onPress={() => {
                       VerifyOTP(navigation);

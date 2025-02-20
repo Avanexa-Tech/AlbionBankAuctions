@@ -1,32 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, FlatList, TouchableOpacity, Image } from 'react-native';
+import { Text, View, FlatList, Image } from 'react-native';
 import Color from '../../Config/Color';
-import OIcon from 'react-native-vector-icons/Octicons';
-import F6Icon from 'react-native-vector-icons/FontAwesome6';
 import { Media } from '../../Global/Media';
 import { Poppins } from '../../Global/FontFamily';
-import { base_auction_image_url } from '../../Config/base_url';
-import moment from 'moment';
 import fetchData from '../../Config/fetchData';
 import AuctionItemCard from '../Auctioncomponents/AuctionItemCard';
 
 const SimilarAuction = props => {
-  // console.log("------------------- :", props.AuctionProperty.id);
+ console.log(props.AuctionProperty,"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+ 
   const { id } = props.AuctionProperty;
   var { navigation, AuctionProperty } = props;
   const [AutionData, setAutionData] = useState([]);
   const getApiData = async () => {
     try {
-      const getAuction = await fetchData.Auction({});
-      setAutionData(getAuction);
+      const getAuction = await fetchData.Similar_Auction({district:props.AuctionProperty.district});
+      setAutionData(getAuction.filter(auction => auction.id != id));
     } catch (error) {
       console.log('error', error);
     }
   };
-
   useEffect(() => {
     getApiData();
-  }, [AutionData]);
+  }, []);
   return (
     <View
       style={{
@@ -49,10 +45,8 @@ const SimilarAuction = props => {
       <View style={{ width: '100%', alignItems: 'center', marginVertical: 10 }}>
         <FlatList
           data={AutionData.filter(item => item.id !== id)}
-          // horizontal
           keyExtractor={(item, index) => item + index}
           renderItem={({ item, index }) => {
-            // console.log("item ------------------- :", item);
             return (
               <AuctionItemCard
                 navigation={navigation}
@@ -88,7 +82,7 @@ const SimilarAuction = props => {
                     borderRadius: 5,
                     marginVertical: 10,
                     color: Color.primary,
-                    fontFamily: Poppins.SemiBold,
+                    fontFamily:Poppins.Regular
                   }}>
                   No Properties Found
                 </Text>

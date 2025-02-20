@@ -73,6 +73,7 @@ const UpdatePassword = ({ navigation, route }) => {
         const updatepassword = await fetchData.Auction_update_password(data);
         if (updatepassword?.message == "Updated successfully") {
           navigation.replace('ActionLogin');
+          // navigation.replace('LoginWithEmail')
           if (Platform.OS === 'android') {
             common_fn.showToast(updatepassword?.message);
           } else {

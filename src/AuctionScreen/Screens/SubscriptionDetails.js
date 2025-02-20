@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import moment from 'moment';
 import { Media } from '../../Global/Media';
+import { baseUrl } from '../../Config/base_url';
 
 const { height, width } = Dimensions.get('screen');
 
@@ -40,9 +41,7 @@ const SubscriptionDetails = () => {
 
     useEffect(() => {
         setLoading(true);
-        plan_CheckData().finally(() => {
-            setLoading(false);
-        });
+        plan_CheckData()
     }, []);
 
     const plan_CheckData = async () => {
@@ -60,24 +59,28 @@ const SubscriptionDetails = () => {
 
             // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${data?.id}`, requestOptions)
             // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
-            fetch(`http://13.127.95.5:5000/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+            fetch(`${baseUrl}api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
                 .then((response) => response.json())
                 .then((result) => {
                     // console.log("resultdata -----------------:", result)
                     if (result?.status == true) {
-                        // console.log("subscription data -----------------:", result?.data[0]?.Plan)
-                        console.log("data",result?.data[0]);
-                        setExpireDate(moment(result?.data[0]?.expires_at).format('DD-MM-YYYY'));
-                        setPlanStatus(result?.data[0]?.plan_id);
-                        setPlanDayStatus(result?.data[0]?.Plan);
-                        setLoading(false);
+                        if(result?.data[0] == null){
+                            navigation.replace("AuctionPrime");
+                            setTimeout(() => {
+                                setLoading(false);
+                            }, 1000);
+                        }else{
+                            setExpireDate(moment(result?.data[0]?.expires_at).format('DD-MM-YYYY'));
+                            setPlanStatus(result?.data[0]?.plan_id);
+                            setPlanDayStatus(result?.data[0]?.Plan);
+                            setLoading(false);
+                        }
                     }
                 }
                 )
                 .catch((error) => console.error(error));
 
         } catch (error) {
-            console.log("catch in plan_CheckData_Home : ", error);
             setLoading(false);
         }
     }
@@ -98,8 +101,6 @@ const SubscriptionDetails = () => {
 
         }
     }
-
-    // console.log("PLAN DATA =---------------------- : ", planDayStatus?.whatsapp_alert);
 
 
     return (
@@ -126,13 +127,12 @@ const SubscriptionDetails = () => {
                         <Text style={{ textAlign: 'justify', fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium, letterSpacing: 0.5, lineHeight: 22 }}>Thank you for being a valued member of the Auction family.</Text>
                     </View>
                     <View style={{ width: '95%', padding: 10, justifyContent: 'flex-start', alignItems: 'flex-start', borderWidth: 2, borderColor: '#F3EAE4', borderRadius: 5, marginVertical: 10 }}>
-                        <View style={{ padding: 7, paddingHorizontal: 20, backgroundColor: '#E5EAEE', borderRadius: 50, marginVertical: 10 }}>
-                            <Text style={{ fontSize: 13, color: Color.black, fontFamily: Poppins.SemiBold }}> {planStatus == 1 ? "Free Plan" : planStatus == 2 ? "3 Months Plan" : planStatus == 3 ? "6 Months Plan" : planStatus == 4 ? "12 Months Plan" : null}</Text>
-                        </View>
+                            <View style={{ padding: 7, paddingHorizontal: 20, backgroundColor: '#E5EAEE', borderRadius: 50, marginVertical: 10}}>
+                                <Text style={{ fontSize: 13, color: Color.black, fontFamily: Poppins.SemiBold }}> {planStatus == 1 ? "Free Plan" : planStatus == 2 ? "3 Months Plan" : planStatus == 3 ? "6 Months Plan" : planStatus == 4 ? "12 Months Plan" : null}</Text>
+                            </View>
                         <View style={{ margin: 5 }}>
-                            <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5, paddingVertical: 5 }}>{planDayStatus?.name}</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ fontSize: 13, color: Color.cloudyGrey, fontFamily: Poppins.Medium, letterSpacing: 0.5 }}>Expiring on - </Text>
+                                <Text style={{ fontSize: 13, color: Color.cloudyGrey, fontFamily: Poppins.Medium, letterSpacing: 0.5 }}>Expires on - </Text>
                                 <Text style={{ fontSize: 14, color: Color.lightBlack, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{expireDate}</Text>
                             </View>
                         </View>
@@ -156,10 +156,9 @@ const SubscriptionDetails = () => {
                             </View>
                         </View>
                     </View>
-                    <View style={{ width: '95%', padding: 10, marginVertical: 5 }}>
+                    <View style={{ width: '95%', padding: 10, marginVertical: 5,display:'flex',flexDirection:"column"}}>
                         <Text style={{ textAlign: 'left', fontSize: 16, color: Color.primary, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>Plan Benefits</Text>
-
-                        <View style={{ width: '100%', marginVertical: 10 }}>
+                        <View style={{ width: '100%'}}>
                             <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
                                 <Iconviewcomponent
                                     Icontag={'Ionicons'}
@@ -167,18 +166,18 @@ const SubscriptionDetails = () => {
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>
+                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >
                                     {planDayStatus?.whatsapp_alert != "--" ? planDayStatus?.whatsapp_alert : "WhatsApp Alert"}</Text>
                             </View>
 
-                            <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 10 }}>
                                 <Iconviewcomponent
                                     Icontag={'Ionicons'}
                                     iconname={planDayStatus?.daily_notification != "--" ? 'checkmark-sharp' : "close"}
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{planDayStatus?.daily_notification != "--" ? planDayStatus?.daily_notification : "Daily Notification Via App"}</Text>
+                                <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5 }} >{planDayStatus?.daily_notification != "--" ? planDayStatus?.daily_notification : "Daily Notification Via App"}</Text>
                             </View>
 
                             <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
@@ -188,7 +187,7 @@ const SubscriptionDetails = () => {
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{planDayStatus?.complete_auction != "--" ? planDayStatus?.complete_auction : "Complete Auction Details"}</Text>
+                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{planDayStatus?.complete_auction != "--" ? planDayStatus?.complete_auction : "Complete Auction Details"}</Text>
                             </View>
 
                             <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
@@ -198,7 +197,7 @@ const SubscriptionDetails = () => {
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{planDayStatus?.auction_document != "--" ? planDayStatus?.auction_document : "Auction Document & Notification"}</Text>
+                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{planDayStatus?.auction_document != "--" ? planDayStatus?.auction_document : "Auction Document & Notification"}</Text>
                             </View>
 
                             <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
@@ -208,7 +207,7 @@ const SubscriptionDetails = () => {
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{planDayStatus?.download_property != "--" ? planDayStatus?.download_property : "Download Property Pictures"}</Text>
+                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{planDayStatus?.download_property != "--" ? planDayStatus?.download_property : "Download Property Pictures"}</Text>
                             </View>
 
                             <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
@@ -218,7 +217,7 @@ const SubscriptionDetails = () => {
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{planDayStatus?.property_location != "--" ? planDayStatus?.property_location : "Property Location"}</Text>
+                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{planDayStatus?.property_location != "--" ? planDayStatus?.property_location : "Property Location"}</Text>
                             </View>
 
                             <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
@@ -228,7 +227,7 @@ const SubscriptionDetails = () => {
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{planDayStatus?.email_support != "--" ? planDayStatus?.email_support : "Email Support"}</Text>
+                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{planDayStatus?.email_support != "--" ? planDayStatus?.email_support : "Email Support"}</Text>
                             </View>
 
                             <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
@@ -238,7 +237,7 @@ const SubscriptionDetails = () => {
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{planDayStatus?.auction_history != "--" ? planDayStatus?.auction_history : "Auction History"}</Text>
+                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{planDayStatus?.auction_history != "--" ? planDayStatus?.auction_history : "Auction History"}</Text>
                             </View>
 
                             <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}>
@@ -248,7 +247,7 @@ const SubscriptionDetails = () => {
                                     icon_size={25}
                                     icon_color={Color.black}
                                 />
-                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{planDayStatus?.relationship_manager != "--" ? planDayStatus?.relationship_manager : "Relationship Manager Assist"}</Text>
+                                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{planDayStatus?.relationship_manager != "--" ? planDayStatus?.relationship_manager : "Relationship Manager Assist"}</Text>
                             </View>
                         </View>
                     </View>

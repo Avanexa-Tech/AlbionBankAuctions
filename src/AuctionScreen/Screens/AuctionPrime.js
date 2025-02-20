@@ -26,7 +26,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import fetchData from '../../Config/fetchData';
 import { Alert } from 'react-native';
 import PostCompletedModal from './OrderCompletionModal';
-import { base_auctionUrl } from '../../Config/base_url';
+import { baseUrl } from '../../Config/base_url';
 
 const { height, width } = Dimensions.get('screen');
 
@@ -87,10 +87,10 @@ const AuctionPrime = () => {
 
             // fetch("http://192.168.29.204:5000/api/plan", requestOptions)
             // fetch(`https://api.albionbankauctions.com/api/plan/${data?.id}`, requestOptions)
-            fetch(`http://13.127.95.5:5000/api/plan/${data?.id}`, requestOptions)
+
+            fetch(`${baseUrl}api/plan/${data?.id}`, requestOptions)
                 .then((response) => response.json())
-                .then((result) => {
-                    console.log("Plan Data ------------------: ", result?.current_plan);
+                .then((result) => {                    
                     if (result?.message == "Data Fetched Successfully") {
                         setPlanData(result?.data);
                         setCurrentPlanId(result?.current_plan?.plan_id)
@@ -101,7 +101,6 @@ const AuctionPrime = () => {
                         setPlanData([]);
                         common_fn.showToast(result?.message);
                         setLoading(false);
-                        console.log("Data cannot Fetch ", result?.message);
                     }
                 })
                 .catch((error) => console.error("catch in getApiData_APi", error));
@@ -120,11 +119,8 @@ const AuctionPrime = () => {
         }
     }
 
-    const subscribePlanClick = async (item, index) => {
+    const subscribePlanClick = async (item) => {
         try {
-            console.log("ITEM ================ :", JSON.stringify(item) + "INDEX --------------- :" + index);
-            // if (item.id == 1) {
-
             if (item.id == 1) {
                 const myHeaders = new Headers();
                 myHeaders.append("accept", "*/*");
@@ -142,27 +138,27 @@ const AuctionPrime = () => {
                     redirect: "follow"
                 };
 
-                fetch("http://13.127.95.5:5000/api/plan", requestOptions)
+                fetch(`${baseUrl}api/plan`, requestOptions)
                 // fetch("https://api.albionbankauctions.com/api/plan", requestOptions)
                     .then((response) => response.json())
                     .then((result) => {
-                        console.log("SUCCESS ================ :", result)
                         common_fn.showToast(result?.message);
                         dispatch(setPaySuccessVisible(true))
                     })
-                    .catch((error) => console.error(error));
+                    .catch((error) => {
+                        console.log("error in here",error);
+                        console.error(error)
+                    });
 
             }
             else {
-                console.log("****************** Subscription plans ******************");
                 try {
-                    console.log("--------------------MONTH PLAN ---------------------");
-
                     setLoading(true);
                     const myHeaders = new Headers();
                     myHeaders.append("accept", "*/*");
                     myHeaders.append("Content-Type", "application/json");
-
+                    console.log(data,"datadatadatadata");
+                    
                     var raw = JSON.stringify({
                         "plan_id": item.id,
                         "user_id": data?.id,
@@ -170,26 +166,20 @@ const AuctionPrime = () => {
                         "gst": (item.price * 18) / 100,
                         "total_amount_payable": item.price + (item.price * 18) / 100
                     });
-
                     var requestOptions = {
                         method: "POST",
                         headers: myHeaders,
                         body: raw,
                         redirect: "follow"
                     };
-                    console.log("FORM data ------------- : ", requestOptions);
-
                     // fetch("http://192.168.29.204:5000/api/plan", requestOptions)
-                    fetch(base_auctionUrl + "api/plan", requestOptions)
+                    fetch(baseUrl + "api/plan", requestOptions)
                         .then((response) => response.json())
-                        .then((result) => {
-                            console.log("RESULT ============== : ", result);
-
+                        .then((result) => {                           
                             if (result?.status == true) {
                                 var razorpayOptions = result?.data?.data;
                                 var plan_id = result?.data?.plan_id
                                 var invoice_id = result?.data?.invoice_id
-                                console.log("response data-------------:", result);
                                 setLoading(true);
                                 RazorpayCheckout.open(razorpayOptions)
                                     .then(async ({ razorpay_signature, razorpay_payment_id }) => {
@@ -202,8 +192,9 @@ const AuctionPrime = () => {
                                             "order_id": razorpayOptions?.order_id,
                                             "payment_id": razorpay_payment_id,
                                             "plan_id": plan_id,
-                                            "invoice_id": invoice_id
-                                        });
+                                            "invoice_id": invoice_id,
+                                            "user_id": data?.id,
+                                        });                                        
 
                                         const requestOptions = {
                                             method: "PUT",
@@ -212,23 +203,32 @@ const AuctionPrime = () => {
                                             redirect: "follow"
                                         };
 
-                                        console.log("requestOptions ********************* : ", requestOptions);
-
                                         // fetch("http://192.168.29.204:5000/api/plan/verify", requestOptions)
-                                        fetch(base_auctionUrl + "api/plan/verify", requestOptions)
+
+                                        
+                                        fetch(baseUrl + "api/plan/verify", requestOptions)
                                             .then((response) => response.json())
-                                            .then((result) => {
-                                                console.log("placeOrder ======================:", result);
-                                                dispatch(setPaySuccessVisible(true));
-                                                common_fn.showToast(result?.message);
-                                                navigation?.replace('ActionHome');
-                                                setLoading(false);
+                                            .then((result) => {                                                
+                                                console.log(result,"<-----resultverify");
+                                                
+                                                if(result?.status == true)
+                                                {
+                                                    dispatch(setPaySuccessVisible(true));
+                                                    common_fn.showToast(result?.message);
+                                                    // navigation?.replace('ActionHome');
+                                                    setLoading(false);
+                                                }else{
+                                                    dispatch(setPayCancelVisible(true));
+                                                    common_fn.showToast('Payment failed. Please try again.');
+                                                    // navigation?.replace('ActionHome');
+                                                    setLoading(false);
+                                                }
                                             })
                                             .catch((error) => {
                                                 console.error('Error in RazorpayCheckout:', error);
                                                 dispatch(setPayCancelVisible(true));
                                                 common_fn.showToast('Payment failed. Please try again.');
-                                                navigation?.replace('ActionHome');
+                                                // navigation?.replace('ActionHome');
                                                 setLoading(false);
                                             });
                                     })
@@ -237,29 +237,26 @@ const AuctionPrime = () => {
                                         console.error("Payment Failed:", error);
                                         dispatch(setPayCancelVisible(true));
                                         common_fn.showToast('Payment failed. Please try again.');
-                                        navigation?.replace('ActionHome');
                                         setLoading(false);
                                     });
 
                             } else {
-                                console.log("result?.message===========================", result)
                                 common_fn.showToast(result?.message);
                                 setLoading(false);
                             }
-                            // console.log("SUCCESS RESP =============: ", result)
                         })
                         .catch((error) => {
                             setLoading(false);
-                            console.error("catch in ", error);
+                            console.error("catch in>>>>>>>>>>>> ", error);
                         });
-
                 } catch (error) {
                     setLoading(false);
-                    console.error("Unexpected Error:", error);
+                    console.error("Unexpected Error:>>>>>>>>>>>>>>", error);
                 }
             }
 
         } catch (error) {
+            console.log("errro--------------------->", error);
             console.log('catch in subscribe_PlanClick_Prime : ', error);
         }
     }
@@ -294,14 +291,14 @@ const AuctionPrime = () => {
                             case 'Categories':
                                 return (
                                     <View style={{ width: '100%', alignItems: 'center' }}>
-                                        <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium, letterSpacing: 0.5, lineHeight: 22, paddingHorizontal: 5, marginTop: 10 }}>Gain access to premium features and detailed property insights with your subscription plan.</Text>
+                                        <Text style={{ textAlign: 'left', fontSize: 12, color: Color.cloudyGrey, fontFamily: Poppins.Light, paddingHorizontal: 5, marginTop: 10 }}>Gain access to premium features and detailed property insights with your subscription plan.</Text>
                                         <View style={{ width: '100%', alignItems: 'center', marginVertical: 10 }}>
                                             <FlatList
-                                                data={planData}
+                                                data={planData.slice(1, )}
                                                 keyExtractor={(item, index) => item + index}
                                                 renderItem={({ item, index }) => {
+
                                                     const isActive = item.id === currentPlanId; // Check if the plan is active
-                                                    console.log("isActive-------------------- :", isActive + " item.description ============ :" + item.description);
 
                                                     const getBackgroundColor = (description) => {
                                                         switch (description) {
@@ -322,7 +319,7 @@ const AuctionPrime = () => {
                                                         <View style={{ width: '100%', alignItems: 'center', backgroundColor: isActive ? Color.primary : Color.white, borderWidth: 1, borderColor: Color.cloudyGrey, borderRadius: 5, margin: 5, marginVertical: 10, padding: 10 }}>
                                                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 5 }}>
                                                                 <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                                                    <Text style={{ fontSize: 18, color: isActive ? Color.white : Color.black, fontWeight: 'bold' }}>{item.name}</Text>
+                                                                    <Text style={{ fontSize: 18, color: isActive ? Color.white : Color.black, fontFamily: Poppins.SemiBold}}>{item.name}</Text>
                                                                 </View>
                                                                 <View style={{ backgroundColor: "#D49727", padding: 7, paddingHorizontal: 20, borderRadius: 30 }}>
                                                                     <Text style={{ fontSize: 14, color: Color.white }}>{item.description == "Free plan" ? "Free" : "Pro"}</Text>
@@ -336,7 +333,7 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.whatsapp_alert != "--" && item.whatsapp_alert.trim() ? item.whatsapp_alert : "WhatsApp Alert"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{item.whatsapp_alert != "--" && item.whatsapp_alert.trim() ? item.whatsapp_alert : "WhatsApp Alert"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
@@ -345,7 +342,7 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'left', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.daily_notification != "--" ? item.daily_notification : "Daily Notification Via App"}</Text>
+                                                                    <Text style={{ textAlign: 'left', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{item.daily_notification != "--" ? item.daily_notification : "Daily Notification Via App"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
@@ -354,7 +351,7 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >
                                                                         {item.complete_auction != "--" && item.complete_auction.trim() !== "" ? item.complete_auction : "Complete Auction Details"}
                                                                     </Text>
                                                                 </View>
@@ -365,7 +362,7 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.auction_document != "--" ? item.auction_document : "Auction Document & Notice"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{item.auction_document != "--" ? item.auction_document : "Auction Document & Notice"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
@@ -374,7 +371,7 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.download_property != "--" ? item.download_property : "Download Property Pictures"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{item.download_property != "--" ? item.download_property : "Download Property Pictures"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
@@ -383,7 +380,7 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.property_location != "--" ? item.property_location : "Property Location"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{item.property_location != "--" ? item.property_location : "Property Location"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
@@ -392,7 +389,7 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.email_support != "--" ? item.email_support : "Email Support"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{item.email_support != "--" ? item.email_support : "Email Support"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
@@ -401,7 +398,7 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.auction_history != "--" ? item.auction_history : "Auction History"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{item.auction_history != "--" ? item.auction_history : "Auction History"}</Text>
                                                                 </View>
                                                                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', paddingVertical: 5 }}>
                                                                     <Iconviewcomponent
@@ -410,25 +407,31 @@ const AuctionPrime = () => {
                                                                         icon_size={25}
                                                                         icon_color={isActive ? Color.white : Color.black}
                                                                     />
-                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} numberOfLines={1}>{item.relationship_manager != "--" ? item.relationship_manager : "Relationship Manager Assist"}</Text>
+                                                                    <Text style={{ textAlign: 'justify', fontSize: 14, color: isActive ? Color.white : Color.black, fontFamily: Poppins.Medium, letterSpacing: 0.5, paddingHorizontal: 10 }} >{item.relationship_manager != "--" ? item.relationship_manager : "Relationship Manager Assist"}</Text>
                                                                 </View>
                                                             </View>
                                                             <View style={{ width: '100%', height: 0.5, backgroundColor: Color.cloudyGrey, marginVertical: 10 }}></View>
                                                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 5 }}>
                                                                 <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                                                    <Text style={{ paddingHorizontal: 20, fontSize: 22, color: isActive ? Color.white : Color.black, fontFamily: Poppins.SemiBold }}>₹ {item.price}</Text>
+                                                                    <Text style={{ paddingHorizontal: 20, fontSize: 22, color: isActive ? Color.white : Color.black, fontFamily: Poppins.SemiBold }}>₹ {item.price?.toLocaleString('en-IN')}</Text>
                                                                 </View>
                                                                 <View style={{ flex: 1, width: '100%', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
-                                                                    <TouchableOpacity
+                                                                   {
+                                                                    item.description == "Free plan" ? null :
+                                                                   <TouchableOpacity
                                                                         disabled={item.description === "Free plan"}
                                                                         onPress={() => {
                                                                             setSelectedPlan(item);
-                                                                            setRequestModal(true);
+                                                                            if(!isActive){
+                                                                                setRequestModal(true);
+                                                                            }else{
+                                                                                common_fn.showToast("You are already subscribed to this plan");
+                                                                            }
                                                                             // subscribePlanClick(item, index)
                                                                         }}
                                                                         style={{ width: '90%', height: 45, backgroundColor: isActive ? Color.white : Color.primary, borderRadius: 30, justifyContent: 'center', alignItems: 'center' }}>
                                                                         <Text style={{ fontSize: 14, color: isActive ? Color.black : Color.white, fontFamily: Poppins.SemiBold }}>{isActive ? "Activated" : "Subscribe"}</Text>
-                                                                    </TouchableOpacity>
+                                                                    </TouchableOpacity>}
                                                                 </View>
                                                             </View>
                                                         </View>
@@ -498,7 +501,7 @@ const AuctionPrime = () => {
                         <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
                                 <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                    <Text style={{ width: '100%', fontSize: 20, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 10 }}>Proceed to Pay</Text>
+                                    <Text style={{ width: '100%', fontSize: 18, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 10 }}>Proceed to Pay</Text>
                                 </View>
                                 <View style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'flex-end', paddingHorizontal: 10 }}>
                                     <TouchableOpacity onPress={() => {
@@ -516,26 +519,26 @@ const AuctionPrime = () => {
                             <View style={{ width: '95%', alignItems: 'center', }}>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>Plan Price</Text>
+                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium }}>Plan Price</Text>
                                     </View>
                                     <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{selectedPlan?.price}</Text>
-                                    </View>
-                                </View>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 }}>
-                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>GST</Text>
-                                    </View>
-                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{(selectedPlan?.price * 18) / 100}</Text>
+                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.Medium }}>₹ {selectedPlan?.price?.toLocaleString('en-IN')}</Text>
                                     </View>
                                 </View>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 }}>
                                     <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>Total Price</Text>
+                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium }}>GST</Text>
                                     </View>
                                     <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{selectedPlan?.price + (selectedPlan?.price * 18) / 100}</Text>
+                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.Medium }}>₹ {((selectedPlan?.price * 18) / 100).toLocaleString('en-IN')}</Text>
+                                    </View>
+                                </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 }}>
+                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                        <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium }}>Total Price</Text>
+                                    </View>
+                                    <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                                        <Text style={{ fontSize: 15, color: Color.lightBlack, fontFamily: Poppins.Medium }}>₹ {(selectedPlan?.price + (selectedPlan?.price * 18) / 100).toLocaleString('en-IN')}</Text>
                                     </View>
                                 </View>
                             </View>

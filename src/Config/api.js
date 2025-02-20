@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import {baseUrl, base_auctionUrl, base_geolocation_Url} from './base_url';
+import {baseUrl, base_geolocation_Url} from './base_url';
 
 export const api = {
   header: () => {
@@ -83,7 +83,7 @@ export const api = {
     var headers = api.header();
     return new Promise((resolve, reject) => {
       axios
-        .get(base_auctionUrl + url, {
+        .get(baseUrl + url, {
           headers: headers,
         })
         .then(res => {
@@ -103,7 +103,7 @@ export const api = {
     });
     return new Promise((resolve, reject) => {
       axios
-        .post(base_auctionUrl + url, data, {headers: headers})
+        .post(baseUrl + url, data, {headers: headers})
         .then(res => {
           if (res.status == 200) {
             resolve(res.data);
@@ -138,7 +138,7 @@ export const api = {
     var headers = api.header();
     return new Promise((resolve, reject) => {
       axios
-        .put(base_auctionUrl + url, data, {
+        .put(baseUrl + url, data, {
           headers: headers,
         })
         .then(res => {
@@ -154,7 +154,7 @@ export const api = {
     var headers = api.header();
     return new Promise((resolve, reject) => {
       axios
-        .delete(base_auctionUrl + url, data, {
+        .delete(baseUrl + url, data, {
           headers: headers,
         })
         .then(res => {
@@ -171,7 +171,7 @@ export const api = {
     var headers = api.header();
     return new Promise((resolve, reject) => {
       axios
-        .get(base_auctionUrl + url, {
+        .get(baseUrl + url, {
           headers: headers,
         })
         .then(res => {

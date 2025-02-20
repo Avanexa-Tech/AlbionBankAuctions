@@ -30,6 +30,7 @@ const CategoriesList = ({ navigation }) => {
                 }}
                 style={{
                   width: '100%',
+                  display:"flex",
                   flexDirection: 'row',
                   alignItems: 'center', backgroundColor: '#FCE1EB50', paddingVertical: 10, borderRadius: 5
                 }}>
@@ -42,9 +43,6 @@ const CategoriesList = ({ navigation }) => {
                   <Image
                     source={{ uri: item.image }}
                     style={{
-                      // width: 30,
-                      // height: 30,
-                      // resizeMode: 'contain',
                       borderRadius: 10,
                       height: 70,
                       width: 70,

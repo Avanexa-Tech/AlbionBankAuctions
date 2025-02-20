@@ -24,7 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Iconviewcomponent } from '../../../Components/Icontag';
 import Color from '../../../Config/Color';
 import RNFetchBlob from 'rn-fetch-blob';
-import { base_albionbankauctions_url } from '../../../Config/base_url';
+import { base_albionbankauctions_url, baseUrl } from '../../../Config/base_url';
 import common_fn from '../../../Config/common_fn';
 import { PermissionsAndroid } from 'react-native';
 import RNFS from 'react-native-fs';
@@ -65,9 +65,6 @@ const InvoiceList = () => {
         state => state.UserReducer.auctionUserData,
     );
 
-    console.log("invoiceData -------------- : ", invoiceData?.Invoice);
-
-
     useEffect(() => {
         try {
             plan_CheckData();
@@ -90,11 +87,10 @@ const InvoiceList = () => {
 
             // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${id}`, requestOptions)
             // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
-            fetch(`http://13.127.95.5:5000/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+            fetch(`${baseUrl}api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
                 .then((response) => response.json())
                 .then((result) => {
                     if (result?.status == true) {
-                        // console.log("Invoice List -----------------: ", result?.data)
                         setInvoiceData(result?.data);
                     }
                 }
@@ -113,6 +109,7 @@ const InvoiceList = () => {
             const invoiceDate = item?.Invoice?.invoice_date || "N/A";
             const totalGrossAmount = item?.Invoice?.total_gross_amount || "N/A";
             const totalAmount = item?.Invoice?.total_amount_payable || "N/A";
+            
             const invoice_no = item?.Invoice?.invoice_no || "N/A";
             let plan_name = ""
             switch (item?.Invoice?.plan_id) {
@@ -142,7 +139,7 @@ const InvoiceList = () => {
                                 </View>
                                 <View style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                                     <Text style={{ textAlign: 'right', fontSize: 13, color: Color.cloudyGrey, fontFamily: Poppins.Medium }}>Total Amount </Text>
-                                    <Text style={{ textAlign: 'right', fontSize: 14, color: Color.lightBlack, fontFamily: Poppins.SemiBold }} numberOfLines={1}> {totalAmount}</Text>
+                                    <Text style={{ textAlign: 'right', fontSize: 14, color: Color.lightBlack, fontFamily: Poppins.SemiBold }} numberOfLines={1}>₹ {totalAmount?.toLocaleString('en-IN')}</Text>
                                 </View>
                             </View>
                         </View>
@@ -177,8 +174,7 @@ const InvoiceList = () => {
     const downloadImage = async (item) => {
         try {
             const invoicePath = item?.Invoice?.invoice_path;
-            console.log("invoiceDatainvoiceData",`http://13.127.95.5/${invoicePath}`);
-            Linking?.openURL(`http://13.127.95.5/${invoicePath}`);  
+            Linking?.openURL(`${invoicePath}`);  
             // if (!invoicePath) {
             //     Alert.alert("Error", "Invoice file not found.");
             //     return;

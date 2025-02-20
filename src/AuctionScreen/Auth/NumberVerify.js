@@ -20,6 +20,7 @@ import fetchData from '../../Config/fetchData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import RNOtpVerify from 'react-native-otp-verify';
+import { Poppins } from '../../Global/FontFamily';
 
 const DismissKeyboard = ({ children }) => (
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -214,13 +215,13 @@ const NumberVerify = ({ navigation, route }) => {
             }}>
             <Text
               style={{
-                fontFamily: 'Poppins-SemiBold',
                 fontSize: 20,
                 fontWeight: 'bold',
                 textAlign: 'center',
                 color: Color.black,
                 marginRight: 10,
                 marginVertical: 10,
+                fontFamily: Poppins.Light,
               }}>
               Enter OTP
             </Text>

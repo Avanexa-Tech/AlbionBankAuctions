@@ -12,21 +12,17 @@ import {
   Pressable,
   TextInput,
   SafeAreaView,
-  Share,
-  PermissionsAndroid,
-  BackHandler,
+  Share, BackHandler,
   Platform,
   ActivityIndicator,
-  LogBox,
-  Linking,
+  LogBox, FlatList
 } from 'react-native';
 import { Media } from '../../Global/Media';
 import Color from '../../Config/Color';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FIcon from 'react-native-vector-icons/FontAwesome';
 import MIcon from 'react-native-vector-icons/MaterialIcons';
-import OIcon from 'react-native-vector-icons/Octicons';
-import { Button, Divider } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import { Poppins } from '../../Global/FontFamily';
 import { useSelector } from 'react-redux';
 import common_fn from '../../Config/common_fn';
@@ -35,6 +31,7 @@ import moment from 'moment';
 import {
   base_albionbankauctions_url,
   base_auction_image_url,
+  baseUrl,
 } from '../../Config/base_url';
 import fetchData from '../../Config/fetchData';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -42,23 +39,36 @@ import ImageView from '../Auctioncomponents/imageView';
 import { useRoute } from '@react-navigation/native';
 import AuctionBottomLogin from '../Auctioncomponents/AuctionBottomLogin';
 import { Iconviewcomponent } from '../../Components/Icontag';
-import { Alert } from 'react-native';
+import RNFS from 'react-native-fs';
+import { scr_width } from '../../Utils/Dimensions';
+import AuctionHistory from './AuctionHistory';
+
+export const downloadFile = async (url, path) => {
+  const download = RNFS.downloadFile({
+    fromUrl: url.image_url,
+    toFile: path,
+  });
+
+  const result = await download.promise;
+  if (result.statusCode !== 200) {
+    throw new Error(`Failed to download image: ${url}`);
+  }
+  return result;
+};
 
 var { width, height } = Dimensions.get('screen');
 
 LogBox.ignoreLogs(["VirtualizedLists should never be nested"])
 
 const ActionSingleProperty = ({ navigation, route }) => {
+  console.log(route.params,"<----------------fr");
+  
   const routeName = useRoute();
-  const [item] = useState(route.params.item);
-
-  const result_sub_category = item.property_sub_category
-    .split('_') // Split the string into an array using underscores
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
-    .join(' '); // Join the words with a space
-
-  // console.log("single item ==================== :", item?.borrowers_name);
-
+  const [item,setitem] = useState(null);
+  const result_sub_category = item?.property_sub_category
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
   const [showMoreButton, setShowMoreButton] = useState(false);
   const [discMoreButton, setDiscShowMoreButton] = useState(false);
   const [discriptiontextShown, setDiscriptiontextShown] = useState(false);
@@ -78,10 +88,6 @@ const ActionSingleProperty = ({ navigation, route }) => {
   const [requestModal, setRequestModal] = useState(false);
 
   const scrollY = useRef(new Animated.Value(0)).current;
-  // const Auction_userData = useSelector(
-  //   state => state.UserReducer.auctionUserData,
-  // );
-  // var { id, name, phone_number, email } = Auction_userData;
 
   const data = useSelector(
     state => state.UserReducer.auctionUserData,
@@ -121,18 +127,60 @@ const ActionSingleProperty = ({ navigation, route }) => {
       experience: 'Good',
     },
   ]);
-
   const [expireDate, setExpireDate] = useState('')
   const [planStatus, setPlanStatus] = useState('')
   const [expireStatus, setExpiredStatus] = useState('')
-
   const [Usermail, setUsermail] = useState("");
   const [emailValidError, setEmailValidError] = useState('');
 
+  const getSingleApi = async () => {
+    try {
+      setLoading(true)
+      const payload = route.params?.history ? `repost_id=${route?.params?.item?.id}` :`id=${route?.params?.item?.id}`
+      const getSingleData = await fetchData?.fetchAuction(payload);
+      console.log("<----------------Api",getSingleData);
+      
+      if (getSingleData) {
+        setitem(getSingleData)
+      }
+    } catch (error) {
+      console.log("error", error);
+    }finally{
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     LogBox.ignoreLogs(["VirtualizedLists should never be nested"])
   }, [])
+
+  // async function getPropertyDetail(){
+  //   try {
+  //     const response = await fetchData.fetchAuction(item.id)
+  //     console.log(response,"><<<<<");
+
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   (
+  //     async () => {
+  //       getPropertyDetail()
+  //     }
+  //   )()
+  // }, [])
+
+  useEffect(() => {
+    (
+      async () => {
+        getSingleApi();
+        plan_CheckData()
+      }
+    )()
+  }, [])
+  
 
   useEffect(() => {
     if (data?.id && item?.file_id) {
@@ -147,18 +195,9 @@ const ActionSingleProperty = ({ navigation, route }) => {
   }, [data?.id, item?.file_id]);
 
   useEffect(() => {
-    try {
-      plan_CheckData();
-    } catch (error) {
-      console.log("catch in use_Effect:", error);
-    }
-  }, [])
-
-  useEffect(() => {
     setNumLines(discriptiontextShown ? undefined : 3);
     setdiscNumLines(disclaimertextShown ? undefined : 3);
   }, [discriptiontextShown, disclaimertextShown]);
-
 
   const plan_CheckData = async () => {
     try {
@@ -172,16 +211,15 @@ const ActionSingleProperty = ({ navigation, route }) => {
       };
 
       // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${data?.id}`, requestOptions)
-      fetch(`http://13.127.95.5:5000/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
-      // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+      fetch(`${baseUrl}api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+        // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
+
           if (result?.status == true) {
-            // console.log("profile data -----------------", result?.data[0]?.plan_id)
             setExpireDate(moment(result?.data[0]?.expires_at).format('DD-MM-YYYY'));
             setPlanStatus(result?.data[0]?.plan_id)
             setExpiredStatus(result?.data[0]?.status)
-            console.log("PLAN SINGLE======= :", result?.data[0])
           }
         }
         )
@@ -192,7 +230,6 @@ const ActionSingleProperty = ({ navigation, route }) => {
     }
   }
 
-
   const handleRatingPress = item => {
     if (defaultRating === item) {
       setDefaultRating(null);
@@ -201,26 +238,21 @@ const ActionSingleProperty = ({ navigation, route }) => {
     }
   };
 
+
+  console.log(userHaveActivePlan,expireStatus,expireStatus !== 'expired' && planStatus > 1,planStatus,"<<<<<<<userHaveActivePlan");
+  
+
   const toggleTextShown = () => {
-    // console.log("planStatus ========== :" + planStatus + "   expireStatus ========= :" + expireStatus);
-
-    if (planStatus > 1 && expireStatus != "expired") {
-      console.log("============true================");
+    if (userHaveActivePlan) {
       setDiscriptiontextShown(!discriptiontextShown);
-      // navigation.navigate("AuctionPrime");
-    } else if (planStatus == 1) {
-      navigation.navigate("AuctionPrime");
-      console.log("============False================");
-      // setDiscriptiontextShown(!discriptiontextShown);
     }
-
+    else {
+      navigation.navigate("AuctionPrime");
+    }
   };
-
 
   const onDescriptionTextLayout = useCallback(
     e => {
-      console.log("check ------------");
-
       if (e.nativeEvent.lines.length > 3 && !discriptiontextShown) {
         setShowMoreButton(true);
         setNumLines(3);
@@ -287,9 +319,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
         from_interest_reserve_price: 0,
         to_interest_reserve_price_max: 0,
       };
-      console.log("interestdata ============== :", interestdata);
       const interest = await fetchData.Auction_add_interest(interestdata);
-      console.log("Interest ============== :", interest?.message);
 
       if (interest?.message) {
         if (Platform.OS === 'android') {
@@ -333,10 +363,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
   const check_interestfn = async () => {
     try {
       const checkdata = `user_id=${data?.id}&auction_id=${item?.file_id}`;
-      console.log("checkdata ------------------- :", checkdata);
-
       const check_interestData = await fetchData.Auction_check_interest(checkdata);
-      console.log("check_interestData ================ :", check_interestData);
       if (check_interestData?.interested == true) {
         setCheck_interest(check_interestData.interested);
       } else {
@@ -379,48 +406,10 @@ const ActionSingleProperty = ({ navigation, route }) => {
 
   const checkPermission = async () => {
     if (Platform.OS === 'ios') {
-      // iOS: Directly proceed to download (permissions are handled during app installation)
       downloadImage();
     } else {
       try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission Required',
-            message: 'App needs access to your storage to download Photos.',
-          },
-        );
-
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          // Permission granted, proceed to download
-          downloadImage();
-        } else if (granted === PermissionsAndroid.RESULTS.DENIED) {
-          // Permission denied, show alert with guidance
-          Alert.alert(
-            'Permission Denied',
-            'You need to grant storage permission to download photos.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Open Settings',
-                onPress: () => Linking.openSettings(), // Opens app settings
-              },
-            ],
-          );
-        } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-          // Permission denied with "Don't ask again"
-          Alert.alert(
-            'Permission Required',
-            'Storage permission is required to download photos. Please enable it from the app settings.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Open Settings',
-                onPress: () => Linking.openSettings(),
-              },
-            ],
-          );
-        }
+        downloadImage();
       } catch (err) {
         console.warn('Permission error:', err);
       }
@@ -433,6 +422,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
       let image_URL = base_albionbankauctions_url + item?.nit_document;
       const { config, fs } = RNFetchBlob;
       let DownloadDir = fs.dirs.DownloadDir;
+      console.log("DownloadDir", DownloadDir);
       let options = {
         fileCache: true,
         addAndroidDownloads: {
@@ -447,18 +437,23 @@ const ActionSingleProperty = ({ navigation, route }) => {
           description: 'Image',
         },
       };
+      console.log("rrrrrrrr", options);
 
-      const response = await config(options).fetch('GET', image_URL);
+
+      const response = await config(options).fetch('GET', image_URL)
+        .progress((received, total) => {
+          console.log('Download Progress:', (received / total) * 100, '%');
+        });
+
+
       if (response) {
         common_fn.showToast("Document downloaded successfully!");
         // common_fn.showToast("File downloaded to :", JSON.stringify(response));
       } else {
         common_fn.showToast("Failed to download documents, Try after some times");
       }
-      console.log("response ================= :", JSON.stringify(response?.data));
-
     } catch (error) {
-      console.error('Error downloading image:', error);
+      console.log('Error downloading image:', error?.message);
       // Handle the error, e.g., show an alert to the user
     }
   };
@@ -473,7 +468,8 @@ const ActionSingleProperty = ({ navigation, route }) => {
 
   const propertyImagesArray = Object.entries(propertyImages)
     .filter(([key, value]) => value !== null)
-    .map(([key, value]) => ({ index: key, image_url: value }));
+    // .map(([key, value]) => `https://albionbankauctions.com/${value}`)
+    .map(([key, value]) => ({ index: key, image_url: value }))
 
 
 
@@ -504,7 +500,6 @@ const ActionSingleProperty = ({ navigation, route }) => {
       } else {
         common_fn.showToast("Please select your rating and enter your comments");
         setUpdateLoader(false);
-        console.log("********Please fill the details *************");
       }
 
     } catch (error) {
@@ -516,19 +511,13 @@ const ActionSingleProperty = ({ navigation, route }) => {
     try {
       const auctionStartDateTime = new Date(item?.auction_start_date_and_time); // Parse the auction date
       const currentDateTime = new Date(); // Get the current date and time
-      // console.log("current date ================= :", currentDateTime);
-
       if (auctionStartDateTime > currentDateTime) {
         setCompareDate("Greater")
-        console.log("The auction start date is in the future.");
       } else if (auctionStartDateTime < currentDateTime) {
         setCompareDate("Lessthan")
-        console.log("The auction start date is in the past.");
       } else {
         setCompareDate("Current Date")
-        console.log("The auction start date is right now!");
       }
-
     } catch (error) {
       console.log("catch in  useEffect================= :", error);
     }
@@ -552,7 +541,7 @@ const ActionSingleProperty = ({ navigation, route }) => {
       myHeaders.append("Content-Type", "application/json");
 
       const raw = JSON.stringify({
-        "file_id": item.file_id,
+        "file_id": item?.file_id,
         "email": data?.email
       });
 
@@ -563,13 +552,13 @@ const ActionSingleProperty = ({ navigation, route }) => {
         redirect: "follow"
       };
 
-      fetch("http://13.127.95.5:5000/api/auction/request-property", requestOptions)
-      // fetch("https://api.albionbankauctions.com/api/auction/request-property", requestOptions)
+      fetch(`${baseUrl}api/auction/request-property`, requestOptions)
+        // fetch("https://api.albionbankauctions.com/api/auction/request-property", requestOptions)
         .then((response) => response.json())
         .then((result) => {
           // console.log("Request Prop resp ============== :", result);
           if (result?.status == true) {
-            common_fn.showToast(result?.message);
+            common_fn.showToast("Property Requested Successfully, Thank You!");
             setRequestModal(false);
             setUpdateLoader(false);
           } else {
@@ -582,373 +571,423 @@ const ActionSingleProperty = ({ navigation, route }) => {
 
     } catch (error) {
       setRequestModal(false);
-      console.log("catch in  requestSubmitClick================= :", error);
     }
   }
 
-  // console.log("propertyImagesArray =================== :", propertyImagesArray);
+  const downloadPropertyImages = async () => {
+    try {
+      let imageArray = propertyImagesArray.map(item => `https://albionbankauctions.com/${item.image_url}`)
+      let date = new Date();
+      const { dirs } = RNFetchBlob.fs;
+      const DownloadDir = Platform.OS === 'ios' ? dirs.DocumentDir : dirs.DownloadDir;;
+      const zipFilePath = `${DownloadDir}/Albion/Images_${Math.floor(date.getTime() + date.getSeconds() / 2)}.zip`;
+      const imagePaths = [];
+      for (let i = 0; i < imageArray.length; i++) {
+        let imageURL = imageArray[i];
+        const imageFilePath = `${DownloadDir}/Albion/Image_${i + 1}.jpg`;
+        const options = {
+          fileCache: true,
+          addAndroidDownloads: {
+            useDownloadManager: true,
+            notification: true,
+            path: imageFilePath,
+            description: `Downloading Image ${i + 1}`,
+          },
+        };
+        const response = await RNFetchBlob.config(options).fetch('GET', imageURL);
+        if (response) {
+          imagePaths.push(imageFilePath);
+        } else {
+          console.error(`Failed to download image ${i + 1}`);
+          common_fn.showToast("Failed to download some images");
+        }
+      }
+      if (imagePaths.length === imageArray.length) {
+        common_fn.showToast(`Images Downloaded Successfully`);
+      }
+    } catch (error) {
+      console.error("Error in download and zip process:", error);
+      // common_fn.showToast("An error occurred while downloading images");
+    }
+  };
 
+  let userHaveActivePlan = expireStatus !== 'expired' && planStatus > 1
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Color.white }}>
-      {loading ? (
-        <View
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: height,
-          }}>
-          <Image
-            source={{ uri: Media.loader }}
-            style={{ width: 80, height: 80, resizeMode: 'contain' }}
-          />
-        </View>
-      ) : (
-        <View style={styles.container}>
-          <ScrollView
-            nestedScrollEnabled={true}
-            showsVerticalScrollIndicator={false}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              {
-                useNativeDriver: false,
-              },
-            )}
+    loading ? <View
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: height,
+      }}>
+      <Image
+        source={{ uri: Media.loader }}
+        style={{ width: 80, height: 80, resizeMode: 'contain' }}
+      />
+    </View> :
+      <SafeAreaView style={{ flex: 1, backgroundColor: Color.white }}>
+        {loading ? (
+          <View
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: height,
+            }}>
+            <Image
+              source={{ uri: Media.loader }}
+              style={{ width: 80, height: 80, resizeMode: 'contain' }}
+            />
+          </View>
+        ) : (
+          <View style={styles.container}>
+            <ScrollView
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={false}
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                {
+                  useNativeDriver: false,
+                },
+              )}
             >
-            <View style={styles.header}>
-              <View style={styles.header_row}>
-                <TouchableOpacity
-                  style={styles.backIcon}
-                  onPress={() => navigation.goBack()}>
-                  <View
-                    style={{
-                      width: 40,
-                      height: 40,
-                      backgroundColor: Color.white,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 100,
-                    }}>
-                    <Icon name="arrow-back" size={24} color={Color.black} />
-                  </View>
-                </TouchableOpacity>
-                <View style={styles.iconView}>
+              <View style={styles.header}>
+                <View style={styles.header_row}>
                   <TouchableOpacity
-                    style={{
-                      width: 40,
-                      height: 40,
-                      backgroundColor: Color.white,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 100,
-                      padding: 10,
-                      marginRight: 10,
-                    }}
-                    onPress={() => {
-                      if (data?.id == undefined) {
-                        navigation.navigate("ActionLogin");
-                      } else {
-                        onShare();
-                      }
-                    }}>
-                    <Icon
-                      name="share-outline"
-                      size={20}
-                      color={Color.black}
-                    />
-                  </TouchableOpacity>
-
-                  {compareDate == "Lessthan" ?
-                    null
-                    :
-                    <TouchableOpacity
+                    style={styles.backIcon}
+                    onPress={() => navigation.goBack()}>
+                    <View
                       style={{
-                        alignItems: 'center',
-                        backgroundColor: Color.white,
                         width: 40,
                         height: 40,
-                        borderRadius: 100,
+                        backgroundColor: Color.white,
+                        alignItems: 'center',
                         justifyContent: 'center',
+                        borderRadius: 100,
+                      }}>
+                      <Icon name="arrow-back" size={24} color={Color.black} />
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.iconView}>
+                    <TouchableOpacity
+                      style={{
+                        width: 40,
+                        height: 40,
+                        backgroundColor: Color.white,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 100,
+                        padding: 10,
                         marginRight: 10,
                       }}
                       onPress={() => {
-                        data?.id == undefined
-                          ? setLoginEnable(true)
-                          : check_interest
-                            ? removeInterestfn()
-                            : setInterestVisible(true);
-                      }}>
-                      <Icon
-                        name={check_interest ? 'heart' : 'heart-outline'}
-                        size={22}
-                        color={check_interest ? Color.primary : Color.black}
-                      />
-                    </TouchableOpacity>}
-                </View>
-              </View>
-            </View>
-            <View
-              style={{
-                zIndex: 1,
-                borderBottomLeftRadius: 20,
-                borderBottomRightRadius: 20,
-              }}
-            >
-              {loading || (propertyImagesArray?.length > 0) ? (
-                <ImageView images={propertyImagesArray} id={data?.id} navigation={navigation} />
-              )
-                : (
-                  <Image
-                    source={{ uri: Media.noImage }}
-                    style={{ width: '100%', height: 250, resizeMode: 'contain' }}
-                  />
-                )}
-            </View>
-            <View style={{ padding: 10 }}>
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                }}>
-
-                <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                    <Text
-                      style={{
-                        flex: 1,
-                        fontSize: 16,
-                        marginVertical: 5,
-                        color: Color.black,
-                        fontFamily: Poppins.Bold,
-                        marginHorizontal: 5,
-                      }}
-                      numberOfLines={2}>
-                      {item?.title}
-                    </Text>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center', paddingVertical: 0
-                      }}>
-                      <Icon
-                        name={'location'}
-                        size={18}
-                        style={{ color: Color.primary }}
-                      />
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          color: Color.black, fontFamily: Poppins.SemiBold,
-                          marginHorizontal: 5,
-                        }}>
-                        {`${item?.district} ,${item?.state}`}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={{ flex: 1.2, justifyContent: 'center', alignItems: 'center' }}>
-                    {compareDate == "Lessthan" ?
-                      (<TouchableOpacity onPress={() => setRequestModal(true)} style={{ padding: 7, paddingHorizontal: 15, backgroundColor: Color.primary, borderRadius: 5 }}>
-                        <Text style={{ fontSize: 12, color: Color.white }}>Request this Property</Text>
-                      </TouchableOpacity>) :
-
-                      <Button
-                        title={
-                          check_interest ? 'Remove Interest' : 'I’m Interested'
+                        if (data?.id == undefined) {
+                          // navigation.navigate("ActionLogin");
+                          navigation.navigate("LoginWithEmail");
+                        } else {
+                          onShare();
                         }
-                        titleStyle={{
-                          fontFamily: Poppins.SemiBold,
-                          fontSize: 12,
-                          color: Color.white,
-                        }}
-                        buttonStyle={{
-                          backgroundColor: check_interest
-                            ? Color.cloudyGrey
-                            : '#239D0F', padding: 7, paddingHorizontal: 15
+                      }}>
+                      <Icon
+                        name="share-outline"
+                        size={20}
+                        color={Color.black}
+                      />
+                    </TouchableOpacity>
+
+                    {compareDate == "Lessthan" ?
+                      null
+                      :
+                      <TouchableOpacity
+                        style={{
+                          alignItems: 'center',
+                          backgroundColor: Color.white,
+                          width: 40,
+                          height: 40,
+                          borderRadius: 100,
+                          justifyContent: 'center',
+                          marginRight: 10,
                         }}
                         onPress={() => {
-                          if (data?.id == undefined) {
-                            navigation.navigate("ActionLogin");
-                          } else {
-                            check_interest
+                          data?.id == undefined
+                            ? setLoginEnable(true)
+                            : check_interest
                               ? removeInterestfn()
                               : setInterestVisible(true);
-                          }
-                        }}
-                      />
-                    }
+                        }}>
+                        <Icon
+                          name={check_interest ? 'heart' : 'heart-outline'}
+                          size={22}
+                          color={check_interest ? Color.primary : Color.black}
+                        />
+                      </TouchableOpacity>}
                   </View>
                 </View>
-
-                <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
-                <View style={{ width: '100%' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Iconviewcomponent
-                      Icontag={'MaterialCommunityIcons'}
-                      iconname={"calendar-today"}
-                      icon_size={24}
-                      icon_color={Color.primary}
+              </View>
+              <View
+                style={{
+                  zIndex: 1,
+                  borderBottomLeftRadius: 20,
+                  borderBottomRightRadius: 20,
+                }}
+              >
+                {loading || (propertyImagesArray?.length > 0) ? (
+                  <ImageView images={propertyImagesArray} id={data?.id} navigation={navigation} />
+                )
+                  : (
+                    <Image
+                      source={{ uri: Media.noImage }}
+                      style={{ width: '100%', height: 250, resizeMode: 'contain' }}
                     />
-                    <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Event Details</Text>
-                  </View>
-                  <View style={{ width: '100%', alignItems: 'center', marginVertical: 5, marginTop: 10 }}>
-                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e0e0e0' }}>
-                      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e0e0e0' }}>
-                        <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 10, paddingVertical: 15 }}>Event Bank </Text>
-                      </View>
-                      <View style={{ flex: 2, width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', paddingHorizontal: 10, backgroundColor: '#fff' }}>
-                        <View style={{ width: 35, height: 35, borderRadius: 50, backgroundColor: '#f7f6f7', padding: 2 }}>
-                          <Image
-                            source={{ uri: base_auction_image_url + item?.bank_logo }}
-                            style={{ width: '100%', height: '100%', resizeMode: 'contain', borderRadius: 50, }}
-                          />
-                        </View>
+                  )}
+              </View>
+              <View style={{ padding: 10 }}>
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                  }}>
+
+                  <View style={{ width: '100%', flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+                    <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontSize: 16,
+                          color: Color.black,
+                          fontFamily: Poppins.Bold,
+                          marginHorizontal: 5,
+                        }}
+                        numberOfLines={2}>
+                        {item?.title}
+                      </Text>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center', paddingVertical: 0
+                        }}>
+                        <Icon
+                          name={'location'}
+                          size={18}
+                          style={{ color: Color.primary }}
+                        />
                         <Text
                           style={{
-                            flex: 1, // Ensures Text takes up remaining space
-                            textAlign: 'left',
-                            color: Color.black,
                             fontSize: 14,
-                            marginHorizontal: 10,
-                            fontFamily: Poppins.SemiBold,
-                            flexShrink: 1, // Prevents overflow by shrinking
-                          }}
-                          numberOfLines={2}
-                          ellipsizeMode="tail">
-                          {item?.event_bank}
+                            color: Color.black, fontFamily: Poppins.SemiBold,
+                            marginHorizontal: 5,
+                          }}>
+                          {`${item?.district}, ${item?.state}`}
                         </Text>
                       </View>
                     </View>
                   </View>
-
+                  <View style={{ flexDirection: "row", justifyContent: "flex-end", width: scr_width - 20, marginTop: 5 }}>
+                    {/* <TouchableOpacity onPress={userHaveActivePlan ? propertyImagesArray?.some(item => item != null) ? () => downloadPropertyImages() : () => common_fn.showToast('No Images For This Property') : () => navigation.navigate("AuctionPrime")} style={{ padding: 7, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.primary, borderRadius: 5, width: '40%' }}>
+                    <Text style={{ fontSize: 12, color: Color.white, fontFamily: Poppins.Medium }}>Download Images</Text>
+                  </TouchableOpacity> */}
+                    <View style={{ alignItems: "center", justifyContent: "center", borderColor: Color.primary, borderWidth: 1, borderRadius: 5, width: '60%', padding: 5 }}>
+                      {compareDate == "Lessthan" ?
+                        (<TouchableOpacity onPress={() => setRequestModal(true)} style={{ padding: 7, paddingHorizontal: 15, backgroundColor: Color.white, borderRadius: 5 }}>
+                          <Text style={{ fontSize: 12, color: Color.primary, fontFamily: Poppins.Medium }}>Request this Property</Text>
+                        </TouchableOpacity>) :
+                        <Button
+                          title={
+                            check_interest ? 'Remove Interest' : 'I’m Interested'
+                          }
+                          titleStyle={{
+                            fontFamily: Poppins.SemiBold,
+                            fontSize: 12,
+                            color: Color.primary,
+                          }}
+                          buttonStyle={{
+                            backgroundColor
+                              : Color?.white, padding: 7, paddingHorizontal: 15
+                          }}
+                          onPress={() => {
+                            if (data?.id == undefined) {
+                              navigation.navigate("ActionLogin");
+                            } else {
+                              check_interest
+                                ? removeInterestfn()
+                                : setInterestVisible(true);
+                            }
+                          }}
+                        />
+                      }
+                    </View>
+                  </View>
                   <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
-
-                  <View style={{ width: '100%', alignItems: 'center' }}>
-                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
+                  <View style={{ width: '100%' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Iconviewcomponent
-                        Icontag={'FontAwesome'}
-                        iconname={"building-o"}
+                        Icontag={'MaterialCommunityIcons'}
+                        iconname={"calendar-today"}
                         icon_size={24}
                         icon_color={Color.primary}
                       />
-                      <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Property Details</Text>
+                      <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Event Details</Text>
                     </View>
-                    <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-                      <View style={{ flex: 1, alignItems: 'center', backgroundColor: Color.white, marginTop: 10 }}>
-                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                          <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Property Category </Text>
-                          </View>
-                          <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                            <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, letterSpacing: 0.5 }}>{item?.property_category}</Text>
-                          </View>
+                    <View style={{ width: '100%', alignItems: 'center', marginVertical: 5, marginTop: 10 }}>
+                      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e0e0e0' }}>
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e0e0e0' }}>
+                          <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 10, paddingVertical: 15 }}>Event Bank </Text>
                         </View>
-                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                          <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Property Sub Category </Text>
+                        <View style={{ flex: 2, width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', paddingHorizontal: 10, backgroundColor: '#fff' }}>
+                          <View style={{ width: 35, height: 35, borderRadius: 50, backgroundColor: '#f7f6f7', padding: 2 }}>
+                            <Image
+                              source={{ uri: base_auction_image_url + item?.bank_logo }}
+                              style={{ width: '100%', height: '100%', resizeMode: 'contain', borderRadius: 50, }}
+                            />
                           </View>
-                          <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                            <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, letterSpacing: 0.5 }}>{result_sub_category}</Text>
-                          </View>
-                        </View>
-                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                          <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Property Description </Text>
-                          </View>
-                          <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                            <Text
-                              onTextLayout={onDescriptionTextLayout}
-                              style={{
-                                fontSize: 13,
-                                color: Color.black,
-                                textAlign: 'left',
-                                fontFamily: Poppins.Bold,
-                                lineHeight: 22,
-                                letterSpacing: 0.5,
-                              }}
-                              numberOfLines={numLines}>
-                              {!discriptiontextShown
-                                ? item?.property_description
-                                  .substring(0, 38)
-                                  .concat('...')
-                                : item?.property_description}{' '}
-                              {showMoreButton || numLines > 2 ? (
-                                <Text
-                                  onPress={toggleTextShown}
-                                  style={{
-                                    color: Color.primary,
-                                    fontFamily: Poppins.SemiBold,
-                                    fontSize: 14,
-                                  }}>
-                                  {discriptiontextShown ? 'Read Less' : 'Read More'}
-                                </Text>
-                              ) : null}
-                            </Text>
-                          </View>
-                        </View>
-                        {item?.borrowers_name != null ?
-                          <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                            <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                              <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Borrower's Name </Text>
-                            </View>
-                            <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                              <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, letterSpacing: 0.5 }}>{item?.borrowers_name}</Text>
-                            </View>
-                          </View> : null}
-                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                          <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Country </Text>
-                          </View>
-                          <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                            <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, letterSpacing: 0.5 }}>{item?.country}</Text>
-                          </View>
-                        </View>
-                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                          <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>State </Text>
-                          </View>
-                          <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                            <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, letterSpacing: 0.5 }}>{item?.state}</Text>
-                          </View>
-                        </View>
-                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                          <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>District</Text>
-                          </View>
-                          <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                            <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, letterSpacing: 0.5 }}>{item?.district}</Text>
-                          </View>
+                          <Text
+                            style={{
+                              flex: 1, // Ensures Text takes up remaining space
+                              textAlign: 'left',
+                              color: Color.black,
+                              fontSize: 14,
+                              marginHorizontal: 10,
+                              fontFamily: Poppins.SemiBold,
+                              flexShrink: 1, // Prevents overflow by shrinking
+                            }}
+                            numberOfLines={2}
+                            ellipsizeMode="tail">
+                            {item?.event_bank}
+                          </Text>
                         </View>
                       </View>
+                    </View>
 
+                    <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
+
+                    <View style={{ gap: 10 }}>
+                      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
+                        <Iconviewcomponent
+                          Icontag={'FontAwesome'}
+                          iconname={"building-o"}
+                          icon_size={24}
+                          icon_color={Color.primary}
+                        />
+
+                        <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Property Details</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                        <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Category</Text>
+                        <View style={{ width: "55%" }}>
+                          <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, textAlign: 'left' }}>{item?.property_category}</Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                        <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Sub Category</Text>
+                        <View style={{ width: "55%", }}>
+
+                          <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, textAlign: 'left' }}>{result_sub_category}</Text>
+                        </View>
+                      </View>
+                      {
+                        userHaveActivePlan ?
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Borrower's Name</Text>
+                            <View style={{ width: "55%", }}>
+                              <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, textAlign: 'left' }}>{item?.borrowers_name ?? '-'}</Text>
+                            </View>
+                          </View> : <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Borrower's Name</Text>
+                            <View style={{ width: "55%", }}>
+                              <Text style={{ fontSize: 14, color: Color.primary, fontFamily: Poppins.Bold }}
+                                onPress={() => {
+                                  navigation.navigate("AuctionPrime");
+                                }}
+                              >Upgrade Plan</Text>
+                            </View>
+                          </View>
+                      }
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                        <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Area</Text>
+                        <View style={{ width: "55%", flexDirection: 'row', gap: 5 }}>
+
+                          <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, textAlign: 'left' }}>{item?.area}</Text>
+                          <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, textAlign: 'left' }}>{item?.area_size === "Sq Feet" ? "sq.ft" : item?.area_size}</Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                        <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Country</Text>
+                        <View style={{ width: "55%", }}>
+                          <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, textAlign: 'left' }}>{item?.country}</Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                        <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>State </Text>
+                        <View style={{ width: "55%", }}>
+                          <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, textAlign: 'left' }}>{item?.state}</Text>
+                        </View>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "space-between" }}>
+                        <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>District </Text>
+                        <View style={{ width: "55%", }}>
+                          <Text style={{ fontSize: 14, color: Color.black, fontFamily: Poppins.Bold, textAlign: 'left' }}>{item?.district}</Text>
+                        </View>
+                      </View>
+                      <View style={{ width: '100%', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 5 }}>
+                        <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
+                          <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Property Description </Text>
+                        </View>
+                        <View style={{ backgroundColor: Color.white }}>
+                          <Text
+                            onTextLayout={onDescriptionTextLayout}
+                            style={{
+                              fontSize: 13,
+                              color: Color.black,
+                              fontFamily: Poppins.Bold,
+                              textAlign: 'left',
+                              display: "flex",
+                              alignItems: "center"
+                            }}
+                          >
+                            {item?.property_description.length > 45 && !discriptiontextShown
+                              ?
+                              item?.property_description.substring(0, 45)
+                                .concat('...')
+                              : item?.property_description}
+                            <Text style={{ color: Color?.primary, fontSize: 12, fontFamily: Poppins?.Medium }} onPress={toggleTextShown}>
+                              {item?.property_description?.length > 38 && !discriptiontextShown ? '  Read More' : '  Read Less'}
+                            </Text>
+                            {/* {!userHaveActivePlan && <Iconviewcomponent
+                                Icontag={'MaterialCommunityIcons'}
+                                iconname={"shield-crown"}
+                                icon_size={20}
+                                icon_color={"#F6C324"}
+                              />} */}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
                   </View>
-                </View>
-                <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
-                <View style={{ width: '100%', }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
-                    <Iconviewcomponent
-                      Icontag={'FontAwesome'}
-                      iconname={"gavel"}
-                      icon_size={24}
-                      icon_color={Color.primary}
-                    />
-                    <Text style={{ color: Color.primary, fontFamily: Poppins.Bold, fontSize: 16, paddingHorizontal: 10 }}>Auction Details</Text>
-                  </View>
-                  <View style={{ backgroundColor: Color.white, }}>
-                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                      <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                        <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Reserve Price</Text>
-                      </View>
-                      <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                        <Text style={{ fontSize: 14, color: Color.primary, fontFamily: Poppins.Bold, textTransform: 'capitalize', }} numberOfLines={1}>₹
-                          {item?.reserve_price?.length >= 5
-                            ? common_fn.formatNumberWithSuffix(
-                              item?.reserve_price,
-                            )
-                            : item?.reserve_price}</Text>
-                      </View>
+                  <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
+                  <View style={{ width: '100%', }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
+                      <Iconviewcomponent
+                        Icontag={'FontAwesome'}
+                        iconname={"gavel"}
+                        icon_size={24}
+                        icon_color={Color.primary}
+                      />
+                      <Text style={{ color: Color.primary, fontFamily: Poppins.Bold, fontSize: 16, paddingHorizontal: 10 }}>Auction Details</Text>
                     </View>
-                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
+                    <View style={{ backgroundColor: Color.white, }}>
+                      <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 5 }}>
+                        <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
+                          <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Reserve Price</Text>
+                        </View>
+                        <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
+                          <Text style={{ fontSize: 14, color: Color.primary, fontFamily: Poppins.Bold, textTransform: 'capitalize', }} numberOfLines={1}>₹
+                            {item?.reserve_price?.length >= 5
+                              ? common_fn.formatNumberWithSuffix(
+                                item?.reserve_price,
+                              )
+                              : item?.reserve_price}</Text>
+                        </View>
+                      </View>
+                      {/* <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 5 }}>
                       <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
                         <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Area</Text>
                       </View>
@@ -957,99 +996,99 @@ const ActionSingleProperty = ({ navigation, route }) => {
                           <Text
                             style={{
                               fontSize: 14,
-                              color: Color.black,
+                              color: Color.primary,
                               fontFamily: Poppins.Bold,
                               textTransform: 'capitalize'
                             }} numberOfLines={1}>
                             {item?.area}
                           </Text>
-                          <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.SemiBold, paddingHorizontal: 5 }}>{item?.area_size}</Text>
+                          <Text style={{ fontSize: 13, color: Color.primary, fontFamily: Poppins.SemiBold, paddingHorizontal: 5 }}>{item?.area_size === "Sq Feet" ? "sq.ft" : item?.area_size}</Text>
                         </View>
                       </View>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5, marginTop: 15 }}>
+                    </View> */}
+                      {/* <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5, marginTop: 15 }}>
                       <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 14 }}>EMD Details</Text>
-                    </View>
-                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
-                      <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                        <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>EMD Amount</Text>
-                      </View>
-                      <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
-                        <Text style={{ fontSize: 14, color: Color.primary, fontFamily: Poppins.Bold }}>
-                          ₹{' '}
-                          {common_fn.formatNumberIndianEnglishCommas(
-                            item?.emd_amount,
-                          )}</Text>
-                      </View>
-                    </View>
-                    <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
-                    <View style={{ width: '100%', marginHorizontal: 5, }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5, }}>
-                        <Iconviewcomponent
-                          Icontag={'MaterialIcons'}
-                          iconname={"date-range"}
-                          icon_size={24}
-                          icon_color={Color.primary}
-                        />
-                        <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Important Dates</Text>
-                      </View>
+                    </View> */}
                       <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
                         <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
-                          <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Auction Date</Text>
+                          <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>EMD Amount</Text>
                         </View>
                         <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
                           <Text style={{ fontSize: 14, color: Color.primary, fontFamily: Poppins.Bold }}>
-                            {moment(item?.auction_start_date_and_time).format('DD/MM/YYYY')}</Text>
+                            ₹{' '}
+                            {common_fn.formatNumberIndianEnglishCommas(
+                              item?.emd_amount,
+                            )}</Text>
+                        </View>
+                      </View>
+                      <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
+                      <View style={{ width: '100%', marginHorizontal: 5, }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5, }}>
+                          <Iconviewcomponent
+                            Icontag={'MaterialIcons'}
+                            iconname={"date-range"}
+                            icon_size={24}
+                            icon_color={Color.primary}
+                          />
+                          <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Important Dates</Text>
+                        </View>
+                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
+                          <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
+                            <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Auction Date</Text>
+                          </View>
+                          <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
+                            <Text style={{ fontSize: 14, color: Color.primary, fontFamily: Poppins.Bold }}>
+                              {moment(item?.auction_start_date_and_time).format('DD/MM/YYYY')}</Text>
+                          </View>
                         </View>
                       </View>
                     </View>
                   </View>
-                </View>
-                <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
-                <View style={{ marginVertical: 0 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Iconviewcomponent
-                      Icontag={'MaterialIcons'}
-                      iconname={"my-library-books"}
-                      icon_size={24}
-                      icon_color={Color.primary}
-                    />
-                    <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Auction Related Documents</Text>
-                  </View>
-                  {aution_related_doc?.map((item, index) => {
-                    return (
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'flex-start',
-                          padding: 10,
-                        }}
-                        key={index}>
-                        <FIcon name="check" size={16} color={Color.green} />
-                        <View style={{ marginHorizontal: 10 }}>
-                          <Text
-                            style={{
-                              color: Color.black,
-                              fontSize: 14,
-                              fontFamily: Poppins.SemiBold,
-                            }}>
-                            {item?.name}
-                          </Text>
-                          <Text
-                            style={{
-                              color: Color.cloudyGrey,
-                              fontSize: 12,
-                              fontFamily: Poppins.Regular,
-                            }}>
-                            {item?.description}
-                          </Text>
+                  <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
+                  <View style={{ marginVertical: 0 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Iconviewcomponent
+                        Icontag={'MaterialIcons'}
+                        iconname={"my-library-books"}
+                        icon_size={24}
+                        icon_color={Color.primary}
+                      />
+                      <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Auction Related Documents</Text>
+                    </View>
+                    {aution_related_doc?.map((item, index) => {
+                      return (
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'flex-start',
+                            padding: 10,
+                          }}
+                          key={index}>
+                          <FIcon name="check" size={16} color={Color.green} />
+                          <View style={{ marginHorizontal: 10 }}>
+                            <Text
+                              style={{
+                                color: Color.black,
+                                fontSize: 14,
+                                fontFamily: Poppins.SemiBold,
+                              }}>
+                              {item?.name}
+                            </Text>
+                            <Text
+                              style={{
+                                color: Color.cloudyGrey,
+                                fontSize: 12,
+                                fontFamily: Poppins.Regular,
+                              }}>
+                              {item?.description}
+                            </Text>
+                          </View>
                         </View>
-                      </View>
-                    );
-                  })}
-                  {item?.nit_document != null && (
-                    <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'flex-start', paddingHorizontal: 15, marginTop: 10 }}>
-                      <Button
+                      );
+                    })}
+                    {item?.nit_document != null && (
+                      <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'flex-start', paddingHorizontal: 15, marginTop: 10 }}>
+                        {/* <Button
                         title={'Download Document'}
                         titleStyle={{
                           fontFamily: Poppins.SemiBold,
@@ -1059,371 +1098,465 @@ const ActionSingleProperty = ({ navigation, route }) => {
                         buttonStyle={{
                           backgroundColor: check_interest
                             ? Color.cloudyGrey
-                            : '#239D0F',
+                            : Color?.primary,
                         }}
                         containerStyle={{
                           justifyContent: 'flex-end',
                           alignItems: 'flex-end',
                         }}
                         onPress={() => {
-                          checkPermission();
+                          console.log("userHaveActivePlan",userHaveActivePlan);
+                          
+                          if(userHaveActivePlan)
+                          {
+                            checkPermission();
+                          }else{
+                            navigation.navigate("AuctionPrime");
+                          }
                         }}
-                      />
+                      /> */}
+                        {
+                          userHaveActivePlan ?
+                            (
+                              <TouchableOpacity style={{ padding: 10, backgroundColor: Color?.primary, borderRadius: 5 }}
+                                onPress={() => {
+                                  checkPermission();
+                                }}
+                              >
+                                <Text style={{ color: Color?.white, fontFamily: Poppins?.Regular, fontSize: 14 }}>Download Document</Text>
+                              </TouchableOpacity>
+                            )
+                            : (
+                              <TouchableOpacity style={{ padding: 10, backgroundColor: Color?.primary, borderRadius: 5, flexDirection: 'row', alignItems: 'center', gap: 5 }}
+                                onPress={() => navigation.navigate("AuctionPrime")}
+                              >
+                                <Iconviewcomponent
+                                  Icontag={'MaterialCommunityIcons'}
+                                  iconname={"shield-crown"}
+                                  icon_size={20}
+                                  icon_color={"#F6C324"}
+                                />
+                                <Text style={{ color: Color?.white, fontFamily: Poppins?.Regular, fontSize: 14 }}>Download Document</Text>
+                              </TouchableOpacity>
+                            )
+                        }
+                      </View>
+                    )}
+                  </View>
+                  <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
+                </View>
+              </View>
+              {
+                item?.RepostAuctions?.length > 0 &&
+                <View style={{ padding: 10, gap: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 5 }}>
+                    <Iconviewcomponent
+                      Icontag={'FontAwesome'}
+                      iconname={"history"}
+                      icon_size={24}
+                      icon_color={Color.primary}
+                    />
+                    <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Auction History</Text>
+                  </View>
+                  <View style={{ padding: 10 }}>
+                    <FlatList
+                      data={item?.RepostAuctions}
+                      horizontal
+                      keyExtractor={(item, index) => item + index}
+                      showsHorizontalScrollIndicator={true}
+                      renderItem={({ item, index }) => {
+                        return (
+                          <AuctionHistory item={item} navigation={navigation} />
+                        );
+                      }}
+                    />
+                  </View>
+                  <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
+                </View>
+
+              }
+              <View style={{ padding: 10 }}>
+                <View style={{ width: '100%', marginHorizontal: 5, }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5, }}>
+                    <Iconviewcomponent
+                      Icontag={'MaterialIcons'}
+                      iconname={"date-range"}
+                      icon_size={24}
+                      icon_color={Color.primary}
+                    />
+                    <Text style={{ color: Color.primary, fontFamily: Poppins.SemiBold, fontSize: 16, paddingHorizontal: 10 }}>Important Dates</Text>
+                  </View>
+                  <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 }}>
+                    <View style={{ flex: 1.5, justifyContent: 'flex-start', alignItems: 'flex-start', }}>
+                      <Text style={{ fontSize: 13, color: Color.lightBlack, fontFamily: Poppins.Medium }}>Auction Date</Text>
                     </View>
-                  )}
+                    <View style={{ flex: 2, justifyContent: 'flex-start', alignItems: 'flex-start', backgroundColor: Color.white }}>
+                      <Text style={{ fontSize: 14, color: Color.primary, fontFamily: Poppins.Bold }}>
+                        {moment(item?.auction_start_date_and_time).format('DD/MM/YYYY')}</Text>
+                    </View>
+                  </View>
                 </View>
                 <View style={{ width: '100%', height: 5, backgroundColor: '#f7f6f7', marginVertical: 20 }}></View>
               </View>
-            </View>
-            <SimilarAuction navigation={navigation} AuctionProperty={item} />
-          </ScrollView>
-
-          <Modal transparent visible={InterestVisible} animationType="slide">
-            <Pressable
-              style={{ flex: 1, backgroundColor: Color.transparantBlack }}
-              onPress={() => {
-                setInterestVisible(false);
-              }}
-            />
-            <View
-              style={{
-                backgroundColor: Color.white,
-                padding: 10,
-                borderTopLeftRadius: 10,
-                borderTopRightRadius: 10,
-                height: cardHeight,
-              }}>
-              <TouchableOpacity
+              {
+                item &&
+                <SimilarAuction navigation={navigation} AuctionProperty={item} />
+              }
+            </ScrollView>
+            <Modal transparent visible={InterestVisible} animationType="slide">
+              <Pressable
+                style={{ flex: 1, backgroundColor: Color.transparantBlack }}
                 onPress={() => {
                   setInterestVisible(false);
                 }}
-                style={{
-                  position: 'absolute',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 40,
-                  height: 40,
-                  backgroundColor: Color.primary,
-                  borderRadius: 100,
-                  padding: 10,
-                  right: 10,
-                  top: 10,
-                  zIndex: 1,
-                }}>
-                <MIcon name="close" size={18} color={Color.white} />
-              </TouchableOpacity>
-              <Text
-                style={{
-                  color: Color.lightBlack,
-                  fontFamily: Poppins.SemiBold,
-                  fontSize: 18,
-                }}>
-                Interested Details
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginVertical: 10,
-                }}>
-                <View
-                  style={{
-                    borderWidth: 1,
-                    borderColor: Color.lightgrey,
-                    borderRadius: 10,
-                    padding: 10,
-                  }}>
-                  <Image
-                    source={{
-                      uri: base_auction_image_url + item?.bank_logo,
-                    }}
-                    style={{ width: 80, height: 80, resizeMode: 'contain' }}
-                  />
-                </View>
-                <View style={{ marginHorizontal: 10, flex: 1 }}>
-                  <Text
-                    style={{
-                      color: Color.cloudyGrey,
-                      fontFamily: Poppins.Medium,
-                      fontSize: 14,
-                    }}>
-                    Auction ID : {item?.id}
-                  </Text>
-                  <Text
-                    style={{
-                      color: Color.lightBlack,
-                      fontFamily: Poppins.SemiBold,
-                      fontSize: 18,
-                    }}>
-                    {item?.title}
-                  </Text>
-                  <Text
-                    style={{
-                      color: Color.cloudyGrey,
-                      fontFamily: Poppins.Medium,
-                      fontSize: 14,
-                    }}>
-                    {`${item?.district} ,${item?.state}`}
-                  </Text>
-                </View>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginVertical: 10,
-                  justifyContent: 'space-between',
-                }}>
-                <View
-                  style={{
-                    alignItems: 'center',
-                  }}>
-                  <Text
-                    style={{
-                      color: Color.cloudyGrey,
-                      fontFamily: Poppins.Medium,
-                      fontSize: 12,
-                    }}>
-                    Area
-                  </Text>
-                  <Text
-                    style={{
-                      color: Color.lightBlack,
-                      fontFamily: Poppins.SemiBold,
-                      fontSize: 16,
-                    }}>
-                    {item?.area} {item?.area_size}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    alignItems: 'center',
-                  }}>
-                  <Text
-                    style={{
-                      color: Color.cloudyGrey,
-                      fontFamily: Poppins.Medium,
-                      fontSize: 12,
-                    }}>
-                    Reserve Price
-                  </Text>
-                  <Text
-                    style={{
-                      color: Color.lightBlack,
-                      fontFamily: Poppins.SemiBold,
-                      fontSize: 16,
-                    }}>
-                    ₹ {item?.reserve_price}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    alignItems: 'center',
-                  }}>
-                  <Text
-                    style={{
-                      color: Color.cloudyGrey,
-                      fontFamily: Poppins.Medium,
-                      fontSize: 12,
-                    }}>
-                    EMD Price
-                  </Text>
-                  <Text
-                    style={{
-                      color: Color.lightBlack,
-                      fontFamily: Poppins.SemiBold,
-                      fontSize: 16,
-                    }}>
-                    ₹ {item?.emd_amount}
-                  </Text>
-                </View>
-              </View>
-
-              <Button
-                title={'Submit'}
-                titleStyle={{
-                  fontSize: 16,
-                  fontFamily: Poppins.SemiBold,
-                  color: Color.white,
-                }}
-                buttonStyle={{
-                  marginVertical: 20,
-                  backgroundColor: Color.primary,
-                }}
-                onPress={() => {
-                  interestfn();
-                }}
               />
-            </View>
-          </Modal>
-        </View>
-      )}
-      {loginEnable == true && (
-        <AuctionBottomLogin login={loginEnable} setLogin={setLoginEnable} />
-      )}
+              <View
+                style={{
+                  backgroundColor: Color.white,
+                  padding: 10,
+                  borderTopLeftRadius: 10,
+                  borderTopRightRadius: 10,
+                  height: cardHeight,
+                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setInterestVisible(false);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 40,
+                    height: 40,
+                    backgroundColor: Color.primary,
+                    borderRadius: 100,
+                    padding: 10,
+                    right: 10,
+                    top: 10,
+                    zIndex: 1,
+                  }}>
+                  <MIcon name="close" size={18} color={Color.white} />
+                </TouchableOpacity>
+                <Text
+                  style={{
+                    color: Color.lightBlack,
+                    fontFamily: Poppins.SemiBold,
+                    fontSize: 18,
+                  }}>
+                  Interested Details
+                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginVertical: 10,
+                  }}>
+                  <View
+                    style={{
+                      borderWidth: 1,
+                      borderColor: Color.lightgrey,
+                      borderRadius: 10,
+                      padding: 10,
+                    }}>
+                    <Image
+                      source={{
+                        uri: base_auction_image_url + item?.bank_logo,
+                      }}
+                      style={{ width: 80, height: 80, resizeMode: 'contain' }}
+                    />
+                  </View>
+                  <View style={{ marginHorizontal: 10, flex: 1 }}>
+                    <Text
+                      style={{
+                        color: Color.cloudyGrey,
+                        fontFamily: Poppins.Medium,
+                        fontSize: 14,
+                      }}>
+                      Auction ID : {item?.id}
+                    </Text>
+                    <Text
+                      style={{
+                        color: Color.lightBlack,
+                        fontFamily: Poppins.SemiBold,
+                        fontSize: 18,
+                      }}>
+                      {item?.title}
+                    </Text>
+                    <Text
+                      style={{
+                        color: Color.cloudyGrey,
+                        fontFamily: Poppins.Medium,
+                        fontSize: 14,
+                      }}>
+                      {`${item?.district} ,${item?.state}`}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginVertical: 10,
+                    justifyContent: 'space-between',
+                  }}>
+                  <View
+                    style={{
+                      alignItems: 'center',
+                    }}>
+                    <Text
+                      style={{
+                        color: Color.cloudyGrey,
+                        fontFamily: Poppins.Medium,
+                        fontSize: 12,
+                      }}>
+                      Area
+                    </Text>
+                    <Text
+                      style={{
+                        color: Color.lightBlack,
+                        fontFamily: Poppins.SemiBold,
+                        fontSize: 16,
+                      }}>
+                      {item?.area} {item?.area_size === 'Sq Feet' ? 'sq.ft' : item?.area_size}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      alignItems: 'center',
+                    }}>
+                    <Text
+                      style={{
+                        color: Color.cloudyGrey,
+                        fontFamily: Poppins.Medium,
+                        fontSize: 12,
+                      }}>
+                      Reserve Price
+                    </Text>
+                    <Text
+                      style={{
+                        color: Color.lightBlack,
+                        fontFamily: Poppins.SemiBold,
+                        fontSize: 16,
+                      }}>
+                      ₹ {parseInt(item?.reserve_price)?.toLocaleString('en-IN')}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      alignItems: 'center',
+                    }}>
+                    <Text
+                      style={{
+                        color: Color.cloudyGrey,
+                        fontFamily: Poppins.Medium,
+                        fontSize: 12,
+                      }}>
+                      EMD Price
+                    </Text>
+                    <Text
+                      style={{
+                        color: Color.lightBlack,
+                        fontFamily: Poppins.SemiBold,
+                        fontSize: 16,
+                      }}>
+                      ₹ {parseInt(item?.emd_amount)?.toLocaleString('en-IN')}
+                    </Text>
+                  </View>
+                </View>
 
-      <Modal visible={HomeLoanVisible} transparent animationType="slide">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: Color.transparantBlack,
-            justifyContent: 'center',
-            padding: 20, backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          }}>
+                <Button
+                  title={'Submit'}
+                  titleStyle={{
+                    fontSize: 16,
+                    fontFamily: Poppins.SemiBold,
+                    color: Color.white,
+                  }}
+                  buttonStyle={{
+                    marginVertical: 20,
+                    backgroundColor: Color.primary,
+                  }}
+                  onPress={() => {
+                    interestfn();
+                  }}
+                />
+              </View>
+            </Modal>
+          </View>
+        )}
+        {loginEnable == true && (
+          <AuctionBottomLogin login={loginEnable} setLogin={setLoginEnable} />
+        )}
+        <Modal visible={HomeLoanVisible} transparent animationType="slide">
           <View
             style={{
-              backgroundColor: 'white',
-              padding: 1,
-              borderRadius: 10,
+              flex: 1,
+              backgroundColor: Color.transparantBlack,
+              justifyContent: 'center',
+              padding: 20, backgroundColor: 'rgba(0, 0, 0, 0.8)',
             }}>
+            <View
+              style={{
+                backgroundColor: 'white',
+                padding: 1,
+                borderRadius: 10,
+              }}>
 
-            <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
-              <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F3EAE4', margin: 0, borderTopRightRadius: 10, borderTopLeftRadius: 10, paddingVertical: 20 }}>
-                <Image
-                  source={require('../../assets/image/feedback.png')}
-                  style={{ width: '100%', height: 100, resizeMode: 'contain', padding: 2, }}
-                />
-                <View style={{ position: 'absolute', right: 10, top: 10 }}>
-                  <TouchableOpacity onPress={() => setHomeLoanVisible(false)}>
+              <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
+                <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F3EAE4', margin: 0, borderTopRightRadius: 10, borderTopLeftRadius: 10, paddingVertical: 20 }}>
+                  <Image
+                    source={require('../../assets/image/feedback.png')}
+                    style={{ width: '100%', height: 100, resizeMode: 'contain', padding: 2, }}
+                  />
+                  <View style={{ position: 'absolute', right: 10, top: 10 }}>
+                    <TouchableOpacity onPress={() => setHomeLoanVisible(false)}>
+                      <Iconviewcomponent
+                        Icontag={'AntDesign'}
+                        iconname={"closecircle"}
+                        icon_size={30}
+                        icon_color={Color.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={{ width: '100%', marginHorizontal: 10, marginTop: 10 }}>
+                  <Text style={{ width: '100%', fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20 }}>Rate Your Experience ?</Text>
+                  <View style={styles.customRatingBarStyle}>
+                    {maxRating.map((item, index) => {
+                      return (
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          key={index}
+                          onPress={() => handleRatingPress(item.rating)}
+                          style={{
+                            marginHorizontal: 10,
+                            alignItems: 'center',
+                          }}>
+                          <Image
+                            style={styles.starImageStyle}
+                            source={{
+                              uri:
+                                item.rating <= defaultRating
+                                  ? starImageFilled
+                                  : starImageCorner,
+                            }}
+                          />
+                          <Text
+                            style={{
+                              textAlign: 'center',
+                              fontSize: 12,
+                              color: Color.cloudyGrey,
+                              marginVertical: 5,
+                              fontFamily: Poppins.SemiBold,
+                            }}>
+                            {item.experience}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+                <View style={{ width: '95%', height: 1, backgroundColor: '#EAEAEF', borderRadius: 30, marginVertical: 5 }}></View>
+                <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 5 }}>
+                  <Text style={{ width: '100%', fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20 }}>Share your experience</Text>
+
+                  <View style={{ width: '95%', backgroundColor: Color.white, borderWidth: 1, borderColor: Color.lightgrey, borderRadius: 5, marginTop: 10 }}>
+                    <TextInput
+                      placeholder="Enter your comments here ..."
+                      placeholderTextColor={Color.cloudyGrey}
+                      value={comments}
+                      multiline={true}
+                      onChangeText={text => {
+                        setComments(text);
+                      }}
+                      keyboardType="name-phone-pad"
+                      returnKeyType='go'
+                      style={styles.phoneTextInput}
+                    />
+                  </View>
+                </View>
+                <TouchableOpacity onPress={() => feedbackSubmitClick()}
+                  style={{ width: '95%', height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
+                  {updateLoader ? (
+                    <ActivityIndicator color={Color.white} />
+                  ) : (
+                    <Text
+                      style={{
+                        textAlign: 'center',
+                        fontSize: 14,
+                        color: Color.white,
+                        fontFamily: Poppins.Medium,
+                      }}>
+                      Submit
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        <Modal visible={requestModal} transparent animationType="slide">
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: Color.transparantBlack,
+              justifyContent: 'center',
+              padding: 15, backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            }}>
+            <View
+              style={{
+                backgroundColor: 'white',
+                padding: 10,
+                borderRadius: 10,
+              }}>
+
+              <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingRight: 20 }}>
+                  <Text style={{ width: '100%', fontSize: 18, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20, paddingVertical: 10 }}>Request Property</Text>
+                  <TouchableOpacity onPress={() => {
+                    setRequestModal(!requestModal)
+                  }}>
+
                     <Iconviewcomponent
                       Icontag={'AntDesign'}
-                      iconname={"closecircle"}
-                      icon_size={30}
+                      iconname={"closecircleo"}
+                      icon_size={24}
                       icon_color={Color.primary}
                     />
                   </TouchableOpacity>
                 </View>
-              </View>
-
-              <View style={{ width: '100%', marginHorizontal: 10, marginTop: 10 }}>
-                <Text style={{ width: '100%', fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20 }}>Rate Your Experience ?</Text>
-                <View style={styles.customRatingBarStyle}>
-                  {maxRating.map((item, index) => {
-                    return (
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        key={index}
-                        onPress={() => handleRatingPress(item.rating)}
-                        style={{
-                          marginHorizontal: 10,
-                          alignItems: 'center',
-                        }}>
-                        <Image
-                          style={styles.starImageStyle}
-                          source={{
-                            uri:
-                              item.rating <= defaultRating
-                                ? starImageFilled
-                                : starImageCorner,
-                          }}
-                        />
-                        <Text
-                          style={{
-                            textAlign: 'center',
-                            fontSize: 12,
-                            color: Color.cloudyGrey,
-                            marginVertical: 5,
-                            fontFamily: Poppins.SemiBold,
-                          }}>
-                          {item.experience}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-              <View style={{ width: '95%', height: 1, backgroundColor: '#EAEAEF', borderRadius: 30, marginVertical: 5 }}></View>
-              <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 5 }}>
-                <Text style={{ width: '100%', fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20 }}>Share your experience</Text>
-
-                <View style={{ width: '95%', backgroundColor: Color.white, borderWidth: 1, borderColor: Color.lightgrey, borderRadius: 5, marginTop: 10 }}>
-                  <TextInput
-                    placeholder="Enter your comments here ..."
-                    placeholderTextColor={Color.cloudyGrey}
-                    value={comments}
-                    multiline={true}
-                    onChangeText={text => {
-                      setComments(text);
-                    }}
-                    keyboardType="name-phone-pad"
-                    returnKeyType='go'
-                    style={styles.phoneTextInput}
+                <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', marginVertical: 30 }}>
+                  <Image
+                    source={require('../../assets/image/guide.png')}
+                    style={{ width: '80%', height: 60, resizeMode: 'contain', padding: 2, }}
                   />
                 </View>
+
+                <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 10 }}>
+                  <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, lineHeight: 22 }}>Thank you for your patience. We will notify you with the details shortly. Your understanding is greatly appreciated</Text>
+                </View>
+
+                <TouchableOpacity onPress={() => requestSubmitClick()}
+                  style={{ width: '95%', height: 45, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
+                  {updateLoader ? (
+                    <ActivityIndicator color={Color.white} />
+                  ) : (
+                    <Text
+                      style={{
+                        textAlign: 'center',
+                        fontSize: 13,
+                        color: Color.white,
+                        fontFamily: Poppins.Medium,
+                      }}>
+                      Submit
+                    </Text>
+                  )}
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={() => feedbackSubmitClick()}
-                style={{ width: '95%', height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
-                {updateLoader ? (
-                  <ActivityIndicator color={Color.white} />
-                ) : (
-                  <Text
-                    style={{
-                      textAlign: 'center',
-                      fontSize: 14,
-                      color: Color.white,
-                      fontFamily: Poppins.Medium,
-                    }}>
-                    Submit
-                  </Text>
-                )}
-              </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
-
-      <Modal visible={requestModal} transparent animationType="slide">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: Color.transparantBlack,
-            justifyContent: 'center',
-            padding: 15, backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          }}>
-          <View
-            style={{
-              backgroundColor: 'white',
-              padding: 1,
-              borderRadius: 10,
-            }}>
-
-            <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
-              <Text style={{ width: '100%', fontSize: 18, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20, paddingVertical: 10 }}>Request Property</Text>
-
-              <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', marginVertical: 30 }}>
-                <Image
-                  source={require('../../assets/image/guide.png')}
-                  style={{ width: '80%', height: 60, resizeMode: 'contain', padding: 2, }}
-                />
-              </View>
-
-              <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 10 }}>
-                <Text style={{ textAlign: 'justify', fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.SemiBold, letterSpacing: 0.5, lineHeight: 22 }}>Thank you for your patience. We will notify you with the details shortly. Your understanding is greatly appreciated</Text>
-              </View>
-
-              <TouchableOpacity onPress={() => requestSubmitClick()}
-                style={{ width: '95%', height: 45, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
-                {updateLoader ? (
-                  <ActivityIndicator color={Color.white} />
-                ) : (
-                  <Text
-                    style={{
-                      textAlign: 'center',
-                      fontSize: 13,
-                      color: Color.white,
-                      fontFamily: Poppins.Medium,
-                    }}>
-                    Submit
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-    </SafeAreaView>
-  );
+        </Modal>
+      </SafeAreaView>);
 };
 
 const styles = StyleSheet.create({

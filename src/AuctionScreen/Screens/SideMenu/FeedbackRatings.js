@@ -41,7 +41,6 @@ const FeedbackRatings = () => {
         state => state.UserReducer.auctionUserData,
     );
     var { id, name, email, phone_number, state, district } = Auction_userData;
-    console.log("user_id ================== : ", id);
 
 
     const starImageCorner = Media.starOutline;
@@ -78,8 +77,6 @@ const FeedbackRatings = () => {
     ]);
 
     const handleRatingPress = item => {
-        console.log("Item ------------- : ", item);
-
         if (defaultRating === item) {
             setDefaultRating(null);
         } else {
@@ -98,8 +95,6 @@ const FeedbackRatings = () => {
                 };
 
                 const feedbackresponse = await fetchData.Auction_feedbackData(data);
-                console.log("SUCCESS ------------- :", feedbackresponse);
-
                 if (feedbackresponse?.status == true) {
                     common_fn.showToast(feedbackresponse?.message);
                     navigation.navigate("ActionHome");
@@ -110,7 +105,6 @@ const FeedbackRatings = () => {
 
             } else {
                 common_fn.showToast("Please select your rating and enter your comments");
-                console.log("********Please fill the details *************");
             }
 
         } catch (error) {
@@ -195,8 +189,8 @@ const FeedbackRatings = () => {
                             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                             keyboardVerticalOffset={100}>
                             <TouchableOpacity onPress={() => feedbackSubmitClick()}
-                                style={{ width: scr_width, height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 5 }}>
-                                <Text style={{ fontSize: 14, color: Color.white }}>Submit</Text>
+                                style={{ width: scr_width - 50, height: 50, backgroundColor: Color.primary, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginVertical: 5 }}>
+                                <Text style={{ fontSize: 14, color: Color.white, fontFamily: Poppins.Regular }}>Submit</Text>
                             </TouchableOpacity>
                         </KeyboardAvoidingView>
                     </View>
@@ -229,7 +223,8 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: Color.black,
         textAlignVertical: 'top',
-        maxHeight: 150
+        maxHeight: 150,
+        fontFamily: Poppins.Regular
     },
     scrollContent: {
         flexGrow: 1, // Ensures the content can grow and scroll when necessary

@@ -95,6 +95,7 @@ const ActionSelect = ({ navigation }) => {
                   dispatch(setLoginType('properties'));
                 } else {
                   navigation.replace('ActionLogin');
+                  // navigation.navigate('LoginWithEmail')
                   dispatch(setLoginType('Auction'));
                 }
               }}

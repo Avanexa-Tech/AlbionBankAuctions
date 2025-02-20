@@ -113,7 +113,6 @@ const AuctionSearchScreen = ({ navigation }) => {
     setTimeout(async () => {  // Ensures state updates before fetching new data
       try {
         const defaultData = await fetchData.get_Auction(""); // Fetch without search filter
-        console.log("defaultData ----------------- : ", defaultData);
         setAuctionData(defaultData);
       } catch (error) {
         console.error('Error fetching default data:', error);
@@ -141,8 +140,9 @@ const AuctionSearchScreen = ({ navigation }) => {
           borderWidth: 1,
           borderColor: Color.primary,
           color: Color.black,
+          fontFamily:Poppins.Regular
         }}
-        inputStyle={{ fontSize: 14, color: Color.black }}
+        inputStyle={{ fontSize: 12, color: Color.black,fontFamily:Poppins.Regular }}
         iconColor={Color.cloudyGrey}
         clearIcon="close"  // Default clear icon
         onIconPress={clearSearch} // Call function on clear
@@ -206,6 +206,7 @@ const AuctionSearchScreen = ({ navigation }) => {
                 borderRadius: 5,
                 marginVertical: 10,
                 color: Color.primary,
+                fontFamily:Poppins.Regular
               }}>
               No Properties Found
             </Text>

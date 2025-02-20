@@ -7,7 +7,6 @@ const height = Dimensions.get('window').height;
 
 const MessagesList = ({ messages, Categories, Questions, Responses, setMessages }) => {
   const scrollView = useRef();
-  console.log(Questions[messages], Responses[messages]);
   return (
     <ScrollView
       style={{ backgroundColor: 'white', height: height / 1.2 }}

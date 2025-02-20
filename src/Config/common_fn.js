@@ -622,7 +622,6 @@ const common_fn = {
       };
 
       const file = await RNHTMLtoPDF.convert(options);
-      console.log('file', file);
 
       // downloadPath = downloadPath || RNFetchBlob.fs.dirs.DownloadDir;
       // console.log('Download Path:', downloadPath);

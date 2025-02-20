@@ -31,8 +31,6 @@ const SplashScreen = ({ navigation }) => {
 
   const setNetInfo = () => {
     NetInfo.fetch().then(state => {
-      console.log("setLoading", state?.isConnected);
-
       setLoading(state.isConnected);
     });
   };
@@ -90,8 +88,6 @@ const SplashScreen = ({ navigation }) => {
       const action_value = await AsyncStorage.getItem('action_user_data');
       const value = await AsyncStorage.getItem('user_data');
 
-      console.log('value !== ============', value);
-
       if (!value && !action_value) {
         replace('OnboardingScreen2');
         return;
@@ -102,6 +98,7 @@ const SplashScreen = ({ navigation }) => {
         const { user_id } = JSON.parse(value);
         if (user_id === '0') {
           replace('ActionLogin');
+          // replace('LoginWithEmail')
         } else {
           dispatch(setUserData(JSON.parse(value)));
           replace('ActionHome');
@@ -111,6 +108,7 @@ const SplashScreen = ({ navigation }) => {
         const { id } = JSON.parse(action_value);
         if (id === '0') {
           replace('ActionLogin');
+          // replace('LoginWithEmail')
         } else {
           dispatch(setActionUserData(JSON.parse(action_value)));
           replace('ActionHome');

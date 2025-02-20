@@ -2,12 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
   LogBox,
   StatusBar,
-  View,
-  Image,
-  TouchableOpacity,
-  Alert,
-  Pressable,
-  BackHandler,
+  View, TouchableOpacity,
+  Alert, BackHandler
 } from 'react-native';
 import { NavigationContainer, useNavigation, useNavigationState } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -15,14 +11,12 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import CustomDrawerContent from './Components/Nav/CustomDrawerContent';
 import Color from './Config/Color';
 import SplashScreen from './Splash';
-import { Provider, useDispatch, useSelector } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import Store from './Redux/Store';
 import Icon from 'react-native-vector-icons/Ionicons';
-import F5Icon from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Provider as PaperProvider } from 'react-native-paper';
 import OnboardingScreen2 from './Screens/Onboarding/OnboardingScreen2';
-import { Poppins } from './Global/FontFamily';
 import ActionSelect from './ActionSelect';
 import LoginScreen from './AuctionScreen/Auth/Login';
 import Register from './AuctionScreen/Auth/Register';
@@ -50,18 +44,18 @@ import AuctionProfile from './AuctionScreen/Screens/profile/AuctionProfile';
 import ChangePassword from './AuctionScreen/Auth/ChangePassword';
 import AuctionPrivacyPolicy from './AuctionScreen/Screens/SideMenu/AuctionPrivacyPolicy';
 import AuctionTermsConditions from './AuctionScreen/Screens/SideMenu/AuctionTermsConditions';
-import { navigate, navigationRef } from '../RootNavigation';
-import { setAuctionSort } from './Redux';
-import { Divider } from 'react-native-elements';
-import { Modal } from 'react-native';
-import { Text } from 'react-native';
-import AlbionPrime from './AuctionScreen/Screens/AuctionPrime';
+import { navigationRef } from '../RootNavigation';
 import SubscriptionDetails from './AuctionScreen/Screens/SubscriptionDetails';
 import AuctionPrime from './AuctionScreen/Screens/AuctionPrime';
 import FeedbackRatings from './AuctionScreen/Screens/SideMenu/FeedbackRatings';
 import AuctionEditProfile from './AuctionScreen/Screens/profile/AuctionEditProfile';
 import InvoiceList from './AuctionScreen/Screens/SideMenu/InvoiceList';
 import ForegroundHandler from './Components/pushNotify/ForegroundHandler';
+import ListNotifyProperties from './AuctionScreen/Screens/SideMenu/ListNotifyProperties';
+import LoginWithEmail from './AuctionScreen/Auth/LoginWithEmail';
+import { Poppins } from './Global/FontFamily';
+import DeleteProfile from './AuctionScreen/Screens/profile/DeleteProfile';
+
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -81,6 +75,7 @@ const MyDrawer = () => {
       },
     },
   };
+
 
   useEffect(() => {
     const handleInitialUrl = async () => {
@@ -213,6 +208,11 @@ const MainApp = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="LoginWithEmail"
+          component={LoginWithEmail}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="ActionRegister"
           component={Register}
           options={{ headerShown: false }}
@@ -302,7 +302,7 @@ const MainApp = () => {
           component={ListScreen}
           options={({ navigation, route }) => ({
             headerTitle: 'Auction List',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily: Poppins.SemiBold },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -412,7 +412,7 @@ const MainApp = () => {
           component={CategoriesList}
           options={({ navigation, route }) => ({
             headerTitle: 'Categories List',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -431,7 +431,7 @@ const MainApp = () => {
           component={AuctionSearchScreen}
           options={({ navigation, route }) => ({
             headerTitle: 'Search',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -450,7 +450,7 @@ const MainApp = () => {
           component={AuctionOTPScreen}
           options={({ navigation, route }) => ({
             headerTitle: 'Enter OTP',
-            headerTitleStyle: { color: Color.white, paddingHorizontal: 20 },
+            headerTitleStyle: { color: Color.white, paddingHorizontal: 20, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: null,
             // headerLeft: () => (
@@ -470,7 +470,7 @@ const MainApp = () => {
           component={AuctionAboutUs}
           options={({ navigation, route }) => ({
             headerTitle: 'About Us',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -489,7 +489,7 @@ const MainApp = () => {
           component={AuctionContactUs}
           options={({ navigation, route }) => ({
             headerTitle: 'Contact Us',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -509,7 +509,7 @@ const MainApp = () => {
           component={AuctionFAQs}
           options={({ navigation, route }) => ({
             headerTitle: 'FAQs',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -529,7 +529,7 @@ const MainApp = () => {
           component={FeedbackRatings}
           options={({ navigation, route }) => ({
             headerTitle: 'Feedback & Ratings',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -549,7 +549,7 @@ const MainApp = () => {
           component={AuctionNotificationList}
           options={({ navigation, route }) => ({
             headerTitle: 'Notification List',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -569,7 +569,7 @@ const MainApp = () => {
           component={AuctionPrime}
           options={({ navigation, route }) => ({
             headerTitle: 'Auction Prime ',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white,fontFamily:Poppins?.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -588,7 +588,26 @@ const MainApp = () => {
           component={AuctionNotifyProperties}
           options={({ navigation, route }) => ({
             headerTitle: 'Notify Property ',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
+            headerStyle: { backgroundColor: Color.primary },
+            headerLeft: () => (
+              <View style={{ marginHorizontal: 10 }}>
+                <Icon
+                  name="arrow-back"
+                  size={30}
+                  color={Color.white}
+                  onPress={() => navigation.goBack()}
+                />
+              </View>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="ListNotifyProperties"
+          component={ListNotifyProperties}
+          options={({ navigation, route }) => ({
+            headerTitle: 'Notify Property ',
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -608,7 +627,7 @@ const MainApp = () => {
           component={SubscriptionDetails}
           options={({ navigation, route }) => ({
             headerTitle: 'Subscription Details',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -628,7 +647,7 @@ const MainApp = () => {
           component={InterestedProperties}
           options={({ navigation, route }) => ({
             headerTitle: 'Interested Properties',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -648,7 +667,7 @@ const MainApp = () => {
           component={AdvanceSearch}
           options={({ navigation, route }) => ({
             headerTitle: 'Advanced Search',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -662,13 +681,31 @@ const MainApp = () => {
             ),
           })}
         />
-
         <Stack.Screen
           name="InvoiceList"
           component={InvoiceList}
           options={({ navigation, route }) => ({
             headerTitle: 'Invoice List',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
+            headerStyle: { backgroundColor: Color.primary },
+            headerLeft: () => (
+              <View style={{ marginHorizontal: 10 }}>
+                <Icon
+                  name="arrow-back"
+                  size={30}
+                  color={Color.white}
+                  onPress={() => navigation.goBack()}
+                />
+              </View>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="DeleteProfile"
+          component={DeleteProfile}
+          options={({ navigation, route }) => ({
+            headerTitle: 'Others',
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -687,7 +724,7 @@ const MainApp = () => {
           component={AuctionProfile}
           options={({ navigation, route }) => ({
             headerTitle: 'Your Auction Profile',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white,fontFamily:Poppins?.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -706,7 +743,7 @@ const MainApp = () => {
           component={AuctionEditProfile}
           options={({ navigation, route }) => ({
             headerTitle: 'Edit Profile',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white,fontFamily:Poppins?.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -726,7 +763,7 @@ const MainApp = () => {
           component={AuctionPrivacyPolicy}
           options={({ navigation, route }) => ({
             headerTitle: 'Privacy Policy',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -746,7 +783,7 @@ const MainApp = () => {
           component={AuctionTermsConditions}
           options={({ navigation, route }) => ({
             headerTitle: 'Terms & Conditions',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>
@@ -766,7 +803,7 @@ const MainApp = () => {
           component={ChangePassword}
           options={({ navigation, route }) => ({
             headerTitle: 'Change Password',
-            headerTitleStyle: { color: Color.white },
+            headerTitleStyle: { color: Color.white, fontFamily:Poppins.Medium },
             headerStyle: { backgroundColor: Color.primary },
             headerLeft: () => (
               <View style={{ marginHorizontal: 10 }}>

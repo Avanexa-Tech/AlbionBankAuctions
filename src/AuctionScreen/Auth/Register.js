@@ -39,6 +39,7 @@ const Register = ({ navigation }) => {
   const [currentDistrict, setCurrentDistrict] = useState({});
   const [state, setState] = useState([]);
   const [district, setDistrict] = useState([]);
+  const [loader,setloader]=useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   // Fetch states when the component mounts
@@ -56,7 +57,6 @@ const Register = ({ navigation }) => {
   const fetchStates = async () => {
     try {
       const getState = await fetchData.Auction_getState({});
-      console.log("STATE ----------------- :", getState);
       setState(getState);
     } catch (error) {
       console.log('Error fetching states: ', error);
@@ -66,9 +66,7 @@ const Register = ({ navigation }) => {
   const fetchDistricts = async () => {
     try {
       const districtData = `state=${currentState?.id}`;
-      console.log("districtData ----------------- :", districtData);
       const get_district = await fetchData.Auction_getDistrict(districtData);
-      console.log("DISTRICT ----------------- :", get_district);
       setDistrict(get_district);
     } catch (error) {
       console.log('Error fetching districts: ', error);
@@ -136,7 +134,7 @@ const Register = ({ navigation }) => {
       setDistrictError(false);
     }
     if (!password.trim()) {
-      var msg = 'Please Enter Your Password';
+      var msg = 'Please Enter Your Address';
       setPasswordError(msg);
       return;
     } else {
@@ -162,6 +160,11 @@ const Register = ({ navigation }) => {
         state: currentState?.name,
         district: currentDistrict?.name,
       };
+      var payload = {
+        email: email?.toLowerCase(),
+        phone_number: number
+      };
+      
       if (
         username?.trimStart().trimEnd() &&
         number != '' &&
@@ -170,15 +173,18 @@ const Register = ({ navigation }) => {
         currentDistrict?.name != '' &&
         currentState?.name != ''
       ) {
-        const Auction_register = await fetchData.Auction_register(data);
+        // const Auction_register = await fetchData.Auction_register(data);        
+        const Auction_register = await fetchData.Auction_register(payload);
         if (Auction_register?.isRegistered == true) {
-          navigation.replace('AuctionOTPScreen', {
+          
+          navigation.navigate('AuctionOTPScreen', {
             data: data,
             register: Auction_register,
           });
           // navigation.replace("ActionLogin")
+          // navigation.navigate('LoginWithEmail')
           if (Platform.OS === 'android') {
-            common_fn.showToast(Auction_register?.message);
+            common_fn.showToast("OTP sent successfully to your WhatsApp number!");
           } else {
             alert(Auction_register?.message)
           }
@@ -191,7 +197,7 @@ const Register = ({ navigation }) => {
         }
       } else {
         if (Platform.OS === 'android') {
-          common_fn.showToast('Invalid Mobile Number Or Email ID');
+          // common_fn.showToast('This field is required. Please fill it out.');
         } else {
           alert('Invalid Mobile Number Or Email ID')
         }
@@ -212,6 +218,7 @@ const Register = ({ navigation }) => {
   function handleBackButtonClick() {
     if (routeName.name == "ActionRegister") {
       navigation.replace('ActionLogin');
+      // navigation.navigate('LoginWithEmail')
       return true;
     }
     return false;
@@ -267,12 +274,12 @@ const Register = ({ navigation }) => {
                 color: Color.lightBlack,
                 marginVertical: 5,
               }}>
-              Phone Number
+             Whatsapp Number
             </Text>
             <View style={styles.phoneView}>
               <Text style={styles.PhoneCodeText}>+91</Text>
               <TextInput
-                placeholder="Enter your Number"
+                placeholder="Enter your whatsapp Number"
                 placeholderTextColor={Color.cloudyGrey}
                 maxLength={10}
                 value={number}
@@ -300,6 +307,7 @@ const Register = ({ navigation }) => {
             <TextInput
               placeholder="Email"
               value={email}
+              autoCapitalize='none'
               placeholderTextColor={Color.cloudyGrey}
               onChangeText={value => setEmail(value)}
               textContentType="emailAddress"
@@ -331,13 +339,18 @@ const Register = ({ navigation }) => {
                 fontSize: 14,
                 color: Color.black,
                 marginHorizontal: 10,
+                fontFamily: Poppins.Light,
+                width:"100%"
               }}
               selectedTextStyle={{
                 fontSize: 14,
                 color: Color.black,
+                fontFamily: Poppins.Light,
+                width:"100%"
               }}
               iconStyle={{ width: 20, height: 20 }}
-              itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
+              itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey,fontFamily: Poppins.Light,
+                width:"100%" }}
               data={state}
               maxHeight={250}
               labelField="name"
@@ -385,14 +398,19 @@ const Register = ({ navigation }) => {
                 fontSize: 14,
                 color: !currentState?.name ? Color.lightgrey : Color.black,
                 marginHorizontal: 10,
+                fontFamily: Poppins.Light,
+                width:"100%"
               }}
               disable={!currentState?.name}
               selectedTextStyle={{
                 fontSize: 14,
                 color: Color.black,
+                fontFamily: Poppins.Light,
+                width:"100%"
               }}
               iconStyle={{ width: 20, height: 20 }}
-              itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
+              itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey,fontFamily: Poppins.Light,
+                width:"100%" }}
               data={district}
               maxHeight={200}
               labelField="name"
@@ -421,23 +439,22 @@ const Register = ({ navigation }) => {
             <Text
               style={{
                 fontFamily: Poppins.Medium,
-                fontSize: 12,
+                fontSize: 14,
                 color: Color.lightBlack,
                 marginVertical: 5,
               }}>
-              Password
+             Address
             </Text>
             <View style={styles.NumberBoxConatiner}>
               <TextInput
-                placeholder="Password"
+                placeholder="Address"
                 value={password}
                 placeholderTextColor={Color.cloudyGrey}
                 onChangeText={value => setPassword(value)}
                 textContentType="password"
-                secureTextEntry={!passwordVisible}
                 style={styles.numberTextBox}
               />
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 onPress={() => setPasswordVisible(!passwordVisible)}
                 style={{ position: 'absolute', right: 20 }}>
                 <FIcon
@@ -445,7 +462,7 @@ const Register = ({ navigation }) => {
                   color={password?.length > 0 ? Color.black : Color.white}
                   size={18}
                 />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
             {passworderror && (
               <Text style={styles.errorMsg}>{passworderror}</Text>
@@ -471,7 +488,7 @@ const Register = ({ navigation }) => {
             </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('ActionLogin')}>
-              <Text style={styles.DemoText}>login</Text>
+              <Text style={styles.DemoText}>Login</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -510,7 +527,8 @@ const styles = StyleSheet.create({
     color: Color.black,
     marginVertical: 10,
     fontSize: 12,
-    fontFamily: Poppins.Medium,
+    fontFamily: Poppins.Light,
+      width:"100%"
   },
   ImageView: { width: 300, height: 200, resizeMode: 'contain' },
   Container: { padding: 10 },
@@ -528,6 +546,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     color: Color.black,
     padding: 10,
+    fontFamily: Poppins.Light,
+    width:"100%"
   },
   phoneView: {
     borderColor: Color.cloudyGrey,
@@ -549,6 +569,8 @@ const styles = StyleSheet.create({
     color: Color.black,
     borderLeftWidth: 1,
     marginVertical: 10,
+    fontFamily: Poppins.Light,
+    width:"100%"
   },
   EmailTextInput: {
     height: 45,
@@ -558,6 +580,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     color: Color.black,
     padding: 10,
+    fontFamily: Poppins.Light,
+    width:"100%"
   },
   AddressTextInput: {
     height: 100,

@@ -1,11 +1,9 @@
 // export const baseUrl = 'https://backend.albionpropertyhub.com/';
-export const baseUrl = 'http://13.127.95.5:5000/';
-
-// export const baseUrl = 'https://grance.in/albion/';
-// export const base_auctionUrl = 'https://api.albionbankauctions.com/';    // Live URL
-// export const base_auctionUrl = 'http://13.127.95.5:5000/';
-export const base_auctionUrl = 'http://13.127.95.5:5000/';    // Live URL
-// export const base_auctionUrl = 'http://192.168.29.204:5000/';       //Local URL
+export const baseUrl = 'https://testapi.albionbankauctions.com/';
+// export const baseUrl = 'https://z2vmn311-5001.inc1.devtunnels.ms/';
+// export const baseUrl = 'https://tsxbx5nz-5000.inc1.devtunnels.ms/';
+// export const baseUrl = 'https://api.albionbankauctions.com/';    // Live URL
+// export const baseUrl = 'http://192.168.29.204:5000/';       //Local URL
 export const base_geolocation_Url = 'https://avanexa.in/';
 export const base_image_properties =
   'https://backend.albionpropertyhub.com/uploads/properties/';

@@ -226,7 +226,6 @@ const AuctionContactUs = () => {
     }, []);
 
     const handleRatingPress = item => {
-        console.log("Item ------------- : ", item);
 
         if (defaultRating === item) {
             setDefaultRating(null);
@@ -247,7 +246,6 @@ const AuctionContactUs = () => {
                 };
 
                 const feedbackresponse = await fetchData.Auction_feedbackData(data);
-                console.log("SUCCESS ------------- :", feedbackresponse);
 
                 if (feedbackresponse?.status == true) {
                     common_fn.showToast(feedbackresponse?.message);
@@ -262,7 +260,6 @@ const AuctionContactUs = () => {
             } else {
                 common_fn.showToast("Please select your rating and enter your comments");
                 setUpdateLoader(false);
-                console.log("********Please fill the details *************");
             }
 
         } catch (error) {
@@ -428,7 +425,6 @@ const AuctionContactUs = () => {
                     message: message
                 };
                 const contactresponse = await fetchData.Auction_contactData(data);
-                console.log("CONTACT SUCCESS ------------- :", contactresponse);
                 if (contactresponse?.status == true) {
                     common_fn.showToast(contactresponse?.message);
                     setHomeLoanVisible(true);
@@ -497,9 +493,9 @@ const AuctionContactUs = () => {
                                         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
                                             <Text style={{ fontSize: 20, color: primarycolor, fontFamily: 'Poppins-Bold' }}>Bank Auctions simplified</Text>
                                         </View>
-                                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-SemiBold', lineHeight: 25, paddingVertical: 10 }}>Albion portal is the right place to find foreclosed properties listed by leading private and public banks</Text>
-                                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-SemiBold', lineHeight: 25 }}>As a most trusted eAcution portal we make it possible for you to own a property.</Text>
-                                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-SemiBold', lineHeight: 25, paddingVertical: 10 }}>Experience effortless bidding in an easy-to-use and legally safe eAuction platform.</Text>
+                                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Medium', lineHeight: 25, paddingVertical: 10 }}>Albion portal is the right place to find foreclosed properties listed by leading private and public banks</Text>
+                                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Medium', lineHeight: 25 }}>As a most trusted eAcution portal we make it possible for you to own a property.</Text>
+                                        <Text style={{ fontSize: 14, color: '#333', fontFamily: 'Poppins-Medium', lineHeight: 25, paddingVertical: 10 }}>Experience effortless bidding in an easy-to-use and legally safe eAuction platform.</Text>
                                     </View>
 
                                     <View style={{ width: '95%', alignItems: 'center' }}>
@@ -940,6 +936,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         color: Color.black,
         padding: 10,
+        fontFamily:Poppins.Medium
     },
     phoneView: {
         borderColor: Color.cloudyGrey,

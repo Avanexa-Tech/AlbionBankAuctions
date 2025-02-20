@@ -74,6 +74,7 @@ const OnboardingScreen2 = ({ navigation }) => {
             // navigation.navigate('ActionSelect');
 
             navigation.replace('ActionLogin');
+            // navigation.replace('LoginWithEmail');
             dispatch(setLoginType('Auction'));
           }}
         />

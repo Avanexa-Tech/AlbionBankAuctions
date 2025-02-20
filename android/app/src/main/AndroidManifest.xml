@@ -40,5 +40,17 @@
           <data android:scheme="albion" />
         </intent-filter>  
       </activity>
+      <service
+            android:name=".MyService"
+            android:exported="false">
+        </service>
+
+        <receiver
+            android:name=".MyReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.ACTION" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

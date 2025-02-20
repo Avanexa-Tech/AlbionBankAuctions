@@ -188,7 +188,6 @@ const PlanPurchase = props => {
   };
 
   const paymentDetails = async () => {
-    console.log("Razorpay=========");
 
     // const paymentData = {
     //   user_id: user_id,
@@ -1261,7 +1260,6 @@ export const AgentPlanPurchase = props => {
   };
 
   const paymentDetails = async () => {
-    console.log("details -------");
 
     // const paymentData = {
     //   user_id: user_id,

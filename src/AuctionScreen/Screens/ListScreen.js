@@ -9,7 +9,8 @@ import {
   BackHandler,
   Animated,
   TextInput,
-  Modal, ActivityIndicator
+  Modal, ActivityIndicator,
+  useColorScheme
 } from 'react-native';
 import DatePicker from 'react-native-ui-datepicker';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -23,7 +24,7 @@ import { Poppins } from '../../Global/FontFamily';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import fetchData from '../../Config/fetchData';
-import { base_auction_image_url } from '../../Config/base_url';
+import { base_auction_image_url, baseUrl } from '../../Config/base_url';
 import { Categories } from './Content';
 import AuctionItemCard from '../Auctioncomponents/AuctionItemCard';
 import { useRoute } from '@react-navigation/native';
@@ -32,29 +33,25 @@ import common_fn from '../../Config/common_fn';
 import dayjs from 'dayjs';
 import { Alert } from 'react-native';
 import { enGB } from 'date-fns/locale';
+import { Iconviewcomponent } from '../../Components/Icontag';
+import { ScrollView } from 'react-native-gesture-handler';
 
 
 const { height } = Dimensions.get('screen');
 
 const ListScreen = ({ navigation, route }) => {
+  const colorScheme = useColorScheme();
   const routeName = useRoute();
-  // const [property_sub_category] = useState(route.params.property_sub_category);
-  // console.log("property_sub_category -**************** :", route.params);
-
   const [property_sub_category, setPropertySubCategory] = useState(route.params.property_sub_category);
   const [event_bank, setEvent_bank] = useState(route.params.event_bank);
-  // const [selectProperty, setSelectProperty] = useState("");
   const [calenderVisible, setCalenderVisible] = useState(false);
   const sortdata = useSelector(state => state.PropertyReducer.AuctionSort);
   const [Location, setLocation] = useState([]);
   const [AutionFilterData, setAutionFilterData] = useState([]);
-
   const [markDates, setMarkedDates] = useState({});
   const [starttDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [loading, setLoading] = useState(false);
-  const [isStartDatePicked, setIsStartDatePicked] = useState(false);
-  const [isEndDatePicked, setIsEndDatePicked] = useState(false);
   const animatedOpacityValue = useRef(new Animated.Value(0)).current;
   const [loadMore, setLoadMore] = useState(false);
   const [endReached, setEndReached] = useState(false);
@@ -75,6 +72,8 @@ const ListScreen = ({ navigation, route }) => {
   const [AutionData, setAutionData] = useState([]);
   const [requestModal, setRequestModal] = useState(false);
   const [updateLoader, setUpdateLoader] = useState(false);
+  const [cleardata, setcleardata] = useState(false);
+  const [plan, setPlan] = useState(null);
 
   // const Auction_userData = useSelector(
   //   state => state.UserReducer.auctionUserData,
@@ -85,15 +84,10 @@ const ListScreen = ({ navigation, route }) => {
     state => state.UserReducer.auctionUserData,
   );
 
-
-  // console.log(dateRange,"<<-------------------dateRange");
-
-
   useEffect(() => {
     setLoading(true);
-    getApiData().finally(() => {
-      setLoading(false);
-    });
+    getApiData()
+    plan_CheckData()
   }, [
     // selectProperty,
     property_sub_category,
@@ -104,6 +98,38 @@ const ListScreen = ({ navigation, route }) => {
     starttDate,
     endDate
   ]);
+
+  const plan_CheckData = async () => {
+    try {
+      const myHeaders = new Headers();
+      myHeaders.append("accept", "*/*");
+
+      const requestOptions = {
+        method: "GET",
+        headers: myHeaders,
+        redirect: "follow"
+      };
+
+      // fetch(`http://192.168.29.204:5000/api/plan/user?user_id=${data?.id}`, requestOptions)
+      fetch(`${baseUrl}api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+        // fetch(`https://api.albionbankauctions.com/api/plan/user?user_id=${data?.id}&status=activated`, requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+
+          if (result?.status) {
+            setPlan(result?.data)
+            setTimeout(() => {              
+              setLoading(false);
+            }, 1000);
+          }
+        }
+        )
+        .catch((error) => {console.error(error),setLoading(false)});
+
+    } catch (error) {
+      console.log("catch in plan_CheckData_Home : ", error);
+    }
+  }
 
   // useEffect(() => {
   //   if (!property_sub_category) {
@@ -130,23 +156,18 @@ const ListScreen = ({ navigation, route }) => {
       to: dayjs(endDate).format('YYYY-MM-DD'),
     };
 
-    // console.log("payload1212 ========================= :", payload);
     for (const key in payload) {
       if (!!payload[key]) {
         params.append(key, payload[key]);
       }
     }
-    // console.log("params1212 ========================= :", params);
     const queryString = params.toString();
     const query = queryString.replace('%20', ' ');
-    // console.log("query1212 ========================= :", query);
 
     return query;
   };
 
   const getApiData = async () => {
-    // console.log(starttDate, endDate, "------------------------------>>>>>>>>>>>>>>>>>");
-
     try {
       let payload = {
         property_sub_category: property_sub_category,
@@ -161,11 +182,7 @@ const ListScreen = ({ navigation, route }) => {
         from: starttDate,
         to: endDate
       };
-
-
-      // Initialize params as a new URLSearchParams instance
       const params = new URLSearchParams();
-      // console.log(payload, "payload before structure__________________________________");
 
       for (const key in payload) {
         if (payload[key] != null && payload[key]?.toString().trim().length > 0) {
@@ -174,12 +191,10 @@ const ListScreen = ({ navigation, route }) => {
       }
 
       const queryString = params.toString();
-      const query = queryString.replace(/%20/g, ' '); // Replace all occurrences of '%20' with a space
+      const query = queryString.replace(/%20/g, ' ');
 
-      // console.log("Query ======================= :", query);
 
       const getAuction = await fetchData.get_Auction(query);
-      // console.log("resp ------------------- :", getAuction);
       setAutionData(getAuction);
 
       //get State
@@ -194,10 +209,6 @@ const ListScreen = ({ navigation, route }) => {
     }
   };
 
-
-  const datePicker = () => {
-
-  }
 
   const onDayPress = (day) => {
     let newMarkedDates = {};
@@ -356,6 +367,7 @@ const ListScreen = ({ navigation, route }) => {
         "district": currentDistrict?.name !== "" && currentDistrict?.name,
         "propertySubCategory": property_sub_category !== "" && property_sub_category
       });
+      console.log('raw', raw);
 
       const requestOptions = {
         method: "POST",
@@ -365,15 +377,21 @@ const ListScreen = ({ navigation, route }) => {
       };
 
       // console.log("Request Prop requestOptions ============== :", requestOptions);
-      fetch("https://api.albionbankauctions.com/api/auction/request-property", requestOptions)
+      const value = `${baseUrl}api/auction/request-property`;
+      console.log("value", value, "https://api.albionbankauctions.com/api/auction/request-property");
+
+      fetch(`https://api.albionbankauctions.com/api/auction/request-property`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
-          console.log("Request Prop resp ============== :", result);
           if (result?.status == true) {
-            common_fn.showToast(result?.message);
+            console.log("result", result);
+
+            common_fn.showToast("Property Requested Successfully, Thank You!");
             setRequestModal(false);
             setUpdateLoader(false);
           } else {
+            console.log("xx", result?.message);
+
             common_fn.showToast(result?.message);
             setUpdateLoader(false);
             setRequestModal(false);
@@ -382,14 +400,12 @@ const ListScreen = ({ navigation, route }) => {
         .catch((error) => console.error("catch in requestSubmitClick_api:", error));
     } catch (error) {
       setRequestModal(false);
-      console.log("catch in  requestSubmitClick================= :", error);
     }
   }
 
   const submitClick = async () => {
     try {
       const data = dataPayload();
-      console.log("payload data----------------- :", data);
 
       const submitAuction = await fetchData.get_Auction(data);
       // console.log("submitAuction res========= : ", submitAuction);
@@ -402,15 +418,12 @@ const ListScreen = ({ navigation, route }) => {
 
   const clearListClick = () => {
     try {
-      // If category is cleared, reset the bank selection
+      setcleardata(false);
       if (!property_sub_category) {
         setEvent_bank("");
       }
-
-      // If bank is cleared, reset the category (optional)
-
       setPropertySubCategory(route.params.property_sub_category);
-
+      setEvent_bank(route.params.event_bank)
       setCalenderVisible(false);
       setSelectState({});
       setCurrentDistrict({});
@@ -423,14 +436,16 @@ const ListScreen = ({ navigation, route }) => {
     }
   }
 
+
+
   return (
     <View style={{ flex: 1, backgroundColor: Color.white, alignItems: 'center', }}>
       <View
         style={{
           width: '100%',
           backgroundColor: '#FDF0F5',
-          // padding: 10, 
           alignItems: 'center',
+          position: "relative"
 
         }}>
         <View
@@ -453,17 +468,19 @@ const ListScreen = ({ navigation, route }) => {
               height: 45,
             }}
             placeholderStyle={{
-              fontSize: 12,
+              fontSize: 10,
               color: Color.cloudyGrey,
-              marginHorizontal: 10,
+              marginHorizontal: 5,
+              fontFamily: Poppins.Light
             }}
             selectedTextStyle={{
-              fontSize: 12,
+              fontSize: 10,
               color: Color.black,
-              marginHorizontal: 10,
+              marginHorizontal: 5,
+              fontFamily: Poppins.Light
             }}
             iconStyle={{ width: 20, height: 20 }}
-            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
+            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey, fontFamily: Poppins.Light }}
             data={Categories}
             maxHeight={300}
             labelField="label"
@@ -472,9 +489,8 @@ const ListScreen = ({ navigation, route }) => {
             searchPlaceholder="Search..."
             value={property_sub_category}
             onChange={item => {
-              // console.log("item ============= : ", item);
+              setcleardata(true);
               setPropertySubCategory(item?.value)
-              // setSelectProperty(item?.value);
             }}
             renderRightIcon={() => (
               <Icon
@@ -496,17 +512,19 @@ const ListScreen = ({ navigation, route }) => {
               height: 45,
             }}
             placeholderStyle={{
-              fontSize: 12,
+              fontSize: 10,
               color: Color.cloudyGrey,
-              marginHorizontal: 10,
+              marginHorizontal: 5,
+              fontFamily: Poppins.Light
             }}
             selectedTextStyle={{
-              fontSize: 12,
+              fontSize: 10,
               color: Color.black,
-              marginHorizontal: 10,
+              marginHorizontal: 5,
+              fontFamily: Poppins.Light
             }}
             iconStyle={{ width: 20, height: 20 }}
-            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
+            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey, fontFamily: Poppins.Light }}
             data={State}
             maxHeight={300}
             labelField="name"
@@ -515,7 +533,9 @@ const ListScreen = ({ navigation, route }) => {
             searchPlaceholder="Search..."
             value={selectState}
             onChange={item => {
+              setcleardata(true);
               setSelectState(item);
+              setCurrentDistrict(null)
             }}
             renderRightIcon={() => (
               <Icon
@@ -528,6 +548,7 @@ const ListScreen = ({ navigation, route }) => {
           />
           <TouchableOpacity
             onPress={() => {
+
               setCalenderVisible(!calenderVisible);
             }}>
             <MCIcon
@@ -547,21 +568,21 @@ const ListScreen = ({ navigation, route }) => {
               borderRadius: 5,
               width: '92%',
               height: 45,
-              // marginHorizontal: 10,
-              marginVertical: 5,
             }}
             placeholderStyle={{
-              fontSize: 12,
+              fontSize: 10,
               color: Color.cloudyGrey,
-              marginHorizontal: 10,
+              marginHorizontal: 5,
+              fontFamily: Poppins.Light
             }}
             selectedTextStyle={{
-              fontSize: 12,
+              fontSize: 10,
               color: Color.black,
-              marginHorizontal: 10,
+              marginHorizontal: 5,
+              fontFamily: Poppins.Light
             }}
             iconStyle={{ width: 20, height: 20 }}
-            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey }}
+            itemTextStyle={{ fontSize: 12, color: Color.cloudyGrey, fontFamily: Poppins.Light }}
             data={district}
             maxHeight={300}
             labelField="name"
@@ -570,6 +591,7 @@ const ListScreen = ({ navigation, route }) => {
             searchPlaceholder="Search..."
             value={currentDistrict}
             onChange={item => {
+              setcleardata(true);
               setCurrentDistrict(item);
             }}
             renderRightIcon={() => (
@@ -582,110 +604,247 @@ const ListScreen = ({ navigation, route }) => {
             )}
           />
         )}
-
+        <ScrollView
+          horizontal // Set to horizontal if you want horizontal scrolling
+          showsHorizontalScrollIndicator={false} // Optional: hides the horizontal scroll indicator
+          contentContainerStyle={{
+            display: "flex",
+            justifyContent: "flex-start",
+            alignItems: "flex-start",
+            borderWidth: 1,
+            borderColor: "#000",
+            minWidth: "100%",
+            gap: 5
+          }}
+        >
+          <View
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              gap: 5,
+              width: "100%",
+              flexDirection: "row",
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              overflow: "scroll"
+            }}
+          >
+            {
+              selectState?.name &&
+              <View
+                style={{
+                  backgroundColor: Color?.primary,
+                  padding: 4,
+                  paddingHorizontal: 20,
+                  borderRadius: 50,
+                  gap: 4,
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between"
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: Poppins.Light,
+                    fontSize: 12,
+                    color: Color?.white
+                  }}
+                >
+                  {selectState?.name}
+                </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectState({
+                        ...selectState,
+                        name: null
+                      });
+                      setCurrentDistrict(null)
+                    }}
+                  >
+                  <Iconviewcomponent
+                    Icontag={'MaterialCommunityIcons'}
+                    iconname={"close"}
+                    icon_size={18}
+                    icon_color={Color.white}
+                  />
+                </TouchableOpacity>
+              </View>
+            }
+            {
+              property_sub_category &&
+              <View
+                style={{
+                  backgroundColor: Color?.primary,
+                  padding: 4,
+                  paddingHorizontal: 20,
+                  borderRadius: 50,
+                  gap: 4,
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between"
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: Poppins.Light,
+                    fontSize: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    color: Color?.white
+                  }}
+                >
+                  {Categories.find(item => item.value === property_sub_category).label}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setPropertySubCategory(route.params.property_sub_category)}
+                >
+                  <Iconviewcomponent
+                    Icontag={'MaterialCommunityIcons'}
+                    iconname={"close"}
+                    icon_size={18}
+                    icon_color={Color.white}
+                  />
+                </TouchableOpacity>
+              </View>
+            }
+            {
+              currentDistrict?.name &&
+              <View
+                style={{
+                  backgroundColor: Color?.primary,
+                  padding: 4,
+                  paddingHorizontal: 20,
+                  borderRadius: 50,
+                  gap: 4,
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between"
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: Poppins.Light,
+                    fontSize: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    color: Color?.white
+                  }}
+                >
+                  {currentDistrict?.name}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setCurrentDistrict({})}
+                >
+                  <Iconviewcomponent
+                    Icontag={'MaterialCommunityIcons'}
+                    iconname={"close"}
+                    icon_size={18}
+                    icon_color={Color.white}
+                  />
+                </TouchableOpacity>
+              </View>
+            }
+            {
+              starttDate && endDate && <View
+                style={{
+                  backgroundColor: Color?.primary,
+                  padding: 4,
+                  paddingHorizontal: 20,
+                  borderRadius: 50,
+                  gap: 4,
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between"
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: Poppins.Light,
+                    fontSize: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    color: Color?.white
+                  }}
+                >
+                  {`${dayjs(starttDate).format('DD-MM-YYYY')} - ${dayjs(endDate).format('DD-MM-YYYY')}`}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setStartDate(null)
+                    setEndDate(null)
+                  }}
+                >
+                  <Iconviewcomponent
+                    Icontag={'MaterialCommunityIcons'}
+                    iconname={"close"}
+                    icon_size={18}
+                    icon_color={Color.white}
+                  />
+                </TouchableOpacity>
+              </View>
+            }
+          </View>
+        </ScrollView>
         <View style={{ width: '95%', flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
-          {/* <TouchableOpacity onPress={() => submitClick()}
-            style={{ width: '50%', height: 50, borderRadius: 5, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.primary }}>
-            <Text style={{ fontSize: 14, color: Color.white, fontFamily: Poppins.SemiBold }}>Submit</Text>
-          </TouchableOpacity> */}
           <View style={{ width: 5, height: '100%', backgroundColor: Color.white }}></View>
-          <TouchableOpacity onPress={() => clearListClick()}
-            style={{ width: '95%', height: 50, borderRadius: 5, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.primary }}>
-            <Text style={{ fontSize: 14, color: Color.white, fontFamily: Poppins.SemiBold }}>Clear</Text>
-          </TouchableOpacity>
+          {
+            !!property_sub_category || !!selectState?.name || starttDate && endDate ?
+              <TouchableOpacity onPress={() => clearListClick()}
+                style={{ width: '95%', height: 40, borderRadius: 5, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.primary }}>
+                <Text style={{ fontSize: 14, color: Color.white, fontFamily: Poppins.SemiBold }}>Clear</Text>
+              </TouchableOpacity> : null
+          }
         </View>
-        {/* <View style={{ width: '100%', marginVertical: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <TextInput
-            placeholder="Minimum Price"
-            placeholderTextColor={Color.cloudyGrey}
-            value={minAmount}
-            keyboardType="number-pad"
-            onChangeText={value => {
-              setMinAmount(value)
-            }}
-            style={{
-              flex: 1,
-              color: Color.black,
-              padding: 10,
-              width: '45%',
-              height: 45,
-              borderWidth: 1,
-              borderColor: Color.cloudyGrey,
-              backgroundColor: 'white',
-              borderRadius: 5,
-            }}
-          />
-          <View style={{ width: 2, height: '100%' }}></View>
-          <TextInput
-            placeholder="Maximum Price"
-            placeholderTextColor={Color.cloudyGrey}
-            value={maxAmount}
-            keyboardType="number-pad"
-            onChangeText={value => {
-              setMaxAmount(value)
-            }}
-            style={{
-              flex: 1,
-              color: Color.black,
-              padding: 10,
-              width: '45%',
-              height: 45,
-              borderWidth: 1,
-              borderColor: Color.cloudyGrey,
-              backgroundColor: 'white',
-              borderRadius: 5,
-            }}
-          />
-        </View> */}
       </View>
       {calenderVisible && (
         <View
           style={{
-            backgroundColor: Color.primary, // Change background here
             padding: 10, marginHorizontal: 15,
             borderRadius: 10,
             shadowColor: Color.black,
             shadowOpacity: 0.2,
             shadowRadius: 3,
             elevation: 5,
+            top: 70,
+            zIndex: 10,
+            backgroundColor: "#fff",
+            position: "absolute"
           }}>
           <DatePicker
             mode='range'
             locale={enGB}
             displayFullDays='true'
-            // headerContainerStyle={{ color: Color.primary }}
             startDate={starttDate}
+            theme="auto"
             endDate={endDate}
             onChange={(e) => {
-              // console.log(e, "6516511231221123dasdasdsdsadasdsad");
-
+              setcleardata(true);
               setStartDate(e.startDate);
               setEndDate(e.endDate);
               if (e.startDate && e.endDate) {
                 setCalenderVisible(false)
               }
-            }
-            }
-            headerContainerStyle={{
-              backgroundColor: Color.primary, // Custom header background
             }}
-            dayContainerStyle={(date) => ({
-              backgroundColor: starttDate && endDate && date >= starttDate && date <= endDate
-                ? Color.primary
-                : 'transparent',
-            })}
-            dayTextStyle={(date) => {
-              const today = new Date();
-              const isToday = date.toDateString() === today.toDateString();
-
-              return {
-                color: isToday
-                  ? Color.white // Color for today's date
-                  : starttDate && endDate && date >= starttDate && date <= endDate
-                    ? '#fff' // Color for selected dates
-                    : '#000', // Default text color
-                fontWeight: isToday ? Poppins.Bold : Poppins.Medium,
-              };
+            selectedTextStyle={{
+              fontWeight: 'bold',
+            }}
+            selectedItemColor={Color.primary}
+            headerTextStyle={{
+              color: Color.primary,
+            }}
+            weekDaysTextStyle={{
+              color: Color.primary,
+            }}
+            dayTextStyle={{
+              color: Color.primary,
+            }}
+            calendarTextStyle={{
+              color: Color.primary
             }}
           />
           {/* <Calendar
@@ -714,7 +873,6 @@ const ListScreen = ({ navigation, route }) => {
       ) : (
         <FlatList
           data={AutionData}
-          // data={AutionData.filter(item => item.id !== data?.id)}
           keyExtractor={(item, index) => item + index}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: animatedOpacityValue } } }],
@@ -722,16 +880,19 @@ const ListScreen = ({ navigation, route }) => {
           )}
           renderItem={({ item, index }) => {
             return (
-              <AuctionItemCard
-                navigation={navigation}
-                item={item}
-                index={index}
-              />
+              <>
+                <AuctionItemCard
+                  navigation={navigation}
+                  item={item}
+                  index={index}
+                  isExpired={plan[0].status == 'activated' && plan[0].plan_id > 1 ? false : true}
+                />
+              </>
             );
           }}
-          onEndReached={() => {
-            loadMoreData();
-          }}
+          // onEndReached={() => {
+          //   loadMoreData();
+          // }}
           onEndReachedThreshold={0.1}
           ListFooterComponent={() => {
             return (
@@ -791,7 +952,6 @@ const ListScreen = ({ navigation, route }) => {
           style={{ width: '95%', }}
         />
       )}
-
       <Modal visible={requestModal} transparent animationType="slide">
         <View
           style={{
@@ -808,11 +968,25 @@ const ListScreen = ({ navigation, route }) => {
             }}>
 
             <View style={{ width: '100%', justifyContent: 'flex-start', alignItems: 'center' }}>
-              <Text style={{ width: '100%', fontSize: 20, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20, paddingVertical: 10 }}>Request This Property</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingRight: 25 }}>
+                <Text style={{ width: '100%', fontSize: 20, color: Color.black, fontFamily: Poppins.SemiBold, paddingHorizontal: 20, paddingVertical: 10 }}>Request This Property</Text>
+                <TouchableOpacity onPress={() => {
+                  setRequestModal(false);
+                }}>
+                  <Iconviewcomponent
+                    Icontag={'AntDesign'}
+                    iconname={"closecircleo"}
+                    icon_size={25}
+                    icon_color={Color.black}
+                  />
+                </TouchableOpacity>
+              </View>
 
               <View style={{ width: '95%', justifyContent: 'flex-start', alignItems: 'center', marginVertical: 10, }}>
                 <Text style={{ fontSize: 14, color: Color.cloudyGrey, fontFamily: Poppins.Medium, letterSpacing: 0.5, lineHeight: 22 }}>Thank you for your request! We will notify you shortly with the details of
-                  <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}> {property_sub_category}</Text> properties in
+                  <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}> {property_sub_category?.split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')}</Text> properties in
                   <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{' '}{selectState?.name} {' '}</Text>
                   <Text style={{ fontSize: 16, color: Color.black, fontFamily: Poppins.SemiBold, letterSpacing: 0.5 }}>{currentDistrict?.name}</Text>.
                   We greatly appreciate your patience</Text>

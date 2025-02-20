@@ -30,250 +30,11 @@ const DismissKeyboard = ({ children }) => (
     {children}
   </TouchableWithoutFeedback>
 );
-
-// const LoginScreen = ({ navigation }) => {
-//   const routeName = useRoute();
-//   const [emailNumber, setEmailNumber] = useState('');
-//   const [Password, setPassword] = useState('');
-//   const [error, setError] = useState(false);
-//   const [errorPassword, setErrorPassword] = useState(false);
-//   const [uniqueId, setUniqueId] = useState(false);
-//   const [userInfo, setUserInfo] = useState(false);
-//   const [passwordVisible, setPasswordVisible] = useState(false);
-//   const userData = useSelector(state => state.UserReducer.userData);
-//   var { user_id, username, mobile_number } = userData;
-
-//   const dispatch = useDispatch();
-//   useEffect(() => {
-//     DeviceInfo.getUniqueId().then(uniqueId => {
-//       setUniqueId(uniqueId);
-//     });
-//   }, [uniqueId]);
-
-//   function handleBackButtonClick() {
-//     if (routeName.name == "ActionLogin") {
-//       navigation.replace('ActionSelect');
-//       return true;
-//     }
-//     return false;
-//   }
-
-//   useEffect(() => {
-//     const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButtonClick);
-//     return () => backHandler.remove();
-//   }, [routeName.name, navigation]);
-
-//   const chkNumberError = value => {
-//     let reg = /^[6-9][0-9]*$/;
-
-//     if (value.length === 0) {
-//       setError('Enter Your Email or Mobile Number');
-//     } else if (reg.test(value) === false) {
-//       setError(false);
-//     } else if (reg.test(value) === true) {
-//       setError('');
-//     }
-//   };
-//   const chkPassword = value => {
-//     let reg = /^[6-9][0-9]*$/;
-
-//     if (value.length === 0) {
-//       setErrorPassword('Enter Your Password');
-//     } else if (reg.test(value) === false) {
-//       setErrorPassword(false);
-//     } else if (reg.test(value) === true) {
-//       setErrorPassword('');
-//     }
-//   };
-//   const login = async (navigation) => {
-//     try {
-//       var data = {
-//         username: "8428084814",
-//         password: "suhail@123",
-//       };
-//       if (emailNumber?.trimStart().trimEnd() && Password != '') {
-//         const Auction_login = await fetchData.Auction_login(data);
-//         // console.log("Login ============= ", Auction_login)
-
-//         if (Auction_login?.isLoggedin == true) {
-//           dispatch(setActionUserData(Auction_login?.user));
-//           dispatch(setLoginType('Auction'));
-//           await AsyncStorage.setItem(
-//             'action_user_data',
-//             JSON.stringify(Auction_login?.user),
-//           );
-//           await AsyncStorage.setItem(
-//             'action_login_type',
-//             JSON.stringify({ login_type: 'Auction' }),
-//           );
-//           navigation.replace('ActionHome', Auction_login?.user);
-//           if (Platform.OS === 'android') {
-//             common_fn.showToast(Auction_login?.message);
-//           } else {
-//             alert(Auction_login?.message)
-//           }
-
-//         } else {
-//           if (Platform.OS === 'android') {
-//             common_fn.showToast(Auction_login?.message);
-//           } else {
-//             alert(Auction_login?.message)
-//           }
-//         }
-//       } else {
-//         if (Platform.OS === 'android') {
-//           common_fn.showToast('Invalid Mobile Number Or Email ID');
-//         } else {
-//           alert('Invalid Mobile Number Or Email ID')
-//         }
-//       }
-//     } catch (error) {
-//       console.log('error', error);
-//     }
-//   };
-
-//   return (
-//     // <DismissKeyboard>
-//     <View
-//       style={{
-//         flex: 1,
-//         backgroundColor: Color.white,
-//         padding: 20,
-//         justifyContent: 'center',
-//       }}>
-//       <View
-//         style={{
-//           alignItems: 'center',
-//         }}>
-//         <Image
-//           source={{ uri: Media.logo }}
-//           style={{ width: 100, height: 100, resizeMode: 'contain' }}
-//         />
-//       </View>
-//       <View
-//         style={{
-//           marginVertical: 20,
-//         }}>
-//         <Text
-//           style={{
-//             fontFamily: 'Poppins-SemiBold',
-//             fontSize: 20,
-//             fontWeight: 'bold',
-//             textAlign: 'left',
-//             color: Color.black,
-//             marginRight: 10,
-//             marginVertical: 10,
-//           }}>
-//           Login to your Account
-//         </Text>
-//         <View style={{ marginVertical: 5 }}>
-//           <Text
-//             style={{
-//               fontFamily: Poppins.Medium,
-//               fontSize: 14,
-//               color: Color.cloudyGrey,
-//               marginVertical: 5,
-//             }}>
-//             Email/Enter Mobile Number
-//           </Text>
-//           <View style={styles.NumberBoxConatiner}>
-//             <TextInput
-//               placeholder="Enter your Mobile Number"
-//               placeholderTextColor={Color.cloudyGrey}
-//               value={emailNumber}
-//               onChangeText={value => {
-//                 setEmailNumber(value);
-//                 // chkNumberError(value);
-//               }}
-//               maxLength={10}
-//               style={styles.numberTextBox}
-//             />
-//           </View>
-//           {error && <Text style={styles.invalidLogin}>{error}</Text>}
-//         </View>
-//         <View style={{ marginVertical: 5 }}>
-//           <Text
-//             style={{
-//               fontFamily: Poppins.Medium,
-//               fontSize: 14,
-//               color: Color.cloudyGrey,
-//               marginVertical: 5,
-//             }}>
-//             Password
-//           </Text>
-//           <View style={styles.NumberBoxConatiner}>
-//             <TextInput
-//               placeholder="Enter your Password"
-//               placeholderTextColor={Color.cloudyGrey}
-//               value={Password}
-//               onChangeText={value => {
-//                 setPassword(value);
-//                 chkPassword(value);
-//               }}
-//               textContentType="password"
-//               secureTextEntry={!passwordVisible}
-//               style={styles.numberTextBox}
-//             />
-//             <TouchableOpacity
-//               onPress={() => setPasswordVisible(!passwordVisible)}
-//               style={{ position: 'absolute', right: 20 }}>
-//               <FIcon
-//                 name={passwordVisible ? 'eye' : 'eye-slash'}
-//                 color={Password?.length > 0 ? Color.black : Color.white}
-//                 size={20}
-//               />
-//             </TouchableOpacity>
-//           </View>
-//           {errorPassword && (
-//             <Text style={styles.invalidLogin}>{errorPassword}</Text>
-//           )}
-//         </View>
-//         <TouchableOpacity
-//           onPress={() => {
-//             navigation.navigate('ForgotPassword');
-//           }}>
-//           <Text
-//             style={{
-//               fontFamily: Poppins.Medium,
-//               fontSize: 14,
-//               color: Color.primary,
-//               marginVertical: 10,
-//               textAlign: 'right',
-//               textDecorationLine: 'underline',
-//             }}>
-//             Forgot Password ?
-//           </Text>
-//         </TouchableOpacity>
-//         <Button
-//           title={'Login'}
-//           titleStyle={{}}
-//           buttonStyle={{
-//             backgroundColor: Color.primary,
-//             borderRadius: 5,
-//             height: 50,
-//           }}
-//           onPress={() => {
-//             login(navigation);
-//           }}
-//         />
-//         <View style={styles.RequestView}>
-//           <Text style={styles.requestTextTitle}>Don’t have an account?</Text>
-//           <TouchableOpacity
-//             onPress={() => navigation.navigate('ActionRegister')}>
-//             <Text style={styles.DemoText}>Sign up</Text>
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-//     </View>
-//     // </DismissKeyboard>
-//   );
-// };
-
-
 const LoginScreen = ({ navigation }) => {
   const routeName = useRoute();
   const [number, setNumber] = useState('');
   const [error, setError] = useState(false);
+  const [data, setdata] = useState(null);
   const [uniqueId, setUniqueId] = useState(false);
   const [userInfo, setUserInfo] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -294,12 +55,12 @@ const LoginScreen = ({ navigation }) => {
     }
   }, []);
 
-  const chkNumber = number => {
-    setNumber(number);
-    if (number.length == 10) {
-      Keyboard.dismiss();
-    }
-  };
+  // const chkNumber = number => {
+  //   setNumber(number);
+  //   if (number.length == 10) {
+  //     Keyboard.dismiss();
+  //   }
+  // };
 
   useEffect(() => {
     DeviceInfo.getUniqueId().then(uniqueId => {
@@ -309,6 +70,7 @@ const LoginScreen = ({ navigation }) => {
 
   function handleBackButtonClick() {
     if (routeName.name == "ActionLogin") {
+      // if (routeName.name == "LoginWithEmail") {
       // navigation.replace('ActionLogin');
       BackHandler.exitApp();
       return true;
@@ -321,12 +83,12 @@ const LoginScreen = ({ navigation }) => {
     return () => backHandler.remove();
   }, [routeName.name, navigation]);
 
-  
+
   const chkNumberError = number => {
     let reg = /^[6-9][0-9]*$/;
 
     if (number.length === 0) {
-      setError('Enter Your Mobile Number');
+      setError('Enter Your Whatsapp Number');
     } else if (reg.test(number) === false) {
       setError(false);
       setError(false);
@@ -338,37 +100,68 @@ const LoginScreen = ({ navigation }) => {
   const login = async () => {
     try {
       setLoading(true);
-      if (number.length == 10) {
-        const login = await fetchData.Auction_OTPlogin({
-          phone_number: number
-        });
-        console.log("login ================= :", login);
-
-        var { message, status } = login;
-        console.log("login",login);
-        
-        if (message == "Success") {
-          if (Platform.OS === 'android') {
-            common_fn.showToast('OTP Sent Successfully');
-          } else {
-            alert("OTP Sent Successfully")
-          }
-          navigation.navigate('AuctionOTPScreen', { number });
-          setLoading(false);
-        } else {
-          var msg = message;
-          setError(msg);
-          common_fn.showToast(message);
-          setLoading(false);
-        }
-      } else {
-        if (Platform.OS === 'android') {
-          common_fn.showToast('Invalid Phone Number, Please Enter Your 10 Digit Phone Number');
-        } else {
-          alert("Invalid Phone Number, Please Enter Your 10 Digit Phone Number")
-        }
+      if (data == null) {
+        setError('Enter Your Whatsapp Number / Email');
         setLoading(false);
+      } else {
+        if (data.includes('@')) {
+          if (data) {
+            const login = await fetchData.Auction_OTPlogin({
+              email: data
+            });
+            var { message, status } = login;
+            console.log("Login ============= ", login);
+            if (status == true) {
+              if (Platform.OS === 'android') {
+                common_fn.showToast('OTP Sent Successfully');
+              } else {
+                alert("OTP Sent Successfully")
+              }
+              navigation.navigate('AuctionOTPScreen', { data });
+              setLoading(false);
+            } else {
+              var msg = message;
+              console.log("emailllll,", msg);
+
+              setError(msg);
+              common_fn.showToast(message);
+              setLoading(false);
+            }
+          }
+        } else {
+          if (data?.length == 10) {
+            const login = await fetchData.Auction_OTPlogin({
+              phone_number: data
+            });
+            var { message, status } = login;
+            console.log("Login ============= ", login);
+            if (status == true) {
+              if (Platform.OS === 'android') {
+                common_fn.showToast('OTP Sent Successfully');
+              } else {
+                alert("OTP Sent Successfully")
+              }
+              navigation.navigate('AuctionOTPScreen', { data });
+              setLoading(false);
+            } else {
+              var msg = message;
+              console.log("ffffaIl,", msg);
+
+              setError(msg);
+              common_fn.showToast(message);
+              setLoading(false);
+            }
+          } else {
+            if (Platform.OS === 'android') {
+              common_fn.showToast('Invalid Phone Number, Please Enter Your 10 Digit Phone Number');
+            } else {
+              alert("Invalid Phone Number, Please Enter Your 10 Digit Phone Number")
+            }
+            setLoading(false);
+          }
+        }
       }
+
     } catch (error) {
       setLoading(false);
       console.log("catch in  login_catch ================= :", error);
@@ -496,21 +289,20 @@ const LoginScreen = ({ navigation }) => {
                 color: Color.cloudyGrey,
                 marginRight: 10,
               }} numberOfLines={2}>
-              Please give your whatsapp mobile number to Get Started
+              Please give your Whatsapp Number or Email to get started
             </Text>
             <View style={{ marginVertical: 20 }}>
               <View style={styles.NumberBoxConatiner}>
-                <Text style={styles.numberCountryCode}>+91</Text>
+                {/* <Text style={styles.numberCountryCode}>+91</Text> */}
                 <TextInput
-                  placeholder="Mobile Number"
+                  placeholder="Whatsapp Number / Email"
                   placeholderTextColor={Color.black}
-                  value={number}
-                  keyboardType="phone-pad"
-                  maxLength={10}
+                  value={data}
+                  keyboardType="default"
+                  // maxLength={10}
                   autoFocus={number.length == 10 ? false : true}
                   onChangeText={number => {
-                    chkNumber(number);
-                    chkNumberError(number);
+                    setdata(number)
                   }}
                   style={styles.numberTextBox}
                 />
@@ -633,10 +425,10 @@ const styles = StyleSheet.create({
     borderLeftColor: Color.Venus,
     borderLeftWidth: 1,
     color: Color.black,
-    fontSize: 12,
+    fontSize: 14,
     padding: 5,
     paddingTop: 7,
-    fontFamily: Poppins.SemiBold,
+    fontFamily: Poppins.Light,
     alignItems: "flex-start",
   },
   RequestView: {

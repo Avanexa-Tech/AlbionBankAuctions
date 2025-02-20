@@ -25,6 +25,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import common_fn from '../../../Config/common_fn';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { baseUrl } from '../../../Config/base_url';
 
 var { width, height } = Dimensions.get('screen');
 
@@ -37,8 +38,6 @@ const AuctionEditProfile = () => {
   const data = useSelector(
     state => state.UserReducer.auctionUserData,
   );
-
-  console.log("data ********************* : ", data);
 
   const [loading, setLoading] = useState(false);
   const [Username, setUsername] = useState("");
@@ -80,10 +79,9 @@ const AuctionEditProfile = () => {
         method: "GET",
         redirect: "follow"
       };
-      fetch(`https://api.albionbankauctions.com/api/user/get_user?user_id=${data?.id}&status=activated`, requestOptions)
+      fetch(`${baseUrl}api/user/get_user?user_id=${data?.id}&status=activated`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
-          console.log("Profile Data =========== :", result?.data);
           if (result?.status === true) {
             setUserData(result?.data)
           } else {
@@ -174,14 +172,11 @@ const AuctionEditProfile = () => {
           body: raw,
           redirect: "follow"
         };
-        console.log("PAY LOAD =============== :", requestOptions);
 
-
-        fetch("https://api.albionbankauctions.com/api/user/edit_user", requestOptions)
+        fetch(`${baseUrl}api/user/edit_user`, requestOptions)
           .then((response) => response.json())
           .then(async (result) => {
             if (result?.status === true) {
-              console.log("Profile Update ================= :", result);
               // setUserData(result?.data)
               const UserLogin = {
                 ...result?.data,
@@ -202,7 +197,6 @@ const AuctionEditProfile = () => {
             }
             else {
               common_fn.showToast(result?.message);
-              console.log("Profile Else ================= :", result?.message);
             }
           })
           .catch((error) => console.error("catch in update_profile_api:", error));
@@ -218,8 +212,6 @@ const AuctionEditProfile = () => {
     }
   };
 
-  console.log("address ----------------- :", address + "    Username ======== :" + Username);
-
 
   return (
     <View style={styles.container}>
@@ -228,7 +220,7 @@ const AuctionEditProfile = () => {
           style={{
             justifyContent: 'center',
             alignItems: 'center',
-            marginVertical: 20,
+            // marginVertical: 20,
           }}>
           <View
             style={{
@@ -294,14 +286,14 @@ const AuctionEditProfile = () => {
                   placeholder="Enter your name"
                   placeholderTextColor={Color.cloudyGrey}
                   multiline={false}
-                  value={Username}  // ✅ Use state
-                  onChangeText={text => setUsername(text)} // ✅ Update state on change
+                  value={Username}  
+                  onChangeText={text => setUsername(text)} 
                   keyboardType="name-phone-pad"
                   returnKeyType={'next'}
                   style={{
                     width: '90%',
                     color: 'black',
-                    fontFamily: Poppins.SemiBold,
+                    fontFamily: Poppins.Medium,
                     fontSize: 16,
                     paddingHorizontal: 10,
                     flexDirection: 'row',
@@ -356,7 +348,7 @@ const AuctionEditProfile = () => {
                     width: '90%',
                     color: 'black',
                     fontSize: 16,
-                    fontFamily: Poppins.SemiBold,
+                    fontFamily: Poppins.Medium,
                     paddingHorizontal: 10,
                     flexDirection: 'row',
                   }}
@@ -384,9 +376,10 @@ const AuctionEditProfile = () => {
                 numberOfLines={1}>
                 Phone Number *
               </Text>
-              <View style={styles.NumberBoxConatiner}>
+              <View style={[styles.NumberBoxConatiner11]}>
                 <Text style={styles.numberCountryCode}>+91</Text>
                 <TextInput
+                
                   placeholder="Enter your phone number"
                   placeholderTextColor={Color.cloudyGrey}
                   value={number}  // ✅ Use state
@@ -397,6 +390,7 @@ const AuctionEditProfile = () => {
                     setNumber(num);
                     chkNumberError(num);
                   }}
+                  editable={false}
                   style={styles.numberTextBox}
                 />
                 <View style={{ paddingHorizontal: 10 }}>
@@ -440,7 +434,7 @@ const AuctionEditProfile = () => {
                     width: '100%',
                     color: 'black',
                     fontSize: 14,
-                    fontFamily: Poppins.SemiBold,
+                    fontFamily: Poppins.Medium,
                     paddingHorizontal: 10,
                     height: 110,
                     maxHeight: 150,
@@ -464,7 +458,7 @@ const AuctionEditProfile = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
               }}>
-              <Text style={{ fontSize: 16, color: 'white' }}>Update</Text>
+              <Text style={{ fontSize: 16, color: 'white', fontFamily: Poppins.Medium,}}>Update</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -491,6 +485,17 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: 'white',
   },
+  NumberBoxConatiner11: {
+    width: '100%',
+    borderColor: Color.cloudyGrey,
+    borderWidth: 1,
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+    borderRadius: 5,
+    backgroundColor: Color.lightgrey,
+  },
   numberCountryCode: {
     color: Color.cloudyGrey,
     marginHorizontal: 10,
@@ -512,7 +517,7 @@ const styles = StyleSheet.create({
     color: Color.black,
     marginVertical: 10,
     fontSize: 16,
-    fontFamily: Poppins.SemiBold,
+    fontFamily: Poppins.Medium,
   },
 });
 

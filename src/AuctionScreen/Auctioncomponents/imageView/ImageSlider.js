@@ -2,10 +2,12 @@ import React, { Component } from 'react';
 import { Animated, View, Image, TouchableOpacity, Text, ToastAndroid } from 'react-native';
 import Color from '../../../Config/Color';
 import { base_albionbankauctions_url } from '../../../Config/base_url';
+import { Iconviewcomponent } from '../../../Components/Icontag';
 //Config
 
 export default class ImageSlider extends Component {
   constructor(props) {
+    
     super(props);
     this.state = {
       images: [],
@@ -15,6 +17,7 @@ export default class ImageSlider extends Component {
       width: 0,
     };
   }
+
 
 
   componentDidMount() {
@@ -35,9 +38,10 @@ export default class ImageSlider extends Component {
   };
 
   render() {
-    var { showModal } = this.props;
-    var { images, animScrollBarOpacityVal, animScrollXVal, scrollXVal, width, active, planStatus, expiredStatus } =
+    var { showModal,planStatus,active,expiredStatus } = this.props;
+    var { images, animScrollBarOpacityVal, animScrollXVal, scrollXVal, width } =
       this.state;
+    
     return (
       <View
         style={{
@@ -61,6 +65,7 @@ export default class ImageSlider extends Component {
             {images.map((image, i) => {
               // const isRestricted = active === 1 || (planStatus > 1 && expiredStatus !== "expired");
               const isRestricted = !(planStatus > 1 && expiredStatus !== 'expired')
+              
               // console.log("isRestricted --------------", isRestricted);
               return (
                 <TouchableOpacity key={i}
@@ -83,33 +88,26 @@ export default class ImageSlider extends Component {
                     resizeMode="cover"
                     style={[
                       { flex: 1, width, height: '100%' },
-                      isRestricted && { opacity: 0.2 }, // Apply transparency
                     ]}
+                    blurRadius={isRestricted ? 25 : 0}
                   />
                   {isRestricted && (
                     <View
                       style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(58, 58, 58, 0.1)', // Add semi-transparent overlay
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        position: "absolute",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "100%",
+                        width: "100%"
                       }}
                     >
-                      <View style={{ flex: 1, width, height: '100%', justifyContent: 'center', alignItems: 'center' }}>
-                        <Image
-                          source={require('../../../assets/image/crown.png')}
-                          style={{
-                            width: '40%',
-                            height: '40%',
-                            resizeMode: 'center',
-                            borderRadius: 100,
-                          }}
-                        />
-                      </View>
+                      <Iconviewcomponent
+                        Icontag={'MaterialCommunityIcons'}
+                        iconname={"shield-crown"}
+                        icon_size={60}
+                        icon_color={"#F6C324"}
+                      />
                     </View>
                   )}
                 </TouchableOpacity>

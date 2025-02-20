@@ -25,6 +25,9 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { profileCompletion } from '../../Utils/utils';
 import { setActionUserData, setLoginType } from '../../Redux';
 import { useDispatch } from 'react-redux';
+import { baseUrl } from '../../Config/base_url';
+import { data } from '../../Components/content';
+import { Poppins } from '../../Global/FontFamily';
 
 const DismissKeyboard = ({ children }) => (
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -321,9 +324,10 @@ const DismissKeyboard = ({ children }) => (
 //   );
 // };
 
+
 const AuctionOTPScreen = ({ route }) => {
   const navigation = useNavigation()
-  const [number] = useState(route.params.number);
+  const [number] = useState(route?.params?.register?.isRegistered == true ? route.params?.data?.phone_number : route?.params?.data);
   const inputRef = useRef();
   const [otpCode, setOTPCode] = useState('');
   const [isPinReady, setIsPinReady] = useState(false);
@@ -333,6 +337,8 @@ const AuctionOTPScreen = ({ route }) => {
   const [seconds, setSeconds] = useState(30);
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState('');
+  const [data, setdata] = useState(null)
+  const [accesstoken, setAccesstoken] = useState(null)
   const dispatch = useDispatch();
 
   // useEffect(() => {
@@ -403,6 +409,7 @@ const AuctionOTPScreen = ({ route }) => {
   function handleBackButtonClick() {
     if (!number) {
       navigation.navigate("ActionLogin");
+      // navigation.navigate('LoginWithEmail')
       return true;
     } else {
       navigation.goBack();
@@ -413,12 +420,18 @@ const AuctionOTPScreen = ({ route }) => {
   const ResendOTP = async number => {
     setMinutes(0); // Reset timer to 30 seconds
     setSeconds(30);
-    const ResendOtpVerify = await fetchData.Auction_OTPlogin({ phone_number: number });
+    const emailpayload = {
+      email: number
+    }
+    const numberpayload = {
+      phone_number: number
+    }
+    const payload = number?.includes('@') ? emailpayload : numberpayload
+    console.log("payload", payload);
+    const ResendOtpVerify = await fetchData.Auction_OTPlogin(payload);
     const { message, user_id, status } = ResendOtpVerify || {};
-    console.log("RESENT OTP ================= : ", ResendOtpVerify, "user_id", user_id);
-
     if (status) {
-      if (Platform.OS === 'android') {
+      if (Platform.OS == 'android') {
         common_fn.showToast('OTP Sent Successfully');
       } else {
         alert('OTP Sent Successfully');
@@ -437,6 +450,25 @@ const AuctionOTPScreen = ({ route }) => {
     //   common_fn.showToast(ResendOtpVerify?.message);
     // }
   };
+  const ResendRegister = async (item) => {
+    try {
+      setMinutes(0); // Reset timer to 30 seconds
+      setSeconds(30);
+      var payload = {
+        email: item?.data?.email,
+        phone_number: item?.data?.phone_number
+      };
+      const Auction_register = await fetchData.Auction_register(payload);
+      if (Auction_register?.isRegistered == true) {
+        setdata(item)
+        setAccesstoken(Auction_register?.token)
+        common_fn.showToast("OTP Sent Successfully")
+      }
+    } catch (error) {
+      console.log("Catch in Error", error);
+
+    }
+  }
 
   const chkOTPError = OTP => {
     let reg = /^[6-9][0-9]*$/;
@@ -450,8 +482,6 @@ const AuctionOTPScreen = ({ route }) => {
       setError('');
     }
   };
-
-
 
   const requestUserPermission = async () => {
     const authStatus = await messaging().requestPermission({
@@ -478,7 +508,6 @@ const AuctionOTPScreen = ({ route }) => {
       if (!fcmToken) {
         try {
           const refreshToken = await messaging().getToken();
-          console.log("TOKEN ====================== :", refreshToken);
 
           if (refreshToken) {
             setToken(refreshToken);
@@ -545,19 +574,27 @@ const AuctionOTPScreen = ({ route }) => {
 
 
       if (otpCode.length == 4) {
-
-        // console.log("CODE ============== :", otpCode);
-        const VerifyOTP = await fetchData.Auction_VerifyOTP({
+        const emailpayload = {
+          email: number,
+          otp: Number(otpCode),
+          fcm_token: token,
+        }
+        const numberpayload = {
           phone_number: number,
           otp: Number(otpCode),
           fcm_token: token,
-        });
+        }
+        const payload = number?.includes('@') ? emailpayload : numberpayload
+        console.log("payload", payload);
+
+        const VerifyOTP = await fetchData.Auction_VerifyOTP(payload);
         // console.log("STATUS ============== :", VerifyOTP);
 
         if (VerifyOTP?.isLoggedin == true) {
           dispatch(setActionUserData(VerifyOTP?.user));
           dispatch(setLoginType('Auction'));
           await AsyncStorage.setItem('action_user_data', JSON.stringify(VerifyOTP?.user),);
+          await AsyncStorage.setItem('logindetails', JSON.stringify(VerifyOTP));
           await AsyncStorage.setItem('action_login_type', JSON.stringify({ login_type: 'Auction' }),);
           // navigation.replace('ActionHome', VerifyOTP?.user);
           navigation.dispatch(navigation.replace('ActionHome', VerifyOTP?.user));
@@ -588,6 +625,75 @@ const AuctionOTPScreen = ({ route }) => {
     } catch (error) {
       console.log("catch in VerifyOTP_error:", error);
 
+    }
+  };
+  const RegisterOTP = async () => {
+    try {
+      // if (otpCode.length == 4) {
+      //   const VerifyOTP = await fetchData.Auction_VerifyOTP({
+      //     phone_number: route?.params?.data?.phone_number,
+      //     otp: Number(otpCode),
+      //     fcm_token: token,
+      //   });
+      //   console.log("STATUS ============== :", VerifyOTP);
+
+      //   if (VerifyOTP?.isLoggedin == true) {
+      //     navigation.replace("ActionLogin");
+      //     // navigation.navigate('LoginWithEmail')
+      //     setLoading(false);
+      //   } else {
+      //     setOTPCode('');
+      //     inputRef.current.focus();
+      //     // var msg = VerifyOTP?.message;
+      //     // setError(msg);
+      //     common_fn.showToast(VerifyOTP?.message);
+      //     setLoading(false);
+      //   }
+      // } else {
+      //   if (Platform.OS === 'android') {
+      //     common_fn.showToast('Invalid OTP Code Please Enter Your 4 Digit OTP Code');
+      //   } else {
+      //     alert('Invalid OTP Code Please Enter Your 4 Digit OTP Code')
+      //   }
+      //   setLoading(false);
+      // }
+      setLoading(true);
+      const myHeaders = new Headers();
+      myHeaders.append("accept", "*/*");
+      myHeaders.append("Content-Type", "application/json");
+      myHeaders.append("Authorization", `Bearer ${accesstoken == null ? route?.params?.register?.token : accesstoken}`);
+      const requestBody =
+      {
+        name: route?.params?.data?.name,
+        email: route?.params?.data?.email,
+        phone_number: route?.params?.data?.phone_number,
+        address: route?.params?.data?.password,
+        state: route?.params?.data?.state,
+        password: "",
+        district: route?.params?.data?.district,
+        user_data: Number(otpCode)
+      }
+      const requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: JSON.stringify(requestBody),
+        redirect: "follow"
+      };
+      fetch(`${baseUrl}api/login/verify_user`, requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          if (result?.message == "Registered successfully") {
+            navigation.replace("ActionLogin");
+          } else {
+            setOTPCode('')
+            common_fn.showToast("Invalid Otp")
+          }
+          setLoading(false);
+        })
+        .catch((error) => { console.error(error), setLoading(false) });
+    } catch (error) {
+      console.log("catch in VerifyOTP_error:", error);
+      setLoading(false);
     }
   };
 
@@ -627,24 +733,18 @@ const AuctionOTPScreen = ({ route }) => {
   }, []);
 
   useEffect(() => {
-    // This block of code will execute whenever OTPCode changes
     console.log('OTPCode changed:', otpCode);
   }, [otpCode]);
 
   const otpHandler = message => {
     try {
-      console.log('Received SMS for OTP processing:', message);
       const otpMatch = /(\d{4})/g.exec(message);
-      console.log('otpMatch', otpMatch)
       if (otpMatch && otpMatch[1]) {
         const otpDigit = otpMatch[1];
 
-        // Append the new digit to the existing OTPCode
         setOTPCode(prevOTP => prevOTP + otpDigit);
 
-        console.log('Updated OTP Code:', otpCode + otpDigit);
 
-        // Check if the complete OTP is received
         if (otpCode.length + otpDigit.length === 4) {
           console.log('Complete OTP received:', otpCode + otpDigit);
           // Do any further processing or validation here
@@ -660,7 +760,6 @@ const AuctionOTPScreen = ({ route }) => {
   const startListeningForOtp = () => {
     RNOtpVerify.getOtp()
       .then(receivedSMS => {
-        console.log('Received SMS:', receivedSMS);
         // setOTPCode('1234'); 
         RNOtpVerify.addListener(otpHandler.bind(this));
       })
@@ -699,13 +798,12 @@ const AuctionOTPScreen = ({ route }) => {
           }}>
           <Text
             style={{
-              fontFamily: 'Poppins-SemiBold',
               fontSize: 18,
-              fontWeight: 'bold',
               textAlign: 'center',
               color: Color.black,
               marginRight: 10,
               marginVertical: 10,
+              fontFamily: Poppins.Medium,
             }}>
             Enter OTP
           </Text>
@@ -729,14 +827,24 @@ const AuctionOTPScreen = ({ route }) => {
             </View>
           ) : (
             <View style={styles.noReceivecodeView}>
-              <TouchableOpacity onPress={() => ResendOTP(number)}>
+              {/* <TouchableOpacity onPress={() => {ResendOTP(number)}}> */}
+              <TouchableOpacity onPress={() => {
+                if (route?.params?.register?.isRegistered == true) {
+                  setOTPCode('')
+                  ResendRegister(route?.params);
+                } else {
+                  setOTPCode('')
+                  ResendOTP(number)
+                }
+              }
+              }>
                 <Text style={styles.resendOtp}>Resend OTP</Text>
               </TouchableOpacity>
             </View>
           )}
           <Button
             title={'Submit'}
-            titleStyle={{ fontSize: 14 }}
+            titleStyle={{ fontSize: 14, fontFamily: Poppins.Light }}
             buttonStyle={{
               height: 50,
               backgroundColor: Color.primary,
@@ -744,7 +852,12 @@ const AuctionOTPScreen = ({ route }) => {
               marginVertical: 10,
             }}
             onPress={() => {
-              VerifyOTP(navigation);
+              if (route?.params?.register?.isRegistered == true) {
+                RegisterOTP();
+              } else {
+
+                VerifyOTP(navigation);
+              }
             }}
             loading={loading}
           />
@@ -781,10 +894,9 @@ const styles = StyleSheet.create({
   resendOtp: {
     color: Color.primary,
     fontSize: 13,
-    fontFamily: 'Poppins-SemiBold',
-    fontWeight: 'bold',
     textDecorationLine: 'underline',
     textAlign: 'right',
+    fontFamily: Poppins.Light
   },
   invalidLogin: {
     fontSize: 14,

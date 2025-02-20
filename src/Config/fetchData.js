@@ -159,13 +159,22 @@ export default {
     return api.AuctionpostMethod(url, data);
   },
   Auction: data => {
-    let url = aution_api_name + 'auction/show';
+    let url = aution_api_name + 'auction/show?filter=upcoming';
+    return api.AuctiongetMethod(url, data);
+  },
+  Recent_Auction: data => {
+    let url = aution_api_name + 'auction/show?filter=recent';
+    return api.AuctiongetMethod(url, data);
+  },
+  Similar_Auction: data => {
+    let url = aution_api_name + `auction/show?district=${data.district}`;
     return api.AuctiongetMethod(url, data);
   },
   get_Auction: async (data) => {
     let url = aution_api_name + 'auction/show?' + data;
+    console.log("fffffffffff",url);
+    
     const response = await api.AuctiongetMethod(url, data);
-    // console.log(url, "***********************")
     return response;
   },
   get_banks: data => {
@@ -252,4 +261,27 @@ export default {
     let url = api_name + 'auction/request-property';
     return api.postMethod(url, data, header);
   },
+  Auction_Notifylist :(data)=>{
+    let url = aution_api_name + `auction/get-notify/${data}`;    
+    return api.getMethod(url);
+  },
+  loginWithEmail :(data)=>{
+    let url = aution_api_name + `login/login`;
+    return api.postMethod(url, data);
+  },
+  DeleteNotify:(data)=>{
+    let url = aution_api_name + `auction/delete-notify/${data}`
+    return api.deleteMethod(url);
+  },
+  fetchAuction: (param) => {
+    let url = aution_api_name + `auction/show?${param}`
+    console.log("url",url);
+    
+    return api.getMethod(url)
+  },
+  Auction_Logout_Api:(data)=>{
+    let url = `${aution_api_name}login/logout/${data}`;
+    console.log("url",url);
+    return api.getMethod(url)
+  }
 };

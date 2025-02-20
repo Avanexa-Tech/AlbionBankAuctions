@@ -31,7 +31,7 @@ const PostCompletedModal = ({ }) => {
       animationType={'fade'}>
       <View style={styles.OrderModalContainer}>
         <View style={styles.orderView}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.closeModal}
             onPress={() => {
               if (orderSuccessModal) {
@@ -41,17 +41,17 @@ const PostCompletedModal = ({ }) => {
               }
             }}>
             <MCIcon name="close-circle" size={30} color={Color.red} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {orderSuccessModal ? <LottieCheck /> : <LottieCancelled />}
           <Text style={styles.orderStatus}>
             {orderSuccessModal
-              ? 'Order placed successfully !'
-              : 'Order Cancelled'}
+              ? 'Plan Purchase Successful !'
+              : 'Plan Cancelled'}
           </Text>
           <Text style={styles.orderModalMsg}>
             {orderSuccessModal
-              ? 'Your order has been placed successfully! Thank you for your purchase'
-              : 'Your Order has been cancelled, You want to try again'}
+              ? 'Thank you for your purchase'
+              : 'Your Plan has been cancelled, You want to try again'}
           </Text>
           <TouchableOpacity
             style={{
@@ -66,12 +66,9 @@ const PostCompletedModal = ({ }) => {
               justifyContent: 'center',
             }}
             onPress={() => {
-              if (orderSuccessModal) {
-                dispatch(setPaySuccessVisible(false));
-                navigation.navigate('ActionHome');
-              } else {
-                dispatch(setPayCancelVisible(false));
-              }
+              dispatch(setPayCancelVisible(false));
+              dispatch(setPaySuccessVisible(false));
+              navigation.navigate('ActionHome');
             }}>
             <Text
               style={{

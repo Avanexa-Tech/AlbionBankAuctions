@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import ImageSlider from './ImageSlider';
 import ImageZoom from './imageZoom';
 import Color from '../../../Config/Color';
+import { baseUrl } from '../../../Config/base_url';
 
 const { width, height } = Dimensions.get('window');
 export default class ImageView extends Component {
@@ -35,18 +36,16 @@ export default class ImageView extends Component {
       };
 
       const response = await fetch(
-        `https://api.albionbankauctions.com/api/plan/user?user_id=${this.props.id}&status=activated`,
+        `${baseUrl}api/plan/user?user_id=${this.props.id}&status=activated`,
         requestOptions
       );
       const result = await response.json();
-
+      
       if (result?.status === true) {
-        // console.log('profile data -----------------', result?.data[0]);
         this.setState({
           expiredStatus: result?.data[0]?.status,
-          planStatus: result?.data[0]?.plan_id,
+          planStatus:result?.data[0]?.Plan?.id,
         });
-        // console.log('PLAN ======= :', result?.data[0]);
       }
     } catch (error) {
       console.log('catch in plan_CheckData_Home : ', error);
@@ -58,6 +57,7 @@ export default class ImageView extends Component {
   render() {
     var { images, } = this.props;
     var { visible, active, planStatus, expiredStatus } = this.state;
+    
     // console.log("navigation ================== :", this.props.navigation);
     return (
       <View style={{ height: 220 }}>
@@ -69,14 +69,12 @@ export default class ImageView extends Component {
           planStatus={planStatus} // Pass planStatus as a prop
           expiredStatus={expiredStatus} // Pass expiredStatus as a prop
           showModal={active => {
-            // console.log("onclick ========== :", active);
             if (active === 0 || (planStatus > 1 && expiredStatus !== "expired")) {
-              // Do not open the modal
-              this.setState({ visible: false, active: false });
-              ToastAndroid.show('Access to property images requires an active plan. Please upgrade your plan to view this feature', ToastAndroid.LONG,);
+              this.setState({ visible: true, active });
             } else {
               // Open the modal
-              this.setState({ visible: true, active });
+              this.setState({ visible: false, active: false });
+              ToastAndroid.show('Access to property images requires an active plan. Please upgrade your plan to view this feature', ToastAndroid.LONG,);
             }
           }}
         />

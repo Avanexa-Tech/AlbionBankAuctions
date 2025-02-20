@@ -262,11 +262,13 @@ const CustomDrawerContent = props => {
   }
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Color.white }}>
+      
+
+      <ScrollView showsVerticalScrollIndicator={false}>
       <View>
         <View
           style={{
             backgroundColor: Color.primary,
-            height: 200,
             padding: 10,
           }}>
           <View
@@ -370,7 +372,7 @@ const CustomDrawerContent = props => {
                   style={{
                     fontSize: 18,
                     color: Color.white,
-                    fontFamily: Poppins.Bold,
+                    fontFamily: Poppins.Medium,
                     textTransform: 'capitalize',
                     marginVertical: 5,
                     marginHorizontal: 10,
@@ -389,7 +391,7 @@ const CustomDrawerContent = props => {
                   style={{
                     fontSize: 14,
                     color: Color.white,
-                    fontFamily: Poppins.SemiBold,
+                    fontFamily: Poppins.Medium,
                     textTransform: 'capitalize',
                     marginHorizontal: 10,
                     marginVertical: Platform.OS == 'ios' ? 5 : 0,
@@ -401,14 +403,12 @@ const CustomDrawerContent = props => {
           </View>
         </View>
       </View>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ marginBottom: 50 }}>
           <View
             style={{
               backgroundColor:
                 itemSelected === 'Home' ? primarycolor : Color.white,
-              marginVertical: 2,
+              // marginVertical: 2,
             }}>
             <TouchableOpacity
               style={{
@@ -436,7 +436,7 @@ const CustomDrawerContent = props => {
                   width: 150,
                   marginLeft: 10,
                   color: itemSelected === 'Home' ? Color.white : Color.black,
-                  fontFamily: itemSelected === 'Home' ? 'bold' : 'normal',
+                  fontFamily: itemSelected === 'Home' ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 Home
               </Text>
@@ -485,7 +485,7 @@ const CustomDrawerContent = props => {
                       ? Color.white
                       : Color.black,
                   fontFamily:
-                    itemSelected === 'AuctionPrime' ? 'bold' : 'normal',
+                    itemSelected === 'AuctionPrime' ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 Auction Prime
               </Text>
@@ -510,7 +510,9 @@ const CustomDrawerContent = props => {
               }}
               onPress={() => {
                 // setItemSelected('NotifyProperty'),
-                props.navigation.navigate('AuctionNotifyProperties');
+                // console.log("2281");
+
+                props.navigation.navigate('ListNotifyProperties');
               }}>
               <Iconviewcomponent
                 Icontag={'MaterialIcons'}
@@ -534,7 +536,7 @@ const CustomDrawerContent = props => {
                       ? Color.white
                       : Color.black,
                   fontFamily:
-                    itemSelected === 'NotifyProperty' ? 'bold' : 'normal',
+                    itemSelected === 'NotifyProperty' ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 Notify Properties
               </Text>
@@ -586,8 +588,7 @@ const CustomDrawerContent = props => {
                       : Color.black,
                   fontFamily:
                     itemSelected === 'InterestedProperties'
-                      ? 'bold'
-                      : 'normal',
+                      ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 Interested Properties
               </Text>
@@ -609,7 +610,6 @@ const CustomDrawerContent = props => {
                 padding: 10,
               }}
               onPress={() => {
-                // setItemSelected('AdvanceSearch');
                 props.navigation.navigate('AdvanceSearch');
               }}>
               <Iconviewcomponent
@@ -631,10 +631,10 @@ const CustomDrawerContent = props => {
                     itemSelected === 'AdvanceSearch'
                       ? Color.white
                       : Color.black,
-                  fontWeight:
-                    itemSelected === 'AdvanceSearch' ? 'bold' : 'normal',
+                  fontFamily:
+                    itemSelected === 'AdvanceSearch' ? Poppins?.Medium : Poppins?.Regular
                 }}>
-                Advance Search
+                Advanced Search
               </Text>
             </TouchableOpacity>
           </View>
@@ -680,8 +680,8 @@ const CustomDrawerContent = props => {
                     itemSelected === 'AuctionAboutUs'
                       ? Color.white
                       : Color.black,
-                  fontWeight:
-                    itemSelected === 'AuctionAboutUs' ? 'bold' : 'normal',
+                  fontFamily:
+                    itemSelected === 'AuctionAboutUs' ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 About Us
               </Text>
@@ -726,8 +726,8 @@ const CustomDrawerContent = props => {
                     itemSelected === 'AuctionContact'
                       ? Color.white
                       : Color.black,
-                  fontWeight:
-                    itemSelected === 'AuctionContact' ? 'bold' : 'normal',
+                  fontFamily:
+                    itemSelected === 'AuctionContact' ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 Contact Us
               </Text>
@@ -769,7 +769,7 @@ const CustomDrawerContent = props => {
                   width: 150,
                   marginLeft: 10,
                   color: itemSelected === 'FAQs' ? Color.white : Color.black,
-                  fontWeight: itemSelected === 'FAQs' ? 'bold' : 'normal',
+                  fontFamily: itemSelected === 'FAQs' ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 FAQs
               </Text>
@@ -811,8 +811,7 @@ const CustomDrawerContent = props => {
                     itemSelected === 'RateReviews'
                       ? Color.white
                       : Color.black,
-                  fontWeight:
-                    itemSelected === 'RateReviews' ? 'bold' : 'normal',
+                  fontFamily: itemSelected === 'RateReviews' ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 Feedback & Ratings
               </Text>
@@ -862,16 +861,14 @@ const CustomDrawerContent = props => {
                     itemSelected === 'AuctionPrivacyPolicy'
                       ? Color.white
                       : Color.black,
-                  fontWeight:
+                  fontFamily:
                     itemSelected === 'AuctionPrivacyPolicy'
-                      ? 'bold'
-                      : 'normal',
+                      ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 Privacy Policy
               </Text>
             </TouchableOpacity>
           </View>
-
           <View
             style={{
               backgroundColor:
@@ -911,8 +908,8 @@ const CustomDrawerContent = props => {
                     itemSelected === 'AuctionTerms'
                       ? Color.white
                       : Color.black,
-                  fontWeight:
-                    itemSelected === 'AuctionTerms' ? 'bold' : 'normal',
+                  fontFamily:
+                    itemSelected === 'AuctionTerms' ? Poppins?.Medium : Poppins?.Regular
                 }}>
                 Terms & Conditions
               </Text>
@@ -928,7 +925,7 @@ const CustomDrawerContent = props => {
               justifyContent: 'flex-end',
               alignItems: 'center',
             }}>
-            <Text style={{ fontSize: 14, color: '#00961A' }}>
+            <Text style={{ fontSize: 10, color: '#00961A', fontFamily: Poppins?.Regular }}>
               App version : {DeviceInfo.getVersion()}
             </Text>
           </View>

@@ -40,7 +40,7 @@ const InterestedProperties = ({ navigation }) => {
   );
 
   useEffect(() => {
-    getAction_UserData();
+    // getAction_UserData();
     setLoading(true);
 
     const interval = setInterval(() => {
@@ -63,7 +63,7 @@ const InterestedProperties = ({ navigation }) => {
         // console.log("User Data ----------- : ", getdata);
 
         const check_interestData = await fetchData.Auction_interest_show(getdata);
-        // console.log("check_interestData ================== : ", check_interestData);
+        console.log("check_interestData ================== : ", check_interestData);
         // const sortArrayData = check_interestData?.sort((a,b) => a.created_at -b.created_at);
         setAuctionData(check_interestData);
       } catch (error) {
@@ -165,7 +165,7 @@ const InterestedProperties = ({ navigation }) => {
                     borderRadius: 5,
                     marginVertical: 10,
                     color: Color.primary,
-                    fontFamily: Poppins.SemiBold,
+                    fontFamily:Poppins.Regular
                   }}>
                   No Properties Found
                 </Text>

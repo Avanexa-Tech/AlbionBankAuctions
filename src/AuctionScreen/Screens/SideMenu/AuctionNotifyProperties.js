@@ -345,7 +345,6 @@ const AuctionNotifyProperties = () => {
 
 
   const handleRatingPress = item => {
-    console.log("Item ------------- : ", item);
 
     if (defaultRating === item) {
       setDefaultRating(null);
@@ -477,9 +476,7 @@ const AuctionNotifyProperties = () => {
         return; // Exit if validation fails
       }
 
-      // console.log("data ----------- : ", submitdata);
       const notifyProperties = await fetchData.Auction_notify_properties(submitdata);
-      console.log("Getting Response ----------- : ", JSON.stringify(notifyProperties));
 
       if (notifyProperties) {
         if (Platform.OS === 'android') {
@@ -507,22 +504,19 @@ const AuctionNotifyProperties = () => {
         };
 
         const feedbackresponse = await fetchData.Auction_feedbackData(feedbackdata);
-        console.log("SUCCESS ------------- :", feedbackresponse);
 
         if (feedbackresponse?.status == true) {
           common_fn.showToast(feedbackresponse?.message);
-          navigation.navigate("ActionHome");
+          navigation.navigate("ListNotifyProperties");
           setUpdateLoader(false);
         } else {
           common_fn.showToast(feedbackresponse?.message);
-          navigation.navigate("ActionHome");
+          navigation.navigate("ListNotifyProperties");
           setUpdateLoader(false);
         }
-
       } else {
         common_fn.showToast("Please select your rating and enter your comments");
         setUpdateLoader(false);
-        console.log("********Please fill the details *************");
       }
 
     } catch (error) {
@@ -863,38 +857,45 @@ const AuctionNotifyProperties = () => {
 
   return (
     <ScrollView
-      showsVerticalScrollIndicator={false}>
+      showsVerticalScrollIndicator={false} style={{backgroundColor:Color?.white}}>
       <View style={styles.container}>
-        <View style={{ marginVertical: 0, overflow: 'visible' }}>
+        <View style={{ marginVertical: 0, overflow: 'visible',padding:10}}>
           <Text
             style={{
               fontFamily: Poppins.SemiBold,
-              fontSize: 20,
-              color: Color.lightBlack, paddingVertical: 5
+              fontSize: 16,
+              color: Color.lightBlack
             }}>
             Interested Price
           </Text>
           <Text
             style={{
-              fontSize: 14,
+              fontSize: 12,
               color: '#333',
-              fontFamily: 'Poppins-SemiBold',
-              textAlign: 'justify', paddingVertical: 2
+              fontFamily: Poppins.Light,
+              textAlign: 'left'
             }}>
             We will send you notifications of new property based on your interests
             & below inputs
           </Text>
-          <View style={{ marginVertical: 5 }}>
+          <View
+            style={{
+              display:"flex",
+              flexDirection:"column",
+              gap:4,
+              marginVertical:8
+            }}
+          >
             <Text
               style={{
                 color: Color.cloudyGrey,
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
               }}>
-              Reserve Price From :
+              Reserve Price From
             </Text>
             <TextInput
-              placeholder="₹ 00,00,000"
+              placeholder="Minimum Price"
               placeholderTextColor={Color.cloudyGrey}
               value={ReservedPriceFrom}
               onChangeText={value => {
@@ -902,29 +903,32 @@ const AuctionNotifyProperties = () => {
               }}
               keyboardType="number-pad"
               style={{
-                width: '100%', height: 50,
+                width: '100%', height: '50',
                 borderColor: Color.lightgrey,
                 borderWidth: 1,
                 borderRadius: 5,
-                paddingHorizontal: 10,
-                fontSize: 14,
-                color: Color.cloudyGrey,
-                fontFamily: Poppins.Medium,
-                marginRight: 10, marginVertical: 5
+                paddingHorizontal: 20,
+                fontSize: 12,
+                fontFamily: Poppins.Light,
               }}
             />
           </View>
-          <View style={{ marginVertical: 5 }}>
+          <View style={{
+              display:"flex",
+              flexDirection:"column",
+              gap:4,
+              marginVertical:8
+            }}>
             <Text
               style={{
                 color: Color.cloudyGrey,
                 fontFamily: Poppins.Medium,
-                fontSize: 14,
+                fontSize: 12,
               }}>
-              Reserve Price To :
+              Reserve Price To
             </Text>
             <TextInput
-              placeholder="₹ 00,00,000"
+              placeholder="Maximum Price"
               placeholderTextColor={Color.cloudyGrey}
               value={ReservedPriceTo}
               onChangeText={value => {
@@ -932,26 +936,32 @@ const AuctionNotifyProperties = () => {
               }}
               keyboardType="number-pad"
               style={{
-                width: '100%', height: 50,
+                width: '100%',
+                height: 50,
                 borderColor: Color.lightgrey,
                 borderWidth: 1,
                 borderRadius: 5,
-                paddingHorizontal: 10,
-                fontSize: 14,
-                color: Color.cloudyGrey,
-                fontFamily: Poppins.Medium,
-                marginRight: 10, marginVertical: 5
+                paddingHorizontal: 20,
+                fontSize: 12,
+                fontFamily: Poppins.Light,
+                textAlign: 'left', 
+                textAlignVertical: 'center',
               }}
             />
           </View>
-          <View style={{ marginVertical: 5 }}>
+          <View style={{
+              display:"flex",
+              flexDirection:"column",
+              gap:4,
+              marginVertical:8
+            }}>
             <Text
               style={{
-                fontFamily: Poppins.Medium,
-                fontSize: 14,
                 color: Color.cloudyGrey,
+                fontFamily: Poppins.Medium,
+                fontSize: 12,
               }}>
-              Select State *
+              Select State*
             </Text>
             <Dropdown
               style={{
@@ -963,29 +973,30 @@ const AuctionNotifyProperties = () => {
                 backgroundColor: Color.white,
                 borderRadius: 5,
                 borderColor: '#666',
-                borderWidth: 0.5, marginVertical: 5
+                borderWidth: 0.5,
               }}
               placeholderStyle={{
-                fontSize: 14,
+                fontSize: 12,
                 color: Color.cloudyGrey,
                 marginHorizontal: 10,
+                fontFamily:Poppins.Light
               }}
               selectedTextStyle={{
-                fontSize: 14,
-                color: Color.black,
-                marginHorizontal: 10,
+                fontSize: 12,
+                color: Color.cloudyGrey,
+                fontFamily:Poppins.Light
               }}
               iconStyle={{ width: 20, height: 20 }}
-              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey }}
+              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey,fontFamily: Poppins.Light }}
               data={State}
               maxHeight={300}
               labelField="name"
               valueField="name"
-              placeholder={selectState?.name ? 'Select City' : 'Select State'}
-              searchPlaceholder="Search..."
+              placeholder={'Select State'}
               value={selectState}
               onChange={item => {
                 setSelectState(item);
+                setCurrentDistrict({});
               }}
               renderRightIcon={() => (
                 <Icon
@@ -997,48 +1008,52 @@ const AuctionNotifyProperties = () => {
               )}
             />
           </View>
-          <View style={{ marginVertical: 5 }}>
+          <View style={{
+              display:"flex",
+              flexDirection:"column",
+              gap:4,
+              marginVertical:8
+            }}>
             <Text
               style={{
-                fontFamily: Poppins.Medium,
-                fontSize: 14,
                 color: Color.cloudyGrey,
+                fontFamily: Poppins.Medium,
+                fontSize: 12,
               }}>
-              Select District *
+              Select District*
             </Text>
             <Dropdown
               style={{
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginVertical: 5,
+                width: '100%',
                 padding: 15, height: 50,
                 paddingHorizontal: 20,
                 backgroundColor: Color.white,
                 borderRadius: 5,
-                borderColor: !selectState?.name
-                  ? Color.lightgrey
-                  : Color.cloudyGrey,
+                borderColor: '#666',
                 borderWidth: 0.5,
               }}
               placeholderStyle={{
-                fontSize: 14,
-                color: !selectState?.name ? Color.lightgrey : Color.cloudyGrey,
+                fontSize: 12,
+                color: Color.cloudyGrey,
                 marginHorizontal: 10,
+                fontFamily:Poppins.Light
               }}
               selectedTextStyle={{
-                fontSize: 14,
-                color: Color.black,
-                marginHorizontal: 10,
+                fontSize: 12,
+                color: Color.cloudyGrey,
+                fontFamily:Poppins.Light
               }}
-              disable={!selectState?.name}
               iconStyle={{ width: 20, height: 20 }}
-              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey }}
+              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey,fontFamily: Poppins.Light }}
+              disable={!selectState?.name}
               data={district}
               maxHeight={300}
               labelField="name"
               valueField="name"
-              placeholder={'Select District'}
-              searchPlaceholder="Search..."
+              // placeholder={'Select District'}
+              // searchPlaceholder="Search..."
               value={currentDistrict}
               onChange={item => {
                 setCurrentDistrict(item);
@@ -1046,62 +1061,58 @@ const AuctionNotifyProperties = () => {
               renderRightIcon={() => (
                 <Icon
                   style={{ width: 20, height: 20 }}
-                  color={!selectState?.name ? Color.lightgrey : Color.cloudyGrey}
+                  color={Color.cloudyGrey}
                   name="chevron-down"
                   size={20}
                 />
               )}
             />
           </View>
-          <View style={{ marginVertical: 5, flex: 1, overflow: 'visible', position: 'relative' }}>
+          <View style={{
+              display:"flex",
+              flexDirection:"column",
+              gap:4,
+              marginVertical:8
+            }}>
             <Text
               style={{
-                fontFamily: Poppins.Medium,
-                fontSize: 14,
                 color: Color.cloudyGrey,
+                fontFamily: Poppins.Medium,
+                fontSize: 12,
               }}>
-              Select Property Type *
+              Select Property Type*
             </Text>
             <Dropdown
               style={{
-                justifyContent: 'center',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                marginVertical: 5,
-                padding: 15,
-                height: 50,
+                width: '100%',
+                padding: 15, height: 50,
                 paddingHorizontal: 20,
                 backgroundColor: Color.white,
                 borderRadius: 5,
                 borderColor: '#666',
-                borderWidth: 0.5,
-                zIndex: 1000,
-              }}
-              containerStyle={{
-                // position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 1000,
+                borderWidth: 0.5
               }}
               placeholderStyle={{
-                fontSize: 14,
+                fontSize: 12,
                 color: Color.cloudyGrey,
                 marginHorizontal: 10,
+                fontFamily:Poppins.Light
               }}
               selectedTextStyle={{
-                fontSize: 14,
-                color: Color.black,
-                marginHorizontal: 10,
+                fontSize: 12,
+                color: Color.cloudyGrey,
+                fontFamily:Poppins.Light
               }}
               iconStyle={{ width: 20, height: 20 }}
-              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey }}
+              itemTextStyle={{ fontSize: 14, color: Color.cloudyGrey,fontFamily: Poppins.Light }}
               data={Categories}
               maxHeight={200}
               labelField="label"
               valueField="value"
-              placeholder="Select property"
-              searchPlaceholder="Search..."
+              // placeholder="Select property"
+              // searchPlaceholder="Search..."
               value={selectProperty}
               dropdownPosition="auto"
               onChange={item => {
@@ -1137,7 +1148,7 @@ const AuctionNotifyProperties = () => {
               borderColor: '#666',
               borderWidth: 0.5,
             }}>
-            <Text style={{ fontSize: 14, color: Color.white }}>Notify Me</Text>
+            <Text style={{ fontSize: 14, color: Color.white,fontFamily:Poppins.SemiBold }}>Notify Me</Text>
           </TouchableOpacity>
         </View>
 
@@ -1219,7 +1230,7 @@ const AuctionNotifyProperties = () => {
                     style={{ width: '100%', height: 110, resizeMode: 'contain', padding: 2, }}
                   />
                   <View style={{ position: 'absolute', right: 10, top: 10 }}>
-                    <TouchableOpacity onPress={() => setHomeLoanVisible(false)}>
+                    <TouchableOpacity onPress={() =>{setHomeLoanVisible(false),navigation.navigate("ListNotifyProperties")}}>
                       <Iconviewcomponent
                         Icontag={'AntDesign'}
                         iconname={"closecircle"}
